@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.readora</groupId>
+        <artifactId>readora-services</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>shared-core</artifactId>
+    <packaging>jar</packaging>
+
+    <properties>
+        <jjwt.version>0.12.6</jjwt.version>
+    </properties>
+
+    <!--
+      Cross-cutting infrastructure shared by every service that talks to the outside world
+      through the gateway: JWT validation, request-scoped identity, the deny-by-default
+      auth/role gate, correlation-id propagation, and exception-to-JSON mapping. Deliberately
+      does NOT hold any service's business/domain logic — only the plumbing that's genuinely
+      identical (or config-driven-identical) across services, so a service can still evolve its
+      own domain model without this module ever needing to change.
+    -->
+    <dependencies>
+        <!--
+          provided, not compile: the servlet filters here (OncePerRequestFilter etc., from
+          spring-web) need the servlet API to compile, but this module must not force Tomcat +
+          spring-webmvc onto every consumer — api-gateway is reactive (WebFlux/Netty) and only
+          wants JwtService, a plain POJO with no servlet dependency at all. Every servlet-based
+          consumer already brings its own spring-boot-starter-web directly, so nothing is lost.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--
+          jjwt-jackson (below, runtime scope) also pulls in jackson-databind, and being a
+          shallower dependency it wins Maven's nearest-wins conflict resolution over the
+          "provided"-scoped jackson-databind that comes transitively through
+          spring-boot-starter-web — silently downgrading it to runtime and taking it off this
+          module's own compile classpath. Declared explicitly here, at the same provided scope
+          as spring-boot-starter-web, so GatewaySecretFilter/UserContextFilter's direct
+          ObjectMapper usage keeps compiling regardless of jjwt-jackson's own scope.
+        -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
