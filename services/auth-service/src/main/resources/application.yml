@@ -1,0 +1,53 @@
+server:
+  port: 8081
+
+# /actuator/health is allowlisted in GatewaySecretFilter and UserContextFilter, so it's
+# safe to expose on the main app port rather than a separate management port.
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: auth-service
+
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: auth
+    show-sql: true
+
+  flyway:
+    schemas: auth
+    baseline-on-migrate: true
+    baseline-version: 1
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-ttl-minutes: 15
+    refresh-token-ttl-days: 30
+  security:
+    max-failed-login-attempts: 5
+    public-routes:
+      - /api/v1/auth/register
+      - /api/v1/auth/login
+      - /api/v1/auth/refresh
+  gateway:
+    secret: ${GATEWAY_SECRET}
