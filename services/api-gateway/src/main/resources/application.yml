@@ -1,0 +1,132 @@
+server:
+  port: 8080
+
+# /actuator/health is allowlisted in GatewaySecretFilter and UserContextFilter, so it's
+# safe to expose on the main app port rather than a separate management port.
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
+
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: user-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/users/**
+        - id: catalog-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/books/**,/api/v1/categories/**,/api/v1/publishers/**,/api/v1/authors/**,/api/v1/stores/**,/api/v1/admin/books/**,/api/v1/admin/categories/**,/api/v1/admin/publishers/**,/api/v1/admin/authors/**,/api/v1/admin/reviews/**
+        - id: commerce-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/v1/cart/**,/api/v1/orders/**,/api/v1/admin/orders/**
+        - id: payment-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/v1/payments/**
+        - id: ai-service
+          uri: http://localhost:8088
+          predicates:
+            - Path=/api/v1/ai/**,/api/v1/admin/embeddings/**
+        - id: notification-service-ws-upgrade
+          uri: ws://localhost:8086
+          predicates:
+            - Path=/ws/*/*/websocket
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - id: notification-service-ws-sockjs
+          uri: http://localhost:8086
+          predicates:
+            - Path=/ws/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - id: notification-service-rest
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/v1/notifications/**
+        - id: delivery-agent-service
+          uri: http://localhost:8089
+          predicates:
+            - Path=/api/v1/delivery/**,/api/v1/returns/**,/api/v1/admin/delivery/**
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "http://localhost:5174"
+              - "http://localhost:5175"
+              # AKS deployment — no real domain yet, so sslip.io resolves straight to the
+              # ingress's public IP (see k8s/base/ingress.yaml). Update if that IP changes.
+              - "http://app.48-206-18-246.sslip.io"
+              - "http://admin.48-206-18-246.sslip.io"
+              - "http://delivery.48-206-18-246.sslip.io"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            exposedHeaders:
+              - X-Conversation-Id
+            allowCredentials: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  security:
+    public-routes:
+      - /api/v1/auth/register
+      - /api/v1/auth/login
+      - /api/v1/auth/refresh
+      - /api/v1/books
+      - /api/v1/books/*
+      - /api/v1/books/*/related
+      - /api/v1/books/*/reviews
+      - /api/v1/categories/**
+      - /api/v1/publishers/**
+      - /api/v1/authors/**
+      - /api/v1/stores/**
+      - /api/v1/ai/search
+      - /ws/**
+  rate-limit:
+    default-rule:
+      limit: 200
+      window-seconds: 60
+    rules:
+      auth-service:
+        limit: 200
+        window-seconds: 60
+      ai-service:
+        limit: 20
+        window-seconds: 60
