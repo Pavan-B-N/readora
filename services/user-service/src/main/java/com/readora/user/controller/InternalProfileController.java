@@ -1,0 +1,79 @@
+package com.readora.user.controller;
+
+import com.readora.user.dto.DisplayNameResponse;
+import com.readora.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.UUID;
+
+// Internal, gateway-secret-protected endpoints exposing a user's profile/history data to other services.
+@Tag(name = "Internal")
+@RestController
+@RequestMapping("/internal/profiles")
+public class InternalProfileController {
+
+    private final UserService userService;
+
+    // Constructor injection of the user service.
+    public InternalProfileController(UserService userService) {
+        this.userService = userService;
+    }
+
+    // Returns a user's display name, or null if unset.
+    @Operation(
+            summary = "Get a user's display name",
+            description = "Internal, service-to-service only — protected by the shared gateway secret. Called by catalog-service to snapshot a display name onto a review at write time.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "displayName returned (null if no profile or none set)")
+    })
+    @GetMapping("/{userId}/display-name")
+    public ResponseEntity<DisplayNameResponse> getDisplayName(@PathVariable UUID userId) {
+        return ResponseEntity.ok(new DisplayNameResponse(userService.getDisplayName(userId)));
+    }
+
+    // Returns a user's recently viewed book ids, most-recent first.
+    @Operation(
+            summary = "Get a user's recently viewed book ids",
+            description = "Internal, service-to-service only — protected by the shared gateway secret. Called by catalog-service to weight recommendations by browsing history.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Recent book view ids returned, most-recent first")
+    })
+    @GetMapping("/{userId}/recent-book-views")
+    public ResponseEntity<List<UUID>> getRecentBookViews(
+            @PathVariable UUID userId,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        return ResponseEntity.ok(userService.getRecentBookViewIds(userId, limit));
+    }
+
+    // Returns a user's recent search terms, most-recent first.
+    @Operation(
+            summary = "Get a user's recent search terms",
+            description = "Internal, service-to-service only — protected by the shared gateway secret. Called by catalog-service to weight recommendations by search history.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Recent search terms returned, most-recent first")
+    })
+    @GetMapping("/{userId}/recent-searches")
+    public ResponseEntity<List<String>> getRecentSearches(
+            @PathVariable UUID userId,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        return ResponseEntity.ok(userService.getRecentSearchTerms(userId, limit));
+    }
+}
