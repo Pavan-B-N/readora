@@ -1,0 +1,13 @@
+package com.readora.catalog.exception;
+
+import com.readora.sharedcore.exception.ServiceException;
+import org.springframework.http.HttpStatus;
+
+import java.util.UUID;
+
+// Thrown when the requested quantity exceeds available inventory for a book.
+public class InsufficientStockException extends ServiceException {
+    public InsufficientStockException(UUID bookId) {
+        super("INSUFFICIENT_STOCK", HttpStatus.CONFLICT, "Requested quantity exceeds available inventory for book " + bookId);
+    }
+}

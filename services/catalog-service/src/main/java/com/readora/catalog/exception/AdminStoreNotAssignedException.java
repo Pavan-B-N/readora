@@ -1,0 +1,11 @@
+package com.readora.catalog.exception;
+
+import com.readora.sharedcore.exception.ServiceException;
+import org.springframework.http.HttpStatus;
+
+// Thrown when an admin account has no store assignment yet.
+public class AdminStoreNotAssignedException extends ServiceException {
+    public AdminStoreNotAssignedException() {
+        super("ADMIN_STORE_NOT_ASSIGNED", HttpStatus.FORBIDDEN, "Your account isn't assigned to a store yet");
+    }
+}

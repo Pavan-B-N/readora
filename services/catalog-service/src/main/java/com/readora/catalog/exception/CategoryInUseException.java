@@ -1,0 +1,11 @@
+package com.readora.catalog.exception;
+
+import com.readora.sharedcore.exception.ServiceException;
+import org.springframework.http.HttpStatus;
+
+// Thrown when deleting a category still assigned to one or more books.
+public class CategoryInUseException extends ServiceException {
+    public CategoryInUseException() {
+        super("CATEGORY_IN_USE", HttpStatus.CONFLICT, "This category is assigned to one or more books — reassign them first");
+    }
+}

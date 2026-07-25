@@ -1,0 +1,102 @@
+server:
+  port: 8083
+
+# /actuator/health is allowlisted in GatewaySecretFilter and UserContextFilter, so it's
+# safe to expose on the main app port rather than a separate management port.
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: catalog-service
+
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: catalog
+    show-sql: true
+
+  flyway:
+    schemas: catalog
+    baseline-on-migrate: true
+    baseline-version: 1
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  commerce-service:
+    base-url: http://localhost:8084
+  user-service:
+    base-url: http://localhost:8082
+  storage:
+    # Virtual-edition files are read from Azure Blob Storage — see AzureBlobContentStore. A
+    # missing/blank connection string isn't validated here; it's a runtime error on the first
+    # actual read (see AzureBlobContentStore.buildContainerClient()), not a startup failure.
+    azure:
+      connection-string: ${AZURE_STORAGE_CONNECTION_STRING:}
+      container-name: ${AZURE_STORAGE_CONTAINER_NAME:readora-virtual-editions}
+  security:
+    # Deliberately precise, not /api/v1/books/** — /api/v1/books/*/read (virtual-content
+    # streaming) must stay authenticated so VirtualContentService can check ownership.
+    public-routes:
+      - /api/v1/books
+      - /api/v1/books/*
+      - /api/v1/books/*/related
+      - /api/v1/categories/**
+      - /api/v1/publishers/**
+      - /api/v1/authors/**
+      - /api/v1/stores/**
+      - /internal/**
+    # Reading reviews is public, posting one isn't — the shared publicRoutes list has no
+    # per-method concept, so this one path gets its own narrow, GET-only exemption instead.
+    public-get-routes:
+      - /api/v1/books/*/reviews
+    role-gates:
+      - path-prefix: /api/v1/admin/
+        role: ADMIN
+
+resilience4j:
+  timelimiter:
+    instances:
+      user-service:
+        timeout-duration: 3s
+  retry:
+    instances:
+      user-service:
+        max-attempts: 3
+        wait-duration: 500ms
+  circuitbreaker:
+    instances:
+      user-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
