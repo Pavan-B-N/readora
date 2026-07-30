@@ -1,0 +1,62 @@
+package com.readora.commerce.repository;
+
+import com.readora.commerce.entity.OrderItem;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.UUID;
+
+// Data access for order line items.
+public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
+
+    // Every line item for one order.
+    List<OrderItem> findAllByOrderId(UUID orderId);
+
+    /** Batch variant for listing a page of orders at once — avoids one query per order. */
+    List<OrderItem> findAllByOrderIdIn(List<UUID> orderIds);
+
+    // Excludes CANCELLED and every return-family status from RETURN_APPROVED onward — but not RETURN_REQUESTED or RETURN_REJECTED, so a customer keeps ebook access while a return is pending admin review, and permanently if it's rejected. See OrderStatus's comment.
+    @Query("""
+            SELECT DISTINCT oi.bookId FROM OrderItem oi
+            JOIN oi.order o
+            WHERE o.userId = :userId AND o.status NOT IN (
+                com.readora.commerce.entity.OrderStatus.CANCELLED,
+                com.readora.commerce.entity.OrderStatus.RETURN_APPROVED,
+                com.readora.commerce.entity.OrderStatus.RETURN_ASSIGNED,
+                com.readora.commerce.entity.OrderStatus.RETURN_EN_ROUTE,
+                com.readora.commerce.entity.OrderStatus.RETURN_COLLECTED,
+                com.readora.commerce.entity.OrderStatus.REFUND_INITIATED,
+                com.readora.commerce.entity.OrderStatus.RETURNED
+            )
+            """)
+    List<UUID> findDistinctBookIdsByUserId(@Param("userId") UUID userId);
+
+    // Same live-access rule as findDistinctBookIdsByUserId, scoped to one book and to virtual lines specifically — a customer who owns the physical copy of a title is still free to also buy its virtual edition (and vice versa), so a plain "have they ever ordered this book" check would wrongly block that legitimate case.
+    @Query("""
+            SELECT COUNT(oi) > 0 FROM OrderItem oi
+            JOIN oi.order o
+            WHERE o.userId = :userId AND oi.bookId = :bookId AND oi.deliveryType = com.readora.commerce.entity.DeliveryType.VIRTUAL
+            AND o.status NOT IN (
+                com.readora.commerce.entity.OrderStatus.CANCELLED,
+                com.readora.commerce.entity.OrderStatus.RETURN_APPROVED,
+                com.readora.commerce.entity.OrderStatus.RETURN_ASSIGNED,
+                com.readora.commerce.entity.OrderStatus.RETURN_EN_ROUTE,
+                com.readora.commerce.entity.OrderStatus.RETURN_COLLECTED,
+                com.readora.commerce.entity.OrderStatus.REFUND_INITIATED,
+                com.readora.commerce.entity.OrderStatus.RETURNED
+            )
+            """)
+    boolean existsActiveVirtualPurchase(@Param("userId") UUID userId, @Param("bookId") UUID bookId);
+
+    /** Newest-first, every status included (unlike findDistinctBookIdsByUserId) — this backs an order-history rail, so a cancelled/returned item's status is exactly the point of showing it. */
+    @Query("""
+            SELECT oi FROM OrderItem oi
+            JOIN oi.order o
+            WHERE o.userId = :userId
+            ORDER BY o.placedAt DESC
+            """)
+    List<OrderItem> findRecentByUserId(@Param("userId") UUID userId, Pageable pageable);
+}

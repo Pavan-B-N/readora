@@ -1,0 +1,129 @@
+server:
+  port: 8084
+
+# /actuator/health is allowlisted in GatewaySecretFilter and UserContextFilter, so it's
+# safe to expose on the main app port rather than a separate management port.
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: commerce-service
+
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: commerce
+    show-sql: true
+
+  flyway:
+    schemas: commerce
+    baseline-on-migrate: true
+    baseline-version: 1
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL_ENABLED:false}
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: commerce-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  security:
+    public-routes:
+      - /internal/**
+    role-gates:
+      - path-prefix: /api/v1/admin/
+        role: ADMIN
+  catalog-service:
+    base-url: http://localhost:8083
+  user-service:
+    base-url: http://localhost:8082
+  payment-service:
+    base-url: http://localhost:8085
+
+resilience4j:
+  timelimiter:
+    instances:
+      catalog-service:
+        timeout-duration: 3s
+      user-service:
+        timeout-duration: 3s
+      payment-service:
+        timeout-duration: 3s
+  retry:
+    instances:
+      catalog-service:
+        max-attempts: 3
+        wait-duration: 500ms
+        ignore-exceptions:
+          - com.readora.commerce.exception.BookNotFoundException
+          - com.readora.commerce.exception.InsufficientStockException
+      user-service:
+        max-attempts: 3
+        wait-duration: 500ms
+      payment-service:
+        max-attempts: 3
+        wait-duration: 500ms
+  circuitbreaker:
+    instances:
+      catalog-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+        ignore-exceptions:
+          - com.readora.commerce.exception.BookNotFoundException
+          - com.readora.commerce.exception.InsufficientStockException
+      user-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+      payment-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
