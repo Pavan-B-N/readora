@@ -1,0 +1,59 @@
+server:
+  port: 8085
+
+# /actuator/health is allowlisted in GatewaySecretFilter and UserContextFilter, so it's
+# safe to expose on the main app port rather than a separate management port.
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: payment-service
+
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: payments
+    show-sql: true
+
+  flyway:
+    schemas: payments
+    baseline-on-migrate: true
+    baseline-version: 1
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: payment-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  security:
+    public-routes:
+      - /internal/**
