@@ -1,0 +1,13 @@
+package com.readora.notification.kafka;
+
+// Kafka topic names this service listens on.
+public final class KafkaTopics {
+
+    public static final String ORDER_STATUS_CHANGED = "order.status_changed";
+    public static final String REFUND_COMPLETED = "refund.completed";
+    public static final String NOTIFICATION_REQUESTED = "notification.requested";
+
+    // Non-instantiable constant holder.
+    private KafkaTopics() {
+    }
+}
