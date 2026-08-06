@@ -1,0 +1,32 @@
+package com.readora.delivery.dto;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+/** Mirrors commerce-service's internal response of the same name. */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record OrderDeliveryDetailResponse(
+        UUID orderId,
+        String orderNumber,
+        String status,
+        UUID storeId,
+        ShippingAddress shippingAddress,
+        List<Item> items,
+        BigDecimal grandTotal,
+        Instant placedAt
+) {
+    // The recipient's shipping address for the order.
+    public record ShippingAddress(
+            String recipientName, String line1, String line2, String city, String state,
+            String postalCode, String countryCode, String phone
+    ) {
+    }
+
+    // One line item in the order.
+    public record Item(String title, int qty) {
+    }
+}

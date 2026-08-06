@@ -1,0 +1,13 @@
+# Activated via SPRING_PROFILES_ACTIVE=prod (AKS). Overrides only the properties that are
+# container-network-dependent; every other key inherits from application.yml. Kept fully
+# self-contained from application-docker.yml on purpose, even though the values currently
+# match — the two profiles are allowed to diverge independently as prod's needs change.
+spring:
+  kafka:
+    bootstrap-servers: kafka:9092
+
+app:
+  commerce-service:
+    base-url: http://commerce-service:8084
+  user-service:
+    base-url: http://user-service:8082
