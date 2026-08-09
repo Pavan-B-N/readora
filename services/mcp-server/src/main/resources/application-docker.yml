@@ -1,0 +1,10 @@
+# Activated via SPRING_PROFILES_ACTIVE=docker (see /docker-compose.yml).
+# Overrides only the properties that are container-network-dependent; every
+# other key inherits from application.yml.
+app:
+  catalog-service:
+    base-url: http://catalog-service:8083
+  commerce-service:
+    base-url: http://commerce-service:8084
+  user-service:
+    base-url: http://user-service:8082

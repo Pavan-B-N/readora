@@ -1,0 +1,88 @@
+server:
+  port: 8087
+
+# /actuator/health is allowlisted in GatewaySecretFilter and UserContextFilter, so it's
+# safe to expose on the main app port rather than a separate management port.
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: mcp-server
+
+  # Unverified property names — check against the spring-ai-starter-mcp-server-webmvc reference
+  # docs when you sync; this is the intended shape as of Spring AI 1.0.
+  ai:
+    mcp:
+      server:
+        name: readora-mcp-server
+        version: 1.0.0
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  catalog-service:
+    base-url: http://localhost:8083
+  commerce-service:
+    base-url: http://localhost:8084
+  user-service:
+    base-url: http://localhost:8082
+
+resilience4j:
+  timelimiter:
+    instances:
+      catalog-service:
+        timeout-duration: 3s
+      commerce-service:
+        timeout-duration: 3s
+      user-service:
+        timeout-duration: 3s
+  retry:
+    instances:
+      catalog-service:
+        max-attempts: 3
+        wait-duration: 500ms
+      commerce-service:
+        max-attempts: 3
+        wait-duration: 500ms
+      user-service:
+        max-attempts: 3
+        wait-duration: 500ms
+  circuitbreaker:
+    instances:
+      catalog-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+      commerce-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+      user-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
