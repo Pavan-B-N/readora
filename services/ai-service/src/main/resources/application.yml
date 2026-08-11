@@ -1,0 +1,108 @@
+server:
+  port: 8088
+
+# /actuator/health is allowlisted in GatewaySecretFilter and UserContextFilter, so it's
+# safe to expose on the main app port rather than a separate management port.
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: ai-service
+
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: ai
+    show-sql: true
+
+  flyway:
+    schemas: ai
+    baseline-on-migrate: true
+    baseline-version: 1
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: ai-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  ai:
+    azure:
+      openai:
+        endpoint: ${AZURE_OPENAI_ENDPOINT}
+        api-key: ${AZURE_OPENAI_API_KEY}
+        chat:
+          options:
+            deployment-name: ${AZURE_OPENAI_CHAT_DEPLOYMENT}
+        embedding:
+          options:
+            deployment-name: ${AZURE_OPENAI_EMBEDDING_DEPLOYMENT}
+            # ada-002 rejects the `dimensions` param outright (400 "This model does not support
+            # specifying dimensions"), even set to its own native size — only text-embedding-3-*
+            # models support it. Leave unset for ada-002; vectorstore.pgvector.dimensions below
+            # (1536, ada-002's native output) is what actually sizes the pgvector column.
+
+    vectorstore:
+      pgvector:
+        schema-name: ai
+        table-name: vector_store
+        dimensions: 1536
+        initialize-schema: false
+
+    mcp:
+      client:
+        streamable-http:
+          url: ${MCP_SERVER_URL:http://localhost:8087}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  security:
+    public-routes:
+      - /api/v1/ai/search
+    role-gates:
+      - path-prefix: /api/v1/admin/
+        role: ADMIN
+  catalog-service:
+    base-url: http://localhost:8083
+
+resilience4j:
+  timelimiter:
+    instances:
+      catalog-service:
+        timeout-duration: 10s
+  circuitbreaker:
+    instances:
+      catalog-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
