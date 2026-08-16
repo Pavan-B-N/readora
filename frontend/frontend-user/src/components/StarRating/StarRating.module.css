@@ -1,0 +1,23 @@
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-accent, #f59e0b);
+}
+
+.star {
+  color: var(--color-border-strong);
+}
+
+.stars .star[fill="currentColor"] {
+  color: var(--color-accent, #f59e0b);
+}
+
+.interactive .star {
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.interactive .star:hover {
+  transform: scale(1.1);
+}

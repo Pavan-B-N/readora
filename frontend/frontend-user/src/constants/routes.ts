@@ -1,0 +1,17 @@
+export const ROUTES = {
+  home: '/',
+  login: '/login',
+  register: '/register',
+  bookDetail: (bookId: string) => `/books/${bookId}`,
+  cart: '/cart',
+  wishlist: '/wishlist',
+  checkout: '/checkout',
+  orders: '/orders',
+  library: '/library',
+  orderDetail: (orderId: string) => `/orders/${orderId}`,
+  wallet: '/wallet',
+  profile: '/profile',
+  read: (bookId: string) => `/read/${bookId}`,
+  assistant: '/assistant',
+  assistantConversation: (conversationId: string) => `/assistant/${conversationId}`,
+} as const;

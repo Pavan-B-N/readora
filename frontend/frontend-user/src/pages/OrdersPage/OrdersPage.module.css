@@ -1,0 +1,132 @@
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: border-color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
+  height: 100%;
+}
+
+.card:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.viewDetails {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.collage {
+  display: flex;
+  flex-shrink: 0;
+  /* Room for the stack's overlap plus one cover's own width, so the card's flex layout reserves
+     space for the whole fanned-out group rather than just the last (fully overlapped) cover. */
+  padding-right: calc((var(--space-3)) * 2);
+}
+
+.cover {
+  width: 40px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-surface);
+  background: var(--color-surface-hover);
+  color: var(--color-text-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.cover:not(:first-child) {
+  margin-left: calc(var(--space-3) * -1);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coverMore {
+  width: 40px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-surface);
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-left: calc(var(--space-3) * -1);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.extraCount {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.meta {
+  color: var(--color-text-subtle);
+  font-size: var(--font-size-xs);
+  margin-top: 2px;
+  font-family: ui-monospace, monospace;
+}
+
+.total {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.chevron {
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}

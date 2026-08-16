@@ -1,0 +1,50 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-3);
+  margin: calc(var(--space-6) * -1) auto calc(var(--space-10) * -1);
+  padding: var(--space-5);
+  max-width: 460px;
+  /* .main (SiteLayout) already reserves the full viewport below the header via flex:1, but adds
+     its own top/bottom padding — cancelled out above via negative margin — so this fills exactly
+     that space rather than the padding stacking on top and forcing a scrollbar. */
+  min-height: calc(100vh - var(--header-height));
+}
+
+.code {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+}
+
+.icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+
+.description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
