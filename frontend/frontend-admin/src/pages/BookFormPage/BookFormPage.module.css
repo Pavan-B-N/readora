@@ -1,0 +1,257 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 900px;
+  margin: var(--space-6) auto var(--space-8);
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.closePageBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: var(--space-2);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background var(--transition), color var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closePageBtn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.row3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.restockRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.stepBody {
+  min-height: 320px;
+}
+
+.stepFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.footerRight {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-1);
+}
+
+.sectionSubtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-4);
+}
+
+.fileMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.toggleRow input {
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.toggleText {
+  display: flex;
+  flex-direction: column;
+}
+
+.toggleLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.toggleHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.reviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-4);
+}
+
+.reviewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reviewLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+  font-weight: 600;
+}
+
+.reviewValue {
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.reviewEmpty {
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-5) 0;
+}
+
+.tocPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tocPreviewSection {
+  font-size: var(--font-size-sm);
+}
+
+.tocPreviewName {
+  font-weight: 600;
+}
+
+.tocPreviewTopics {
+  color: var(--color-text-muted);
+}
+
+.postCreateNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  background: var(--color-info-bg);
+  border: 1px solid rgba(var(--color-info-rgb), 0.25);
+  color: var(--color-info);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.reviewRow {
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.reviewRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.reviewMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.reviewStars {
+  display: flex;
+  color: var(--color-accent, #f59e0b);
+}
+
+.reviewAuthor {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.reviewVerified {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
+}
+
+.reviewDate {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.reviewComment {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 760px) {
+  .row2,
+  .row3 {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,131 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LogOut, Save, ShieldCheck } from 'lucide-react';
+import { getMe, updateProfile } from '@/api/userApi';
+import { listStores } from '@/api/catalogApi';
+import type { MeResponse } from '@/types/user';
+import type { Store } from '@/types/catalog';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { loggedOut } from '@/redux/slices/authSlice';
+import { useToast } from '@readora/shared-ui';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Input } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
+import { PageHeader } from '@/components/PageHeader';
+import { ROUTES } from '@/constants/routes';
+import styles from './ProfilePage.module.css';
+
+/** Admin's own profile — identity, roles, assigned store (read-only), editable display name/phone, and logout. */
+export function ProfilePage() {
+  const { showToast } = useToast();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const roles = useAppSelector((state) => state.auth.roles);
+
+  const [me, setMe] = useState<MeResponse | null>(null);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [displayName, setDisplayName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    Promise.all([getMe(), listStores()]).then(([meResult, storeList]) => {
+      setMe(meResult);
+      setStores(storeList);
+      setDisplayName(meResult.displayName ?? '');
+      setPhone(meResult.phone ?? '');
+    });
+  }, []);
+
+  const onSave = async () => {
+    setSaving(true);
+    try {
+      const updated = await updateProfile({
+        displayName: displayName.trim() || null,
+        phone: phone.trim() || null,
+      });
+      setMe(updated);
+      showToast('Profile updated');
+    } catch {
+      showToast('Failed to update profile', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onLogout = () => {
+    dispatch(loggedOut());
+    navigate(ROUTES.login, { replace: true });
+  };
+
+  const initials = me?.displayName
+    ? me.displayName.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
+    : (me?.email.slice(0, 2).toUpperCase() ?? '?');
+
+  if (!me) return <Spinner />;
+
+  return (
+    <div>
+      <PageHeader title="Profile" subtitle="Your account, store assignment, and session." />
+
+      <div className={styles.layout}>
+        <Card>
+          <div className={styles.identity}>
+            <span className={styles.avatar}>{initials}</span>
+            <span className={styles.identityText}>
+              <span className={styles.displayName}>{me.displayName ?? me.email}</span>
+              <span className={styles.email}>{me.email}</span>
+            </span>
+          </div>
+
+          <div className={styles.roles}>
+            {roles.map((role) => (
+              <Badge key={role} variant="info">
+                <ShieldCheck size={11} />
+                {role}
+              </Badge>
+            ))}
+          </div>
+
+          <Button variant="danger" onClick={onLogout} block>
+            <LogOut size={15} />
+            Log out
+          </Button>
+        </Card>
+
+        <Card>
+          <CardHeader title="Basic options" subtitle="Shown to other admins in audit trails." />
+
+          <div className={styles.form}>
+            <Input
+              label="Display name"
+              placeholder="e.g. Priya Sharma"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
+            <Input
+              label="Phone"
+              placeholder="Optional"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            <Input
+              label="Assigned store"
+              hint="Books you list are scoped to this store — set by a super-admin, not editable here"
+              disabled
+              value={stores.find((s) => s.id === me.adminStoreId)?.name ?? 'Not assigned'}
+              onChange={() => {}}
+            />
+
+            <Button onClick={onSave} disabled={saving} block>
+              <Save size={15} />
+              {saving ? 'Saving…' : 'Save changes'}
+            </Button>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}

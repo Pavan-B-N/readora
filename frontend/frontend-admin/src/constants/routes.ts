@@ -1,0 +1,18 @@
+/** Central map of the app's route paths, including param-taking builders for detail routes — keeps path strings out of components. */
+export const ROUTES = {
+  login: '/login',
+  books: '/catalog',
+  newPhysicalBook: '/catalog/new/physical',
+  newVirtualBook: '/catalog/new/virtual',
+  editBook: (bookId: string) => `/catalog/${bookId}/edit`,
+  categories: '/categories',
+  publishers: '/publishers',
+  authors: '/authors',
+  embeddings: '/embeddings',
+  embeddingJobDetail: (jobId: string) => `/embeddings/${jobId}`,
+  returns: '/returns',
+  returnDetail: (orderId: string) => `/returns/${orderId}`,
+  deliveryAgents: '/delivery-agents',
+  notifications: '/notifications',
+  profile: '/profile',
+} as const;
