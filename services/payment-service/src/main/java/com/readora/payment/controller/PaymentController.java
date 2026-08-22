@@ -3,6 +3,8 @@ package com.readora.payment.controller;
 import com.readora.payment.dto.PaymentResponse;
 import com.readora.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
-/** Payments are created by consuming order.created — there is deliberately no public POST here. */
 @Tag(name = "Payments")
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -24,7 +25,15 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
 
-    @Operation(summary = "Get payment status for an order")
+    @Operation(
+            summary = "Get payment status for an order",
+            description = "Payments are created by consuming order.created off Kafka, not via a public POST — this is a read-only status lookup.",
+            tags = {"Payments"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Payment status returned"),
+            @ApiResponse(responseCode = "404", description = "No payment recorded for that order yet")
+    })
     @GetMapping("/{orderId}")
     public ResponseEntity<PaymentResponse> getByOrder(@PathVariable UUID orderId) {
         return ResponseEntity.ok(paymentService.getByOrderId(orderId));

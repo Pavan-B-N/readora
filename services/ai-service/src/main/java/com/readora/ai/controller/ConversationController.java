@@ -4,6 +4,8 @@ import com.readora.ai.dto.ConversationSummaryResponse;
 import com.readora.ai.security.CurrentUserContext;
 import com.readora.ai.service.ConversationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +27,14 @@ public class ConversationController {
         this.conversationService = conversationService;
     }
 
-    @Operation(summary = "List the caller's saved conversations, newest first")
+    @Operation(
+            summary = "List saved conversations",
+            description = "Lists the caller's saved assistant conversations, newest first.",
+            tags = {"AI Conversations"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Conversation list returned")
+    })
     @GetMapping
     public ResponseEntity<Page<ConversationSummaryResponse>> list(
             @RequestParam(defaultValue = "0") int page,

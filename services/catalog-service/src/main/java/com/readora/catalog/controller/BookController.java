@@ -7,6 +7,8 @@ import com.readora.catalog.dto.RelatedBookResponse;
 import com.readora.catalog.entity.BookFormat;
 import com.readora.catalog.service.CatalogService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +34,14 @@ public class BookController {
         this.catalogService = catalogService;
     }
 
-    @Operation(summary = "Search and filter the catalogue")
+    @Operation(
+            summary = "Search the catalogue",
+            description = "Searches and filters books by free-text query, category, publisher, format, and price range. Public — no authentication required.",
+            tags = {"Books"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paginated book results returned")
+    })
     @GetMapping
     public ResponseEntity<PageResponse<BookSummaryResponse>> search(
             @RequestParam(required = false) String q,
@@ -48,13 +57,29 @@ public class BookController {
         return ResponseEntity.ok(catalogService.search(q, categoryId, publisherId, format, minPrice, maxPrice, pageable));
     }
 
-    @Operation(summary = "Get full detail for one book")
+    @Operation(
+            summary = "Get book detail",
+            description = "Returns full detail for one book, including live availability. Public — no authentication required.",
+            tags = {"Books"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Book detail returned"),
+            @ApiResponse(responseCode = "404", description = "No active book with that id")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<BookDetailResponse> getDetail(@PathVariable UUID id) {
         return ResponseEntity.ok(catalogService.getDetail(id));
     }
 
-    @Operation(summary = "Get related titles for cross-sell")
+    @Operation(
+            summary = "Get related titles",
+            description = "Returns cross-sell titles related to one book. Public — no authentication required.",
+            tags = {"Books"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Related titles returned"),
+            @ApiResponse(responseCode = "404", description = "The parent book does not exist")
+    })
     @GetMapping("/{id}/related")
     public ResponseEntity<List<RelatedBookResponse>> getRelated(@PathVariable UUID id) {
         return ResponseEntity.ok(catalogService.getRelated(id));

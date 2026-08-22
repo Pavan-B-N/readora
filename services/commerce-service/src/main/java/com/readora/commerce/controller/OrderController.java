@@ -9,6 +9,8 @@ import com.readora.commerce.dto.OrderSummaryResponse;
 import com.readora.commerce.security.CurrentUserContext;
 import com.readora.commerce.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -38,7 +40,16 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @Operation(summary = "Reserve stock, price the order, and create it in PENDING_PAYMENT")
+    @Operation(
+            summary = "Check out",
+            description = "Reserves stock, prices the order against catalog-service, and creates it in PENDING_PAYMENT. Returns as soon as the order is durably recorded — payment settles asynchronously off Kafka. Send an Idempotency-Key header; a replay returns the original order rather than creating a duplicate.",
+            tags = {"Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Order created in PENDING_PAYMENT"),
+            @ApiResponse(responseCode = "404", description = "One of the requested books does not exist or is inactive"),
+            @ApiResponse(responseCode = "409", description = "The item list was empty, or a title went out of stock between cart and checkout")
+    })
     @PostMapping("/checkout")
     public ResponseEntity<CheckoutResponse> checkout(
             @RequestHeader("Idempotency-Key") String idempotencyKey,
@@ -48,7 +59,14 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Paginated order history for the caller, newest first")
+    @Operation(
+            summary = "List order history",
+            description = "Paginated order history for the caller, newest first.",
+            tags = {"Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Order history page returned")
+    })
     @GetMapping
     public ResponseEntity<Page<OrderSummaryResponse>> list(
             @RequestParam(defaultValue = "0") int page,
@@ -58,13 +76,30 @@ public class OrderController {
         return ResponseEntity.ok(orderService.listOrders(CurrentUserContext.require(), pageable));
     }
 
-    @Operation(summary = "Get full order detail")
+    @Operation(
+            summary = "Get order detail",
+            description = "Returns full order detail including line items, shipping-address snapshot, and status history.",
+            tags = {"Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Order detail returned"),
+            @ApiResponse(responseCode = "404", description = "No such order, or it belongs to another user")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<OrderDetailResponse> getDetail(@PathVariable UUID id) {
         return ResponseEntity.ok(orderService.getDetail(CurrentUserContext.require(), id));
     }
 
-    @Operation(summary = "Cancel an order (only within 48h and before it ships)")
+    @Operation(
+            summary = "Cancel an order",
+            description = "Cancels an order. Permitted only within 48 hours of placement and only while the order has not shipped. Triggers an asynchronous refund off Kafka.",
+            tags = {"Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Order cancelled, refund pending"),
+            @ApiResponse(responseCode = "404", description = "No such order, or it belongs to another user"),
+            @ApiResponse(responseCode = "409", description = "The cancel window has expired, the order already shipped, or it's already cancelled")
+    })
     @PostMapping("/{id}/cancel")
     public ResponseEntity<CancelOrderResponse> cancel(@PathVariable UUID id, @RequestBody CancelOrderRequest request) {
         return ResponseEntity.ok(orderService.cancel(CurrentUserContext.require(), id, request));

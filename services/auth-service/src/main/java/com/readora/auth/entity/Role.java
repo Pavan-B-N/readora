@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import java.util.Objects;
 import java.util.UUID;
 
+/** A role that can be assigned to a user (see {@link RoleCode}). */
 @Entity
 @Table(name = "roles", schema = "auth")
 public class Role {
@@ -28,30 +29,47 @@ public class Role {
     @Column(name = "description")
     private String description;
 
+    /** No-arg constructor required by JPA; not for application use. */
     protected Role() {
     }
 
+    /**
+     * Creates a new role.
+     *
+     * @param code        the role's unique code
+     * @param description a human-readable description of the role
+     */
     public Role(RoleCode code, String description) {
         this.code = code;
         this.description = description;
     }
 
+    /** @return the role's primary key */
     public UUID getId() {
         return id;
     }
 
+    /** @return the role's unique code */
     public RoleCode getCode() {
         return code;
     }
 
+    /** @return a human-readable description of the role */
     public String getDescription() {
         return description;
     }
 
+    /** @param description the new description to set */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Equality is id-based only, and only for persisted entities.
+     *
+     * @param obj the object to compare against
+     * @return true if obj is a Role with the same non-null id
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -67,6 +85,7 @@ public class Role {
         return id != null && Objects.equals(id, role.id);
     }
 
+    /** @return a hash code consistent with the id-based equals() implementation */
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
