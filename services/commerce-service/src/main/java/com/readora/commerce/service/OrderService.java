@@ -13,6 +13,9 @@ import com.readora.commerce.dto.OrderDetailResponse;
 import com.readora.commerce.dto.OrderSummaryResponse;
 import com.readora.commerce.dto.ReserveStockRequest;
 import com.readora.commerce.dto.ReserveStockResponse;
+import com.readora.commerce.dto.VirtualEditionLookupRequest;
+import com.readora.commerce.dto.VirtualEditionLookupResponse;
+import com.readora.commerce.entity.DeliveryType;
 import com.readora.commerce.entity.Order;
 import com.readora.commerce.entity.OrderItem;
 import com.readora.commerce.entity.OrderShippingAddress;
@@ -24,6 +27,8 @@ import com.readora.commerce.exception.OrderAlreadyCancelledException;
 import com.readora.commerce.exception.OrderAlreadyShippedException;
 import com.readora.commerce.exception.OrderCancelWindowExpiredException;
 import com.readora.commerce.exception.OrderNotFoundException;
+import com.readora.commerce.exception.ShippingAddressRequiredException;
+import com.readora.commerce.exception.VirtualEditionNotAvailableException;
 import com.readora.commerce.kafka.KafkaTopics;
 import com.readora.commerce.repository.OrderItemRepository;
 import com.readora.commerce.repository.OrderRepository;
@@ -78,12 +83,27 @@ public class OrderService {
         if (request.items().isEmpty()) {
             throw new CartEmptyException();
         }
+        if (request.deliveryType() == DeliveryType.PHYSICAL && request.shippingAddress() == null) {
+            throw new ShippingAddressRequiredException();
+        }
 
         Order existing = orderRepository.findByIdempotencyKey(idempotencyKey).orElse(null);
         if (existing != null) {
             return toCheckoutResponse(existing);
         }
 
+        Order order = request.deliveryType() == DeliveryType.VIRTUAL
+                ? checkoutVirtual(userId, idempotencyKey, request)
+                : checkoutPhysical(userId, idempotencyKey, request);
+
+        historyRepository.save(new OrderStatusHistory(order, null, OrderStatus.PENDING_PAYMENT, null, "system"));
+        publishOrderCreated(order, request);
+
+        return toCheckoutResponse(order);
+    }
+
+    /** Reserves physical stock and prices items at their catalog list price. */
+    private Order checkoutPhysical(UUID userId, String idempotencyKey, CheckoutRequest request) {
         ReserveStockRequest reserveRequest = new ReserveStockRequest(
                 request.items().stream()
                         .map(i -> new ReserveStockRequest.Item(i.bookId(), i.qty()))
@@ -93,18 +113,11 @@ public class OrderService {
 
         BigDecimal subtotal = BigDecimal.ZERO;
         for (int idx = 0; idx < reserved.items().size(); idx++) {
-            ReserveStockResponse.Item item = reserved.items().get(idx);
             int qty = request.items().get(idx).qty();
-            subtotal = subtotal.add(item.unitPrice().multiply(BigDecimal.valueOf(qty)));
+            subtotal = subtotal.add(reserved.items().get(idx).unitPrice().multiply(BigDecimal.valueOf(qty)));
         }
 
-        BigDecimal shippingFee = BigDecimal.ZERO;
-        BigDecimal taxAmount = subtotal.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal grandTotal = subtotal.add(shippingFee).add(taxAmount);
-
-        Order order = new Order(
-                generateOrderNumber(), userId, "INR", subtotal, shippingFee, taxAmount, grandTotal, idempotencyKey
-        );
+        Order order = buildOrder(userId, idempotencyKey, subtotal, DeliveryType.PHYSICAL);
         orderRepository.save(order);
 
         for (int idx = 0; idx < reserved.items().size(); idx++) {
@@ -119,11 +132,49 @@ public class OrderService {
                 addr.state(), addr.postalCode(), addr.countryCode(), addr.phone()
         ));
 
-        historyRepository.save(new OrderStatusHistory(order, null, OrderStatus.PENDING_PAYMENT, null, "system"));
+        return order;
+    }
 
-        publishOrderCreated(order, request);
+    /**
+     * No stock to reserve — a digital copy doesn't deplete. Every requested book must have an
+     * active virtual edition, priced at the virtual edition's own price (which can differ from
+     * the physical list price).
+     */
+    private Order checkoutVirtual(UUID userId, String idempotencyKey, CheckoutRequest request) {
+        List<UUID> bookIds = request.items().stream().map(CheckoutRequest.Item::bookId).toList();
+        VirtualEditionLookupResponse lookup = catalogClient.lookupVirtualEditions(new VirtualEditionLookupRequest(bookIds));
 
-        return toCheckoutResponse(order);
+        BigDecimal subtotal = BigDecimal.ZERO;
+        for (int idx = 0; idx < lookup.items().size(); idx++) {
+            VirtualEditionLookupResponse.Item item = lookup.items().get(idx);
+            if (!item.available()) {
+                throw new VirtualEditionNotAvailableException(item.bookId());
+            }
+            int qty = request.items().get(idx).qty();
+            subtotal = subtotal.add(item.price().multiply(BigDecimal.valueOf(qty)));
+        }
+
+        Order order = buildOrder(userId, idempotencyKey, subtotal, DeliveryType.VIRTUAL);
+        orderRepository.save(order);
+
+        for (int idx = 0; idx < lookup.items().size(); idx++) {
+            VirtualEditionLookupResponse.Item item = lookup.items().get(idx);
+            int qty = request.items().get(idx).qty();
+            orderItemRepository.save(new OrderItem(order, item.bookId(), item.title(), null, item.price(), qty));
+        }
+
+        return order;
+    }
+
+    private Order buildOrder(UUID userId, String idempotencyKey, BigDecimal subtotal, DeliveryType deliveryType) {
+        BigDecimal shippingFee = BigDecimal.ZERO;
+        BigDecimal taxAmount = subtotal.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal grandTotal = subtotal.add(shippingFee).add(taxAmount);
+
+        return new Order(
+                generateOrderNumber(), userId, "INR", subtotal, shippingFee, taxAmount, grandTotal,
+                idempotencyKey, deliveryType
+        );
     }
 
     @Transactional(readOnly = true)
@@ -159,8 +210,9 @@ public class OrderService {
                 .toList();
 
         return new OrderDetailResponse(
-                order.getId(), order.getOrderNumber(), order.getStatus().name(), items, addressDto, history,
-                order.isCancellable(), order.getGrandTotal(), order.getCurrency(), order.getPlacedAt()
+                order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getDeliveryType().name(),
+                items, addressDto, history, order.isCancellable(), order.getGrandTotal(), order.getCurrency(),
+                order.getPlacedAt()
         );
     }
 
@@ -190,6 +242,11 @@ public class OrderService {
         return new CancelOrderResponse(order.getId(), order.getStatus().name(), order.getCancelledAt());
     }
 
+    /**
+     * Physical orders stop at CONFIRMED here — SHIPPED/DELIVERED come from a future shipping
+     * integration, not built yet. Virtual orders have nothing to ship, so they go straight to
+     * DELIVERED in the same step — "booking -> delivered" with no fulfillment lag.
+     */
     @Transactional
     public void handlePaymentCaptured(UUID orderId) {
         Order order = orderRepository.findById(orderId).orElse(null);
@@ -204,6 +261,12 @@ public class OrderService {
         order.transitionTo(OrderStatus.CONFIRMED);
         orderRepository.save(order);
         historyRepository.save(new OrderStatusHistory(order, OrderStatus.PAID, OrderStatus.CONFIRMED, null, "system"));
+
+        if (order.getDeliveryType() == DeliveryType.VIRTUAL) {
+            order.transitionTo(OrderStatus.DELIVERED);
+            orderRepository.save(order);
+            historyRepository.save(new OrderStatusHistory(order, OrderStatus.CONFIRMED, OrderStatus.DELIVERED, null, "system"));
+        }
     }
 
     @Transactional
@@ -239,8 +302,9 @@ public class OrderService {
 
     private CheckoutResponse toCheckoutResponse(Order order) {
         return new CheckoutResponse(
-                order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getSubtotal(),
-                order.getShippingFee(), order.getTaxAmount(), order.getGrandTotal(), order.getCurrency(), order.getPlacedAt()
+                order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getDeliveryType().name(),
+                order.getSubtotal(), order.getShippingFee(), order.getTaxAmount(), order.getGrandTotal(),
+                order.getCurrency(), order.getPlacedAt()
         );
     }
 

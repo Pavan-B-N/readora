@@ -27,7 +27,7 @@ spring:
         - id: catalog-service
           uri: http://localhost:8083
           predicates:
-            - Path=/api/v1/books/**,/api/v1/categories/**
+            - Path=/api/v1/books/**,/api/v1/categories/**,/api/v1/admin/**
         - id: commerce-service
           uri: http://localhost:8084
           predicates:

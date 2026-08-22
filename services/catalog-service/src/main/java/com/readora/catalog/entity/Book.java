@@ -46,6 +46,16 @@ public class Book {
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
+    /**
+     * Nested topic breakdown, stored as a JSON string (e.g. {"Basics": ["Variables", "Loops"],
+     * "OOP": ["Classes", "Inheritance"]}). Only meaningful for non-fiction/technical books —
+     * nullable, and left empty for fiction rather than filled with placeholder content that
+     * would dilute its embedding. Not queried structurally, only flattened into text for
+     * ai-service's embedding pipeline, so plain text storage (not a relational entity) is enough.
+     */
+    @Column(name = "table_of_contents", columnDefinition = "text")
+    private String tableOfContents;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
@@ -133,6 +143,38 @@ public class Book {
         this.authors.add(author);
     }
 
+    /** @param newAuthors the full author set to replace the current one with */
+    public void replaceAuthors(Set<Author> newAuthors) {
+        this.authors.clear();
+        this.authors.addAll(newAuthors);
+    }
+
+    /**
+     * Applies an admin update — every field is set, not merged; callers should send the
+     * current value for anything they don't intend to change.
+     */
+    public void update(
+            String title, String subtitle, String description, String tableOfContents,
+            Category category, Publisher publisher, String language, BookFormat format,
+            Integer pageCount, LocalDate publishedOn, BigDecimal listPrice, String currency,
+            String coverImageUrl, boolean isActive
+    ) {
+        this.title = title;
+        this.subtitle = subtitle;
+        this.description = description;
+        this.tableOfContents = tableOfContents;
+        this.category = category;
+        this.publisher = publisher;
+        this.language = language;
+        this.format = format;
+        this.pageCount = pageCount;
+        this.publishedOn = publishedOn;
+        this.listPrice = listPrice;
+        this.currency = currency;
+        this.coverImageUrl = coverImageUrl;
+        this.isActive = isActive;
+    }
+
     public UUID getId() {
         return id;
     }
@@ -151,6 +193,16 @@ public class Book {
 
     public String getDescription() {
         return description;
+    }
+
+    /** @return the nested table-of-contents JSON string, or null if not set */
+    public String getTableOfContents() {
+        return tableOfContents;
+    }
+
+    /** @param tableOfContents the nested table-of-contents JSON string to set */
+    public void setTableOfContents(String tableOfContents) {
+        this.tableOfContents = tableOfContents;
     }
 
     public Category getCategory() {

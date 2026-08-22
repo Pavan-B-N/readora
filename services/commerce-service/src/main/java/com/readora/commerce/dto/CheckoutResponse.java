@@ -8,6 +8,7 @@ public record CheckoutResponse(
         UUID orderId,
         String orderNumber,
         String status,
+        String deliveryType,
         BigDecimal subtotal,
         BigDecimal shippingFee,
         BigDecimal taxAmount,

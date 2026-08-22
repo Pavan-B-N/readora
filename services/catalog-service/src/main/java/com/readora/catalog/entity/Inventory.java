@@ -70,6 +70,12 @@ public class Inventory {
         return true;
     }
 
+    /** Admin correction — sets the absolute on-hand quantity and reorder threshold. Does not touch qtyReserved. */
+    public void restock(int qtyOnHand, int reorderThreshold) {
+        this.qtyOnHand = qtyOnHand;
+        this.reorderThreshold = reorderThreshold;
+    }
+
     public UUID getBookId() {
         return bookId;
     }

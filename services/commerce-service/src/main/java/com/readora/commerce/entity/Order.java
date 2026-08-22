@@ -61,12 +61,17 @@ public class Order {
     @Column(name = "idempotency_key", nullable = false, unique = true)
     private String idempotencyKey;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_type", nullable = false)
+    private DeliveryType deliveryType;
+
     protected Order() {
     }
 
     public Order(
             String orderNumber, UUID userId, String currency, BigDecimal subtotal,
-            BigDecimal shippingFee, BigDecimal taxAmount, BigDecimal grandTotal, String idempotencyKey
+            BigDecimal shippingFee, BigDecimal taxAmount, BigDecimal grandTotal, String idempotencyKey,
+            DeliveryType deliveryType
     ) {
         this.orderNumber = orderNumber;
         this.userId = userId;
@@ -76,6 +81,7 @@ public class Order {
         this.taxAmount = taxAmount;
         this.grandTotal = grandTotal;
         this.idempotencyKey = idempotencyKey;
+        this.deliveryType = deliveryType;
     }
 
     @jakarta.persistence.PrePersist
@@ -143,6 +149,10 @@ public class Order {
 
     public Instant getCancelledAt() {
         return cancelledAt;
+    }
+
+    public DeliveryType getDeliveryType() {
+        return deliveryType;
     }
 
     @Override

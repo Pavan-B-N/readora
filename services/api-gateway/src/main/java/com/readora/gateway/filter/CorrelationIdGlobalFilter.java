@@ -10,18 +10,19 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-/**
- * Attaches one X-Correlation-Id to every request — reused if the caller already sent one,
- * generated otherwise — so it can be threaded through every downstream service's logs and
- * error responses to trace one request across the whole call chain. Runs before
- * JwtAuthenticationGlobalFilter (lower order = earlier) so the id exists even for requests
- * rejected at the auth check.
- */
+/** Generates and propagates a correlation ID for each gateway request. */
 @Component
 public class CorrelationIdGlobalFilter implements GlobalFilter, Ordered {
 
     public static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
 
+    /**
+     * Adds a correlation ID to the forwarded request and response.
+     *
+     * @param exchange the current HTTP request and response exchange
+     * @param chain the remaining gateway filter chain
+     * @return a Mono that completes when gateway processing finishes
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String correlationId = UUID.randomUUID().toString();
@@ -35,6 +36,11 @@ public class CorrelationIdGlobalFilter implements GlobalFilter, Ordered {
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
 
+    /**
+     * Defines this filter's execution order in the gateway filter chain.
+     *
+     * @return the filter execution order
+     */
     @Override
     public int getOrder() {
         return -2;

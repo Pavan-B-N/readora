@@ -22,19 +22,19 @@ public class CatalogClient {
                 .build();
     }
 
-    /** Pulled in for the embedding backfill — every active book, one page at a time. */
+    /** Pulled in for the embedding backfill — title, authors, description, and table of contents for every active book. */
     public List<BookDoc> listAllBooks(int page, int size) {
-        BookPageResponse response = restClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/api/v1/books")
+        BookExportPageResponse response = restClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/internal/books/export")
                         .queryParam("page", page)
                         .queryParam("size", size)
                         .build())
                 .retrieve()
-                .body(BookPageResponse.class);
+                .body(BookExportPageResponse.class);
 
         return response != null ? response.items() : List.of();
     }
 
-    private record BookPageResponse(List<BookDoc> items, int totalPages) {
+    private record BookExportPageResponse(List<BookDoc> items, int totalPages) {
     }
 }

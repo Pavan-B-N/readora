@@ -13,6 +13,7 @@ import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /** Signs and validates the HS256 JWTs this service issues. */
@@ -38,7 +39,7 @@ public class JwtService {
 
     /**
      * Signs a new access token for a user, with the user's id as the subject claim and their
-     * email as a custom claim.
+     * email and role codes as custom claims.
      *
      * @param user the user to issue a token for
      * @return a compact, signed JWT string
@@ -47,9 +48,14 @@ public class JwtService {
         Instant now = Instant.now();
         Instant expiry = now.plus(accessTokenTtlMinutes, ChronoUnit.MINUTES);
 
+        List<String> roles = user.getRoles().stream()
+                .map(role -> role.getCode().name())
+                .toList();
+
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
+                .claim("roles", roles)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
                 .signWith(key)

@@ -9,12 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-/**
- * Stamps every proxied request with the shared secret auth-service (and future downstream
- * services) checks for in GatewaySecretFilter — proof the request actually came through this
- * gateway, not a direct hit on the service's own port. Runs first (lowest order) so every other
- * filter's forwarded request already carries it.
- */
+/** Adds the gateway secret to requests forwarded to downstream services. */
 @Component
 public class GatewaySecretGlobalFilter implements GlobalFilter, Ordered {
 
@@ -26,6 +21,13 @@ public class GatewaySecretGlobalFilter implements GlobalFilter, Ordered {
         this.gatewaySecret = gatewaySecret;
     }
 
+    /**
+     * Adds the gateway secret header and forwards the modified request.
+     *
+     * @param exchange the current HTTP request and response exchange
+     * @param chain the remaining gateway filter chain
+     * @return a Mono that completes when gateway processing finishes
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
@@ -35,6 +37,11 @@ public class GatewaySecretGlobalFilter implements GlobalFilter, Ordered {
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
     }
 
+    /**
+     * Defines this filter's execution order in the gateway filter chain.
+     *
+     * @return the filter execution order
+     */
     @Override
     public int getOrder() {
         return -3;

@@ -17,6 +17,9 @@ import java.util.Map;
  * doc's "refreshed on text-field update" behavior (which implies event-driven incremental
  * updates) — there's no catalog.book.updated event in this system yet, so a full re-embed on
  * startup is the pragmatic stand-in.
+ *
+ * Embeds title + authors + description + table of contents — the earlier version only embedded
+ * title + authors, which left semantic search almost nothing real to match against.
  */
 @Component
 public class EmbeddingBackfillService implements ApplicationRunner {
@@ -47,13 +50,21 @@ public class EmbeddingBackfillService implements ApplicationRunner {
 
     private Document toDocument(BookDoc book) {
         String authors = book.authors() != null ? String.join(", ", book.authors()) : "";
-        String content = book.title() + " by " + authors;
+
+        StringBuilder content = new StringBuilder(book.title()).append(" by ").append(authors);
+
+        if (book.description() != null && !book.description().isBlank()) {
+            content.append(". ").append(book.description());
+        }
+        if (book.tableOfContents() != null && !book.tableOfContents().isBlank()) {
+            content.append(". Covers: ").append(book.tableOfContents());
+        }
 
         Map<String, Object> metadata = Map.of(
                 "bookId", book.id(),
                 "title", book.title()
         );
 
-        return new Document(book.id(), content, metadata);
+        return new Document(book.id(), content.toString(), metadata);
     }
 }

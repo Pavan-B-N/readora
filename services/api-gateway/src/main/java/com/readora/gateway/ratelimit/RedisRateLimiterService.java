@@ -1,43 +1,48 @@
 package com.readora.gateway.ratelimit;
 
 import com.readora.gateway.config.RateLimitProperties.RateLimitRule;
-import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.BucketConfiguration;
+import io.github.bucket4j.distributed.proxy.AsyncProxyManager;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
+import java.time.Duration;
 
 /**
- * Atomic fixed-window counter in Redis: INCR the key, and only on the very first hit in a
- * window (count == 1) set its TTL — so the window doesn't reset on every request. Both
- * operations run as one Lua script so concurrent requests can't race past the limit.
+ * Token-bucket rate limiter backed by Bucket4j's distributed Redis state.
+ * Buckets refill continuously rather than resetting all-at-once, so callers can't burst past the limit at a window boundary.
  */
 @Component
 public class RedisRateLimiterService {
 
-    private static final RedisScript<Long> INCREMENT_SCRIPT = RedisScript.of(
-            "local current = redis.call('INCR', KEYS[1]) " +
-                    "if tonumber(current) == 1 then " +
-                    "  redis.call('EXPIRE', KEYS[1], ARGV[1]) " +
-                    "end " +
-                    "return current",
-            Long.class
-    );
+    private final AsyncProxyManager<String> proxyManager;
 
-    private final ReactiveStringRedisTemplate redisTemplate;
-
-    public RedisRateLimiterService(ReactiveStringRedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public RedisRateLimiterService(AsyncProxyManager<String> proxyManager) {
+        this.proxyManager = proxyManager;
     }
 
+    /**
+     * Attempts to consume one token from the bucket for the given key, creating the bucket
+     * with the rule's capacity/refill rate on first use.
+     *
+     * @param key  the rate-limit key (route + user id or IP)
+     * @param rule the limit and window to enforce for this key
+     * @return a Mono emitting true if a token was available and consumed, false if the caller
+     *         is currently over the limit
+     */
     public Mono<Boolean> isAllowed(String key, RateLimitRule rule) {
-        return redisTemplate.execute(
-                        INCREMENT_SCRIPT,
-                        List.of(key),
-                        List.of(String.valueOf(rule.windowSeconds()))
-                )
-                .next()
-                .map(count -> count <= rule.limit());
+        BucketConfiguration configuration = BucketConfiguration.builder()
+                .addLimit(Bandwidth.builder()
+                        .capacity(rule.limit())
+                        .refillIntervally(rule.limit(), Duration.ofSeconds(rule.windowSeconds()))
+                        .build())
+                .build();
+
+        return Mono.fromFuture(
+                proxyManager.builder()
+                        .build(key, () -> java.util.concurrent.CompletableFuture.completedFuture(configuration))
+                        .tryConsume(1)
+        );
     }
 }

@@ -42,13 +42,14 @@ public class OrderController {
 
     @Operation(
             summary = "Check out",
-            description = "Reserves stock, prices the order against catalog-service, and creates it in PENDING_PAYMENT. Returns as soon as the order is durably recorded — payment settles asynchronously off Kafka. Send an Idempotency-Key header; a replay returns the original order rather than creating a duplicate.",
+            description = "Reserves stock (PHYSICAL) or confirms virtual-edition availability (VIRTUAL), prices the order, and creates it in PENDING_PAYMENT. Returns as soon as the order is durably recorded — payment settles asynchronously off Kafka. Send an Idempotency-Key header; a replay returns the original order rather than creating a duplicate. An order is entirely PHYSICAL or entirely VIRTUAL — items can't be mixed in one checkout.",
             tags = {"Orders"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Order created in PENDING_PAYMENT"),
+            @ApiResponse(responseCode = "400", description = "shippingAddress is missing for a PHYSICAL order"),
             @ApiResponse(responseCode = "404", description = "One of the requested books does not exist or is inactive"),
-            @ApiResponse(responseCode = "409", description = "The item list was empty, or a title went out of stock between cart and checkout")
+            @ApiResponse(responseCode = "409", description = "The item list was empty, a title went out of stock (PHYSICAL), or a book has no virtual edition available (VIRTUAL)")
     })
     @PostMapping("/checkout")
     public ResponseEntity<CheckoutResponse> checkout(

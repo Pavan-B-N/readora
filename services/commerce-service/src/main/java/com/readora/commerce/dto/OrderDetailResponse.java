@@ -9,6 +9,7 @@ public record OrderDetailResponse(
         UUID orderId,
         String orderNumber,
         String status,
+        String deliveryType,
         List<Item> items,
         ShippingAddress shippingAddress,
         List<HistoryEntry> history,

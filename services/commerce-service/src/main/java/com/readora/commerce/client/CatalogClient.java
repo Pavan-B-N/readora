@@ -3,6 +3,8 @@ package com.readora.commerce.client;
 import com.readora.commerce.dto.BookInfo;
 import com.readora.commerce.dto.ReserveStockRequest;
 import com.readora.commerce.dto.ReserveStockResponse;
+import com.readora.commerce.dto.VirtualEditionLookupRequest;
+import com.readora.commerce.dto.VirtualEditionLookupResponse;
 import com.readora.commerce.exception.BookNotFoundException;
 import com.readora.commerce.exception.InsufficientStockException;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +56,15 @@ public class CatalogClient {
                     throw new InsufficientStockException("A title went out of stock between cart and checkout");
                 })
                 .body(ReserveStockResponse.class);
+    }
+
+    /** No stock reservation involved — a digital copy doesn't deplete, only its availability/price is looked up. */
+    public VirtualEditionLookupResponse lookupVirtualEditions(VirtualEditionLookupRequest request) {
+        return restClient.post()
+                .uri("/internal/virtual-editions/lookup")
+                .body(request)
+                .retrieve()
+                .body(VirtualEditionLookupResponse.class);
     }
 
     private boolean isNotFound(HttpStatusCode status) {
