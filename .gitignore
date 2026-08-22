@@ -1,0 +1,6 @@
+.claude
+.idea
+ai-context
+.DS_Store
+.env
+target/

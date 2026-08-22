@@ -1,0 +1,31 @@
+server:
+  port: 8083
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: catalog-service
+
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: catalog
+    show-sql: true
+
+app:
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  security:
+    public-routes:
+      - /api/v1/books/**
+      - /api/v1/categories/**
+      - /internal/**

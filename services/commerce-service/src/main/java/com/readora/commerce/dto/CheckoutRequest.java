@@ -1,0 +1,34 @@
+package com.readora.commerce.dto;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Deviates from the doc's request shape: takes the full shipping address inline instead of an
+ * addressId that would need a lookup against user-service. See the build summary for why.
+ */
+public record CheckoutRequest(
+        @Valid @NotNull ShippingAddress shippingAddress,
+        @NotBlank String paymentMethod,
+        @NotEmpty List<Item> items
+) {
+    public record ShippingAddress(
+            @NotBlank String recipientName,
+            @NotBlank String line1,
+            String line2,
+            @NotBlank String city,
+            @NotBlank String state,
+            @NotBlank String postalCode,
+            @NotBlank String countryCode,
+            String phone
+    ) {
+    }
+
+    public record Item(@NotNull UUID bookId, int qty) {
+    }
+}
