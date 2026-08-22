@@ -1,0 +1,27 @@
+server:
+  port: 8087
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: mcp-server
+
+  # Unverified property names — check against the spring-ai-starter-mcp-server-webmvc reference
+  # docs when you sync; this is the intended shape as of Spring AI 1.0.
+  ai:
+    mcp:
+      server:
+        name: readora-mcp-server
+        version: 1.0.0
+
+app:
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  catalog-service:
+    base-url: http://localhost:8083
+  commerce-service:
+    base-url: http://localhost:8084
+  user-service:
+    base-url: http://localhost:8082

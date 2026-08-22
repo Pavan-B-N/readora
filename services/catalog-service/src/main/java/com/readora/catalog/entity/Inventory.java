@@ -15,9 +15,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * book_id is both the PK and a real FK to Book (shared primary key via @MapsId) — unlike the
- * cross-service references elsewhere in this system, Inventory and Book live in the same
- * service/schema, so this is a genuine owned relationship, not an opaque id.
+ * book_id is both the PK and a real FK to Book (shared primary key via @MapsId), unlike the
+ * plain-UUID cross-service references used elsewhere in this system, since Book lives in the
+ * same schema. available = qtyOnHand - qtyReserved.
  */
 @Entity
 @Table(name = "inventory", schema = "catalog")

@@ -2,6 +2,8 @@ package com.readora.catalog.controller;
 
 import com.readora.catalog.dto.CategoryResponse;
 import com.readora.catalog.service.CatalogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "Categories")
 @RestController
 @RequestMapping("/api/v1/categories")
 public class CategoryController {
@@ -19,6 +22,7 @@ public class CategoryController {
         this.catalogService = catalogService;
     }
 
+    @Operation(summary = "Get the category tree")
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getTree() {
         return ResponseEntity.ok(catalogService.getCategoryTree());

@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+/** A hashed, individually revocable refresh token issued to one user. */
 @Entity
 @Table(name = "refresh_tokens", schema = "auth")
 public class RefreshToken {

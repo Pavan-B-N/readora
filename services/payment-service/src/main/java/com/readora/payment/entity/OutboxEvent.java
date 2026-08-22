@@ -12,11 +12,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Transactional outbox: written in the same DB transaction as the business row it describes, so
- * the event can never be lost or published for a rolled-back change. OutboxRelay polls unpublished
- * rows and hands them to Kafka separately.
- */
+/** One pending or published domain event, written in the same transaction as its business row. */
 @Entity
 @Table(name = "outbox_events", schema = "payments")
 public class OutboxEvent {

@@ -71,6 +71,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Swagger/OpenAPI docs UI at /swagger-ui.html, generated from @Operation/@Tag annotations -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
         <!-- JUnit 5 + Mockito + Spring test context, only needed when running `mvn test` -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

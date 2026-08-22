@@ -1,0 +1,56 @@
+server:
+  port: 8088
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: ai-service
+
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: ai
+    show-sql: true
+
+  ai:
+    bedrock:
+      aws:
+        region: ${AWS_REGION:us-east-1}
+        access-key: ${AWS_ACCESS_KEY_ID}
+        secret-key: ${AWS_SECRET_ACCESS_KEY}
+      converse:
+        chat:
+          model: ${BEDROCK_CHAT_MODEL_ID}
+      titan:
+        embedding:
+          model: amazon.titan-embed-text-v2:0
+
+    vectorstore:
+      pgvector:
+        schema-name: ai
+        table-name: vector_store
+        dimensions: 1024
+        initialize-schema: true
+
+    mcp:
+      client:
+        streamable-http:
+          url: ${MCP_SERVER_URL:http://localhost:8087}
+
+app:
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  security:
+    public-routes:
+      - /api/v1/ai/search
+  catalog-service:
+    base-url: http://localhost:8083

@@ -24,9 +24,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * No embedding/pgvector column here — that's ai-service scope, excluded from this batch.
- */
+/** A book in the catalogue. No embedding/pgvector column — that's ai-service scope. */
 @Entity
 @Table(name = "books", schema = "catalog")
 public class Book {

@@ -100,6 +100,11 @@ public class AuthService {
         return new LoginResponse(accessToken, refreshToken, "Bearer", jwtService.getAccessTokenTtlSeconds());
     }
 
+    /**
+     * Rotates the refresh token: the submitted token is revoked before the replacement pair is
+     * issued, so a stolen token can only ever be used once. If a revoked token is presented again
+     * (reuse), every other active token for that user is revoked too, killing the whole session.
+     */
     @Transactional
     public RefreshResponse refresh(RefreshRequest request) {
         String presentedHash = hash(request.refreshToken());

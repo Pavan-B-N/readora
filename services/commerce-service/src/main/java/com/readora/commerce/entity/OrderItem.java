@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
+/** One line item on an order, with price/title frozen at purchase time. */
 @Entity
 @Table(name = "order_items", schema = "commerce")
 public class OrderItem {

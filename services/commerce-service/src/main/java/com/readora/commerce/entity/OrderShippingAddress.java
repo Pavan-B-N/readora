@@ -12,9 +12,9 @@ import jakarta.persistence.Table;
 import java.util.UUID;
 
 /**
- * order_id is both PK and FK (shared primary key, @MapsId) — an immutable copy of the address
- * book entry at the time of purchase, taken directly from the checkout request in this build
- * rather than looked up from user-service by addressId (see build summary for why).
+ * Immutable copy of the address used at checkout, taken directly from the checkout request
+ * rather than looked up from user-service by addressId (see build notes for why). order_id is
+ * both PK and FK via @MapsId — a shared primary key, not a plain cross-service UUID reference.
  */
 @Entity
 @Table(name = "order_shipping_addresses", schema = "commerce")

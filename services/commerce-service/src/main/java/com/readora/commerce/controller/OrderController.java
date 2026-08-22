@@ -8,6 +8,8 @@ import com.readora.commerce.dto.OrderDetailResponse;
 import com.readora.commerce.dto.OrderSummaryResponse;
 import com.readora.commerce.security.CurrentUserContext;
 import com.readora.commerce.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 
+@Tag(name = "Orders")
 @RestController
 @RequestMapping("/api/v1/orders")
 public class OrderController {
@@ -35,6 +38,7 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    @Operation(summary = "Reserve stock, price the order, and create it in PENDING_PAYMENT")
     @PostMapping("/checkout")
     public ResponseEntity<CheckoutResponse> checkout(
             @RequestHeader("Idempotency-Key") String idempotencyKey,
@@ -44,6 +48,7 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "Paginated order history for the caller, newest first")
     @GetMapping
     public ResponseEntity<Page<OrderSummaryResponse>> list(
             @RequestParam(defaultValue = "0") int page,
@@ -53,11 +58,13 @@ public class OrderController {
         return ResponseEntity.ok(orderService.listOrders(CurrentUserContext.require(), pageable));
     }
 
+    @Operation(summary = "Get full order detail")
     @GetMapping("/{id}")
     public ResponseEntity<OrderDetailResponse> getDetail(@PathVariable UUID id) {
         return ResponseEntity.ok(orderService.getDetail(CurrentUserContext.require(), id));
     }
 
+    @Operation(summary = "Cancel an order (only within 48h and before it ships)")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<CancelOrderResponse> cancel(@PathVariable UUID id, @RequestBody CancelOrderRequest request) {
         return ResponseEntity.ok(orderService.cancel(CurrentUserContext.require(), id, request));

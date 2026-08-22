@@ -6,6 +6,8 @@ import com.readora.catalog.dto.PageResponse;
 import com.readora.catalog.dto.RelatedBookResponse;
 import com.readora.catalog.entity.BookFormat;
 import com.readora.catalog.service.CatalogService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Books")
 @RestController
 @RequestMapping("/api/v1/books")
 public class BookController {
@@ -29,6 +32,7 @@ public class BookController {
         this.catalogService = catalogService;
     }
 
+    @Operation(summary = "Search and filter the catalogue")
     @GetMapping
     public ResponseEntity<PageResponse<BookSummaryResponse>> search(
             @RequestParam(required = false) String q,
@@ -44,11 +48,13 @@ public class BookController {
         return ResponseEntity.ok(catalogService.search(q, categoryId, publisherId, format, minPrice, maxPrice, pageable));
     }
 
+    @Operation(summary = "Get full detail for one book")
     @GetMapping("/{id}")
     public ResponseEntity<BookDetailResponse> getDetail(@PathVariable UUID id) {
         return ResponseEntity.ok(catalogService.getDetail(id));
     }
 
+    @Operation(summary = "Get related titles for cross-sell")
     @GetMapping("/{id}/related")
     public ResponseEntity<List<RelatedBookResponse>> getRelated(@PathVariable UUID id) {
         return ResponseEntity.ok(catalogService.getRelated(id));

@@ -14,11 +14,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * user_id is a cross-service reference to auth.User — plain UUID, no JPA relationship.
- * No wallet fields (wallet_amount_used, wallet_discount_applied) — wallet-funded checkout is
- * deferred in this batch, see the build summary.
- */
+/** A placed order. No wallet fields yet — wallet-funded checkout is deferred. */
 @Entity
 @Table(name = "orders", schema = "commerce")
 public class Order {

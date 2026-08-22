@@ -17,9 +17,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * order_id/user_id are cross-service references (auth-service / commerce-service own those rows)
- * — plain UUID columns, never a JPA relationship, per the doc's "ID only, no DB foreign key" rule
- * for cross-service references.
+ * order_id/user_id are cross-service references (commerce-service / auth-service own those
+ * rows) — plain UUID columns, never a JPA relationship, since those entities live in a
+ * different service/schema entirely.
  */
 @Entity
 @Table(name = "payments", schema = "payments")

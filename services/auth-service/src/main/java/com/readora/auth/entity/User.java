@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+/** Credentials only — no display name, avatar, or other profile data. That lives in user-service. */
 @Entity
 @Table(name = "users", schema = "auth")
 public class User {

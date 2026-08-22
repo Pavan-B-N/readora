@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+/** Current wallet balance for one user — a derived cache of the WalletTransaction ledger. */
 @Entity
 @Table(name = "wallet_accounts", schema = "users")
 public class WalletAccount {

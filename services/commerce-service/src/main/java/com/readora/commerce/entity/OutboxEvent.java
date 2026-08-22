@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+/** One pending or published domain event, written in the same transaction as its business row. */
 @Entity
 @Table(name = "outbox_events", schema = "commerce")
 public class OutboxEvent {

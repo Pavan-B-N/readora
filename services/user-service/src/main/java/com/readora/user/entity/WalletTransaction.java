@@ -15,9 +15,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Append-only ledger — a reversal is a new REVERSED row, never an edit to an existing one.
- */
+/** One append-only wallet ledger entry — a reversal is a new row, never an edit. */
 @Entity
 @Table(name = "wallet_transactions", schema = "users")
 public class WalletTransaction {

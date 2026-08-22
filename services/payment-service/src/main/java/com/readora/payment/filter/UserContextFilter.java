@@ -65,7 +65,7 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
     }
 
     private boolean isPublicRoute(String path) {
-        return securityProperties.getPublicRoutes().stream()
+        return securityProperties.publicRoutes().stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
