@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
+import { AlertCircle, Library, LogIn } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { login } from '@/redux/slices/authSlice';
 import { Card } from '@/components/Card';
@@ -38,9 +39,14 @@ export function LoginPage() {
   return (
     <div className={styles.page}>
       <Card className={styles.card}>
-        <div>
-          <h1 className={styles.title}>Readora Admin</h1>
-          <p className={styles.subtitle}>Sign in with your admin account</p>
+        <div className={styles.brand}>
+          <span className={styles.brandMark}>
+            <Library size={20} />
+          </span>
+          <div>
+            <h1 className={styles.title}>Readora Admin</h1>
+            <p className={styles.subtitle}>Sign in to manage the catalogue</p>
+          </div>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
@@ -48,6 +54,7 @@ export function LoginPage() {
             label="Email"
             type="email"
             autoComplete="username"
+            placeholder="admin@readora.dev"
             error={errors.email?.message}
             {...register('email')}
           />
@@ -55,16 +62,28 @@ export function LoginPage() {
             label="Password"
             type="password"
             autoComplete="current-password"
+            placeholder="••••••••"
             error={errors.password?.message}
             {...register('password')}
           />
 
-          {error && <div className={styles.formError}>{error}</div>}
+          {error && (
+            <div className={styles.formError}>
+              <AlertCircle size={15} />
+              {error}
+            </div>
+          )}
 
-          <Button type="submit" disabled={status === 'loading'}>
+          <Button type="submit" disabled={status === 'loading'} block>
+            <LogIn size={15} />
             {status === 'loading' ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
+
+        <div className={styles.hintBox}>
+          Admin access requires the <code>ADMIN</code> role. Seeded account:{' '}
+          <code>admin@readora.dev</code>
+        </div>
       </Card>
     </div>
   );

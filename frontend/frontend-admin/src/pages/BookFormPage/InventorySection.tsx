@@ -1,67 +1,89 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from 'react';
+import { Package } from 'lucide-react';
 import { updateInventory } from '@/api/catalogApi';
 import { useToast } from '@/components/Toast';
-import { Card } from '@/components/Card';
+import { Card, CardHeader } from '@/components/Card';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
+import { Badge } from '@/components/Badge';
 import type { AdminBookDetail } from '@/types/catalog';
 import styles from './BookFormPage.module.css';
 
-const wholeNumber = z.string().regex(/^\d+$/, 'Must be a whole number, 0 or greater');
-
-const schema = z.object({
-  qtyOnHand: wholeNumber,
-  reorderThreshold: wholeNumber,
-});
-
-type FormValues = z.infer<typeof schema>;
-
-export function InventorySection({ bookId, inventory }: { bookId: string; inventory: AdminBookDetail['inventory'] }) {
+export function InventorySection({
+  bookId,
+  inventory,
+}: {
+  bookId: string;
+  inventory: AdminBookDetail['inventory'];
+}) {
   const { showToast } = useToast();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      qtyOnHand: String(inventory?.qtyOnHand ?? 0),
-      reorderThreshold: String(inventory?.reorderThreshold ?? 0),
-    },
-  });
+  const [qtyOnHand, setQtyOnHand] = useState(String(inventory?.qtyOnHand ?? 0));
+  const [reorderThreshold, setReorderThreshold] = useState(String(inventory?.reorderThreshold ?? 0));
+  const [errors, setErrors] = useState<{ qtyOnHand?: string; reorderThreshold?: string }>({});
+  const [saving, setSaving] = useState(false);
 
-  const onSubmit = async (values: FormValues) => {
+  const available = (Number(qtyOnHand) || 0) - (inventory?.qtyReserved ?? 0);
+
+  const onSave = async () => {
+    const next: typeof errors = {};
+    if (!/^\d+$/.test(qtyOnHand)) next.qtyOnHand = 'Whole number, 0 or more';
+    if (!/^\d+$/.test(reorderThreshold)) next.reorderThreshold = 'Whole number, 0 or more';
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setSaving(true);
     try {
       await updateInventory(bookId, {
-        qtyOnHand: Number(values.qtyOnHand),
-        reorderThreshold: Number(values.reorderThreshold),
+        qtyOnHand: Number(qtyOnHand),
+        reorderThreshold: Number(reorderThreshold),
       });
       showToast('Inventory updated');
     } catch {
       showToast('Failed to update inventory', 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <Card>
-      <h2 className={styles.sectionTitle}>Inventory</h2>
-      <p className={styles.sectionSubtitle}>
-        {inventory ? `${inventory.qtyReserved} currently reserved by open orders.` : 'No stock record yet — saving creates one.'}
-      </p>
+      <CardHeader
+        title="Inventory"
+        subtitle={
+          inventory
+            ? `${inventory.qtyReserved} reserved by open orders · ${available} available to sell`
+            : 'No stock record yet — saving creates one.'
+        }
+        actions={
+          <Badge variant={available > 0 ? 'success' : 'danger'} dot>
+            {available > 0 ? 'In stock' : 'Out of stock'}
+          </Badge>
+        }
+      />
 
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-        <div className={styles.row}>
-          <Input label="Quantity on hand" type="number" error={errors.qtyOnHand?.message} {...register('qtyOnHand')} />
-          <Input label="Reorder threshold" type="number" error={errors.reorderThreshold?.message} {...register('reorderThreshold')} />
-        </div>
-        <div className={styles.actions}>
-          <Button type="submit" disabled={isSubmitting}>
-            Save inventory
-          </Button>
-        </div>
-      </form>
+      <div className={styles.row2}>
+        <Input
+          label="Quantity on hand"
+          hint="Physical count"
+          value={qtyOnHand}
+          error={errors.qtyOnHand}
+          onChange={(e) => setQtyOnHand(e.target.value)}
+        />
+        <Input
+          label="Reorder threshold"
+          hint="Low-stock alert level"
+          value={reorderThreshold}
+          error={errors.reorderThreshold}
+          onChange={(e) => setReorderThreshold(e.target.value)}
+        />
+      </div>
+
+      <div style={{ marginTop: 'var(--space-4)' }}>
+        <Button onClick={onSave} disabled={saving}>
+          <Package size={15} />
+          {saving ? 'Saving…' : 'Save inventory'}
+        </Button>
+      </div>
     </Card>
   );
 }

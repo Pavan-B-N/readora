@@ -1,11 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { Download, Truck, XCircle } from 'lucide-react';
 import { cancelOrder, getOrderDetail } from '@/api/orderApi';
 import type { OrderDetail } from '@/types/order';
 import { useToast } from '@/components/Toast';
-import { Card } from '@/components/Card';
+import { Card, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { Badge } from '@/components/Badge';
 import styles from './OrderDetailPage.module.css';
+
+function statusVariant(status: string) {
+  if (status === 'DELIVERED' || status === 'CONFIRMED' || status === 'PAID') return 'success' as const;
+  if (status === 'CANCELLED' || status === 'PAYMENT_FAILED') return 'danger' as const;
+  if (status === 'SHIPPED') return 'info' as const;
+  return 'warning' as const;
+}
+
+function prettyStatus(status: string) {
+  return status
+    .split('_')
+    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+    .join(' ');
+}
 
 export function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -25,52 +41,64 @@ export function OrderDetailPage() {
     setCancelling(true);
     try {
       await cancelOrder(orderId);
-      showToast('Order cancelled');
+      showToast('Order cancelled — a refund is on its way');
       reload();
     } catch {
-      showToast('Could not cancel order', 'error');
+      showToast('Could not cancel this order', 'error');
     } finally {
       setCancelling(false);
     }
   };
 
-  if (!order) {
-    return <p>Loading…</p>;
-  }
+  if (!order) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
 
   return (
     <div>
       <div className={styles.header}>
-        <div>
-          <h1>{order.orderNumber}</h1>
-          <span className={styles.status}>{order.status}</span>
+        <div className={styles.headerLeft}>
+          <h1 className={styles.orderNumber}>{order.orderNumber}</h1>
+          <span className={styles.placedAt}>
+            Placed {new Date(order.placedAt).toLocaleString()}
+          </span>
+          <div className={styles.deliveryBadgeRow}>
+            <Badge variant={statusVariant(order.status)} dot>
+              {prettyStatus(order.status)}
+            </Badge>
+            <Badge variant="neutral">
+              {order.deliveryType === 'VIRTUAL' ? <Download size={11} /> : <Truck size={11} />}
+              {order.deliveryType === 'VIRTUAL' ? 'Virtual' : 'Physical'}
+            </Badge>
+          </div>
         </div>
         {order.cancellable && (
           <Button variant="danger" onClick={onCancel} disabled={cancelling}>
+            <XCircle size={15} />
             {cancelling ? 'Cancelling…' : 'Cancel order'}
           </Button>
         )}
       </div>
 
       <div className={styles.layout}>
-        <div>
+        <div className={styles.stack}>
           <Card>
-            <h2 className={styles.sectionTitle}>Items</h2>
+            <CardHeader title="Items" />
             {order.items.map((item) => (
               <div className={styles.item} key={item.bookId}>
-                <span>
-                  {item.title} × {item.qty}
+                <span className={styles.itemName}>
+                  {item.title}
+                  <div className={styles.itemMeta}>
+                    ₹{item.unitPrice} × {item.qty}
+                    {item.isbn13 ? ` · ${item.isbn13}` : ''}
+                  </div>
                 </span>
-                <span>
-                  {item.lineTotal} {order.currency}
-                </span>
+                <span className={styles.itemTotal}>₹{item.lineTotal}</span>
               </div>
             ))}
           </Card>
 
           {order.shippingAddress && (
-            <Card className={styles.spaced}>
-              <h2 className={styles.sectionTitle}>Shipping address</h2>
+            <Card>
+              <CardHeader title="Shipping address" />
               <div className={styles.address}>
                 {order.shippingAddress.recipientName}
                 <br />
@@ -83,25 +111,36 @@ export function OrderDetailPage() {
             </Card>
           )}
 
-          <Card className={styles.spaced}>
-            <h2 className={styles.sectionTitle}>Status history</h2>
-            {order.history.map((entry, i) => (
-              <div className={styles.historyEntry} key={i}>
-                <span>{entry.toStatus}</span>
-                <span>{new Date(entry.at).toLocaleString()}</span>
-              </div>
-            ))}
+          <Card>
+            <CardHeader title="Status history" />
+            <div className={styles.timeline}>
+              {order.history.map((entry, i) => (
+                <div className={styles.timelineEntry} key={i}>
+                  <span
+                    className={[styles.timelineDot, i === order.history.length - 1 && styles.timelineDotLatest]
+                      .filter(Boolean)
+                      .join(' ')}
+                  />
+                  <span className={styles.timelineText}>
+                    <span className={styles.timelineStatus}>{prettyStatus(entry.toStatus)}</span>
+                    <span className={styles.timelineTime}>{new Date(entry.at).toLocaleString()}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
           </Card>
         </div>
 
         <Card>
           <div className={styles.summaryTotal}>
             <span>Total</span>
-            <span>
-              {order.grandTotal} {order.currency}
-            </span>
+            <span>₹{order.grandTotal}</span>
           </div>
-          <p className={styles.address}>Placed {new Date(order.placedAt).toLocaleString()}</p>
+          <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
+            {order.deliveryType === 'VIRTUAL'
+              ? 'Digital delivery — no shipping required.'
+              : 'Cancellable within 48 hours, before shipping.'}
+          </p>
         </Card>
       </div>
     </div>

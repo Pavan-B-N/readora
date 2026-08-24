@@ -1,23 +1,13 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from 'react';
+import { Download, PowerOff } from 'lucide-react';
 import { deactivateVirtualEdition, upsertVirtualEdition } from '@/api/catalogApi';
 import { useToast } from '@/components/Toast';
-import { Card } from '@/components/Card';
+import { Card, CardHeader } from '@/components/Card';
 import { Input, Select } from '@/components/Input';
 import { Button } from '@/components/Button';
-import type { AdminBookDetail } from '@/types/catalog';
+import { Badge } from '@/components/Badge';
+import type { AdminBookDetail, VirtualFileFormat } from '@/types/catalog';
 import styles from './BookFormPage.module.css';
-
-const schema = z.object({
-  fileUrl: z.string().min(1, 'File URL is required'),
-  fileFormat: z.enum(['PDF', 'EPUB']),
-  fileSizeBytes: z.string().regex(/^\d*$/, 'Must be a whole number').optional(),
-  price: z.string().min(1, 'Price is required'),
-  currency: z.string().length(3, 'Use a 3-letter currency code'),
-});
-
-type FormValues = z.infer<typeof schema>;
 
 export function VirtualEditionSection({
   bookId,
@@ -29,34 +19,41 @@ export function VirtualEditionSection({
   onChanged: () => void;
 }) {
   const { showToast } = useToast();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      fileUrl: virtualEdition?.fileUrl ?? '',
-      fileFormat: virtualEdition?.fileFormat ?? 'PDF',
-      fileSizeBytes: virtualEdition?.fileSizeBytes != null ? String(virtualEdition.fileSizeBytes) : '',
-      price: virtualEdition?.price ?? '',
-      currency: virtualEdition?.currency ?? 'USD',
-    },
-  });
+  const [fileUrl, setFileUrl] = useState(virtualEdition?.fileUrl ?? '');
+  const [fileFormat, setFileFormat] = useState<VirtualFileFormat>(virtualEdition?.fileFormat ?? 'PDF');
+  const [fileSizeBytes, setFileSizeBytes] = useState(
+    virtualEdition?.fileSizeBytes != null ? String(virtualEdition.fileSizeBytes) : '',
+  );
+  const [price, setPrice] = useState(virtualEdition?.price ?? '');
+  const [currency, setCurrency] = useState(virtualEdition?.currency ?? 'INR');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
 
-  const onSubmit = async (values: FormValues) => {
+  const onSave = async () => {
+    const next: Record<string, string> = {};
+    if (!fileUrl.trim()) next.fileUrl = 'File URL is required';
+    if (!price.trim()) next.price = 'Price is required';
+    else if (Number.isNaN(Number(price))) next.price = 'Must be a number';
+    if (currency.trim().length !== 3) next.currency = 'Use a 3-letter code';
+    if (fileSizeBytes && !/^\d+$/.test(fileSizeBytes)) next.fileSizeBytes = 'Whole number';
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setSaving(true);
     try {
       await upsertVirtualEdition(bookId, {
-        fileUrl: values.fileUrl,
-        fileFormat: values.fileFormat,
-        fileSizeBytes: !values.fileSizeBytes ? null : Number(values.fileSizeBytes),
-        price: values.price,
-        currency: values.currency,
+        fileUrl: fileUrl.trim(),
+        fileFormat,
+        fileSizeBytes: fileSizeBytes ? Number(fileSizeBytes) : null,
+        price: price.trim(),
+        currency: currency.trim().toUpperCase(),
       });
       showToast('Virtual edition saved');
       onChanged();
     } catch {
       showToast('Failed to save virtual edition', 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -66,46 +63,90 @@ export function VirtualEditionSection({
       showToast('Virtual edition deactivated');
       onChanged();
     } catch {
-      showToast('Failed to deactivate virtual edition', 'error');
+      showToast('Failed to deactivate', 'error');
     }
   };
 
   return (
     <Card>
-      <h2 className={styles.sectionTitle}>Virtual edition</h2>
-      <p className={styles.sectionSubtitle}>
-        {virtualEdition
-          ? virtualEdition.isActive
-            ? 'Active — customers can buy the digital edition.'
-            : 'Deactivated — saving below reactivates it.'
-          : 'No virtual edition yet.'}
-      </p>
+      <CardHeader
+        title="Virtual edition"
+        subtitle={
+          virtualEdition
+            ? virtualEdition.isActive
+              ? 'Customers can buy the digital edition.'
+              : 'Deactivated — saving below reactivates it.'
+            : 'No virtual edition yet. Add one to sell this book digitally.'
+        }
+        actions={
+          virtualEdition && (
+            <Badge variant={virtualEdition.isActive ? 'success' : 'neutral'} dot>
+              {virtualEdition.isActive ? 'Active' : 'Inactive'}
+            </Badge>
+          )
+        }
+      />
 
-      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-        <Input label="File URL" error={errors.fileUrl?.message} {...register('fileUrl')} />
+      <div className={styles.form}>
+        <Input
+          label="File URL"
+          required
+          hint="Storage key — a signed URL is generated at delivery"
+          placeholder="s3://readora-virtual-editions/9780451524935.epub"
+          value={fileUrl}
+          error={errors.fileUrl}
+          onChange={(e) => setFileUrl(e.target.value)}
+        />
 
         <div className={styles.row3}>
-          <Select label="File format" error={errors.fileFormat?.message} {...register('fileFormat')}>
+          <Select
+            label="File format"
+            value={fileFormat}
+            onChange={(e) => setFileFormat(e.target.value as VirtualFileFormat)}
+          >
             <option value="PDF">PDF</option>
             <option value="EPUB">EPUB</option>
           </Select>
-          <Input label="File size (bytes)" type="number" error={errors.fileSizeBytes?.message} {...register('fileSizeBytes')} />
-          <Input label="Currency" error={errors.currency?.message} {...register('currency')} />
+          <Input
+            label="File size"
+            hint="bytes"
+            placeholder="512000"
+            value={fileSizeBytes}
+            error={errors.fileSizeBytes}
+            onChange={(e) => setFileSizeBytes(e.target.value)}
+          />
+          <Input
+            label="Currency"
+            required
+            value={currency}
+            error={errors.currency}
+            onChange={(e) => setCurrency(e.target.value)}
+          />
         </div>
 
-        <Input label="Price" error={errors.price?.message} {...register('price')} />
+        <Input
+          label="Price"
+          required
+          hint="Can differ from the physical list price"
+          placeholder="249.00"
+          value={price}
+          error={errors.price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
 
-        <div className={styles.actions}>
-          <Button type="submit" disabled={isSubmitting}>
-            Save virtual edition
+        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <Button onClick={onSave} disabled={saving}>
+            <Download size={15} />
+            {saving ? 'Saving…' : 'Save virtual edition'}
           </Button>
           {virtualEdition?.isActive && (
-            <Button type="button" variant="danger" onClick={onDeactivate}>
+            <Button variant="danger" onClick={onDeactivate}>
+              <PowerOff size={15} />
               Deactivate
             </Button>
           )}
         </div>
-      </form>
+      </div>
     </Card>
   );
 }

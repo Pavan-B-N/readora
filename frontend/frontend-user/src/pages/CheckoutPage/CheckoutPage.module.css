@@ -1,8 +1,9 @@
 .layout {
   display: grid;
   grid-template-columns: 1fr 320px;
-  gap: var(--space-6);
+  gap: var(--space-5);
   align-items: start;
+  margin-top: var(--space-5);
 }
 
 .form {
@@ -12,38 +13,78 @@
 }
 
 .deliveryOptions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
 }
 
 .deliveryOption {
-  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
   padding: var(--space-3) var(--space-4);
   cursor: pointer;
-  font-size: var(--font-size-sm);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  transition: all var(--transition);
+}
+
+.deliveryOption:hover {
+  border-color: var(--color-border-strong);
 }
 
 .deliveryOptionActive {
   border-color: var(--color-primary);
-  background: var(--color-success-bg);
+  background: var(--color-primary-soft);
 }
 
-.row {
+.deliveryOption input {
+  accent-color: var(--color-primary);
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.deliveryText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.deliveryLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.deliveryHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
 }
 
-.summaryRow {
+.summaryItem {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-3);
   margin-bottom: var(--space-2);
   font-size: var(--font-size-sm);
+}
+
+.summaryItemName {
+  color: var(--color-text-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .summaryTotal {
@@ -53,6 +94,27 @@
   font-size: var(--font-size-lg);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
   margin-bottom: var(--space-4);
+}
+
+.virtualNote {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  background: var(--color-info-bg);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  color: var(--color-info);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+}
+
+@media (max-width: 820px) {
+  .layout,
+  .deliveryOptions,
+  .row2 {
+    grid-template-columns: 1fr;
+  }
 }

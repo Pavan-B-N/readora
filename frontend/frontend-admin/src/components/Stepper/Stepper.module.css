@@ -1,0 +1,86 @@
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--color-text-subtle);
+}
+
+.step:disabled {
+  cursor: not-allowed;
+}
+
+.marker {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+
+.stepActive .marker {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.stepComplete .marker {
+  border-color: var(--color-success);
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.labels {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.stepLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.stepActive .stepLabel,
+.stepComplete .stepLabel {
+  color: var(--color-text);
+}
+
+.stepDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.connector {
+  flex: 1;
+  height: 1.5px;
+  background: var(--color-border);
+  min-width: var(--space-4);
+}
+
+.connectorDone {
+  background: var(--color-success);
+}
+
+@media (max-width: 860px) {
+  .labels {
+    display: none;
+  }
+}

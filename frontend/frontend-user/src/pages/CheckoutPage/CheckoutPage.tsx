@@ -3,21 +3,21 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { Truck, Download } from 'lucide-react';
+import { Truck, Download, Info, Lock } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchCart, cartCleared } from '@/redux/slices/cartSlice';
 import { checkout } from '@/api/orderApi';
 import type { DeliveryType } from '@/types/order';
 import { useToast } from '@/components/Toast';
-import { Card } from '@/components/Card';
+import { Card, CardHeader } from '@/components/Card';
 import { Input, Select } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { ROUTES } from '@/constants/routes';
 import styles from './CheckoutPage.module.css';
 
-// All fields are optional here — this form also submits for VIRTUAL delivery, where the address
-// section isn't rendered at all, so react-hook-form never registers these fields. Required-ness
-// for PHYSICAL delivery is checked imperatively in onSubmit instead, where deliveryType is known.
+// All optional here — this form also submits for VIRTUAL delivery, where the address section
+// isn't rendered at all. Required-ness for PHYSICAL is checked in onSubmit, where deliveryType
+// is known.
 const addressSchema = z.object({
   recipientName: z.string().optional(),
   line1: z.string().optional(),
@@ -93,7 +93,7 @@ export function CheckoutPage() {
   };
 
   if (items.length === 0) {
-    return <p>Your cart is empty.</p>;
+    return <p style={{ color: 'var(--color-text-muted)' }}>Your cart is empty.</p>;
   }
 
   return (
@@ -102,43 +102,99 @@ export function CheckoutPage() {
       <form className={styles.layout} onSubmit={handleSubmit(onSubmit)}>
         <div className={styles.form}>
           <Card>
-            <h2>Delivery</h2>
+            <CardHeader title="Delivery" subtitle="An order is entirely physical or entirely virtual." />
             <div className={styles.deliveryOptions}>
-              <label className={[styles.deliveryOption, deliveryType === 'PHYSICAL' && styles.deliveryOptionActive].filter(Boolean).join(' ')}>
-                <input type="radio" checked={deliveryType === 'PHYSICAL'} onChange={() => setDeliveryType('PHYSICAL')} />
-                <Truck size={18} />
-                Physical copy — shipped
+              <label
+                className={[styles.deliveryOption, deliveryType === 'PHYSICAL' && styles.deliveryOptionActive]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                <input
+                  type="radio"
+                  name="deliveryType"
+                  checked={deliveryType === 'PHYSICAL'}
+                  onChange={() => setDeliveryType('PHYSICAL')}
+                />
+                <span className={styles.deliveryText}>
+                  <span className={styles.deliveryLabel}>
+                    <Truck size={15} />
+                    Physical copy
+                  </span>
+                  <span className={styles.deliveryHint}>Shipped to your address</span>
+                </span>
               </label>
-              <label className={[styles.deliveryOption, deliveryType === 'VIRTUAL' && styles.deliveryOptionActive].filter(Boolean).join(' ')}>
-                <input type="radio" checked={deliveryType === 'VIRTUAL'} onChange={() => setDeliveryType('VIRTUAL')} />
-                <Download size={18} />
-                Virtual edition — instant
+
+              <label
+                className={[styles.deliveryOption, deliveryType === 'VIRTUAL' && styles.deliveryOptionActive]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                <input
+                  type="radio"
+                  name="deliveryType"
+                  checked={deliveryType === 'VIRTUAL'}
+                  onChange={() => setDeliveryType('VIRTUAL')}
+                />
+                <span className={styles.deliveryText}>
+                  <span className={styles.deliveryLabel}>
+                    <Download size={15} />
+                    Virtual edition
+                  </span>
+                  <span className={styles.deliveryHint}>Available instantly</span>
+                </span>
               </label>
             </div>
           </Card>
 
-          {deliveryType === 'PHYSICAL' && (
+          {deliveryType === 'PHYSICAL' ? (
             <Card>
-              <h2>Shipping address</h2>
+              <CardHeader title="Shipping address" />
               <div className={styles.form}>
-                <Input label="Recipient name" error={errors.recipientName?.message} {...register('recipientName')} />
-                <Input label="Address line 1" error={errors.line1?.message} {...register('line1')} />
+                <Input
+                  label="Recipient name"
+                  required
+                  error={errors.recipientName?.message}
+                  {...register('recipientName')}
+                />
+                <Input label="Address line 1" required error={errors.line1?.message} {...register('line1')} />
                 <Input label="Address line 2" {...register('line2')} />
-                <div className={styles.row}>
-                  <Input label="City" error={errors.city?.message} {...register('city')} />
-                  <Input label="State" error={errors.state?.message} {...register('state')} />
+                <div className={styles.row2}>
+                  <Input label="City" required error={errors.city?.message} {...register('city')} />
+                  <Input label="State" required error={errors.state?.message} {...register('state')} />
                 </div>
-                <div className={styles.row}>
-                  <Input label="Postal code" error={errors.postalCode?.message} {...register('postalCode')} />
-                  <Input label="Country code (e.g. US)" error={errors.countryCode?.message} {...register('countryCode')} />
+                <div className={styles.row2}>
+                  <Input
+                    label="Postal code"
+                    required
+                    error={errors.postalCode?.message}
+                    {...register('postalCode')}
+                  />
+                  <Input
+                    label="Country code"
+                    required
+                    hint="2 letters, e.g. IN"
+                    error={errors.countryCode?.message}
+                    {...register('countryCode')}
+                  />
                 </div>
                 <Input label="Phone" {...register('phone')} />
+              </div>
+            </Card>
+          ) : (
+            <Card>
+              <div className={styles.virtualNote}>
+                <Info size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>
+                  No shipping address needed. Every book in your cart must have a virtual edition
+                  available — checkout will tell you if one doesn't. Virtual orders are priced at the
+                  digital edition's own price and are delivered as soon as payment clears.
+                </span>
               </div>
             </Card>
           )}
 
           <Card>
-            <h2>Payment method</h2>
+            <CardHeader title="Payment method" />
             <Select label="Method" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
               <option value="CARD">Card</option>
               <option value="UPI">UPI</option>
@@ -149,26 +205,26 @@ export function CheckoutPage() {
         </div>
 
         <Card>
-          <h2>Order summary</h2>
+          <CardHeader title="Order summary" />
           {items.map((item) => (
-            <div className={styles.summaryRow} key={item.bookId}>
-              <span>
+            <div className={styles.summaryItem} key={item.bookId}>
+              <span className={styles.summaryItemName}>
                 {item.title} × {item.qty}
               </span>
-              <span>
-                {item.lineTotal} {currency}
-              </span>
+              <span>₹{item.lineTotal}</span>
             </div>
           ))}
           <div className={styles.summaryTotal}>
             <span>Subtotal</span>
-            <span>
-              {subtotal} {currency}
-            </span>
+            <span>₹{subtotal}</span>
           </div>
-          <Button type="submit" disabled={submitting}>
+          <Button type="submit" disabled={submitting} block>
+            <Lock size={14} />
             {submitting ? 'Placing order…' : 'Place order'}
           </Button>
+          <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)', marginTop: 'var(--space-3)', textAlign: 'center' }}>
+            Tax is added at the final step. Currency: {currency}
+          </p>
         </Card>
       </form>
     </div>

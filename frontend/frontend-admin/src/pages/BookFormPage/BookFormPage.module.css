@@ -2,12 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  max-width: 900px;
 }
 
 .form {
@@ -16,7 +11,7 @@
   gap: var(--space-4);
 }
 
-.row {
+.row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
@@ -24,30 +19,28 @@
 
 .row3 {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
 }
 
-.checkboxGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-2);
-  max-height: 180px;
-  overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-3);
+.stepBody {
+  min-height: 320px;
 }
 
-.checkboxLabel {
+.stepFooter {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-sm);
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }
 
-.checkboxLabel input {
-  accent-color: var(--color-primary);
+.footerRight {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
 }
 
 .sectionTitle {
@@ -61,14 +54,109 @@
   margin-bottom: var(--space-4);
 }
 
-.actions {
-  display: flex;
-  gap: var(--space-3);
-}
-
 .toggleRow {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.toggleRow input {
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.toggleText {
+  display: flex;
+  flex-direction: column;
+}
+
+.toggleLabel {
   font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.toggleHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.reviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-4);
+}
+
+.reviewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reviewLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+  font-weight: 600;
+}
+
+.reviewValue {
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.reviewEmpty {
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-5) 0;
+}
+
+.tocPreview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tocPreviewSection {
+  font-size: var(--font-size-sm);
+}
+
+.tocPreviewName {
+  font-weight: 600;
+}
+
+.tocPreviewTopics {
+  color: var(--color-text-muted);
+}
+
+.postCreateNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  background: var(--color-info-bg);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  color: var(--color-info);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 760px) {
+  .row2,
+  .row3 {
+    grid-template-columns: 1fr;
+  }
 }

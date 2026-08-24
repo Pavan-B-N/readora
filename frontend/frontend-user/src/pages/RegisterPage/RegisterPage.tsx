@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
+import { AlertCircle, UserPlus } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { register as registerUser } from '@/redux/slices/authSlice';
 import { Card } from '@/components/Card';
@@ -41,23 +42,43 @@ export function RegisterPage() {
       <Card className={styles.card}>
         <div>
           <h1 className={styles.title}>Create your account</h1>
-          <p className={styles.subtitle}>Join Readora to buy physical and virtual books</p>
+          <p className={styles.subtitle}>Get ₹100 in your wallet when you sign up</p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-          <Input label="Full name" error={errors.fullName?.message} {...registerField('fullName')} />
-          <Input label="Email" type="email" autoComplete="username" error={errors.email?.message} {...registerField('email')} />
+          <Input
+            label="Full name"
+            placeholder="Alice Nguyen"
+            error={errors.fullName?.message}
+            {...registerField('fullName')}
+          />
+          <Input
+            label="Email"
+            type="email"
+            autoComplete="username"
+            placeholder="you@example.com"
+            error={errors.email?.message}
+            {...registerField('email')}
+          />
           <Input
             label="Password"
             type="password"
             autoComplete="new-password"
+            hint="At least 10 characters"
+            placeholder="••••••••••"
             error={errors.password?.message}
             {...registerField('password')}
           />
 
-          {error && <div className={styles.formError}>{error}</div>}
+          {error && (
+            <div className={styles.formError}>
+              <AlertCircle size={15} />
+              {error}
+            </div>
+          )}
 
-          <Button type="submit" disabled={status === 'loading'}>
+          <Button type="submit" disabled={status === 'loading'} block>
+            <UserPlus size={15} />
             {status === 'loading' ? 'Creating account…' : 'Create account'}
           </Button>
         </form>

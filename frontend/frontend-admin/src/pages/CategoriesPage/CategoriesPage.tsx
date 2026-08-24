@@ -1,34 +1,58 @@
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, ChevronRight, Folder, FolderTree, Plus, Wand2 } from 'lucide-react';
 import { createCategory, getCategoryTree } from '@/api/catalogApi';
 import type { CategoryNode } from '@/types/catalog';
-import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
+import { flattenCategoryTree } from '@/utils/flattenCategoryTree';
+import { slugify } from '@/utils/slugify';
 import { useToast } from '@/components/Toast';
-import { Card } from '@/components/Card';
-import { Input, Select } from '@/components/Input';
+import { Card, CardHeader } from '@/components/Card';
+import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
+import { Combobox } from '@/components/Combobox';
+import { Tooltip } from '@/components/Tooltip';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
 import styles from './CategoriesPage.module.css';
 
-const schema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  slug: z.string().min(1, 'Slug is required'),
-  parentId: z.string().optional(),
-  displayOrder: z.string().regex(/^\d+$/, 'Must be a whole number, 0 or greater'),
-});
-
-type FormValues = z.infer<typeof schema>;
-
 function CategoryTree({ nodes }: { nodes: CategoryNode[] }) {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
   return (
-    <ul className={styles.list}>
-      {nodes.map((node) => (
-        <li key={node.id}>
-          {node.name}
-          {node.children.length > 0 && <CategoryTree nodes={node.children} />}
-        </li>
-      ))}
+    <ul className={styles.tree}>
+      {nodes.map((node) => {
+        const hasChildren = node.children.length > 0;
+        const isCollapsed = collapsed[node.id];
+
+        return (
+          <li key={node.id}>
+            <div className={styles.node}>
+              {hasChildren ? (
+                <button
+                  type="button"
+                  className={styles.chevron}
+                  onClick={() => setCollapsed({ ...collapsed, [node.id]: !isCollapsed })}
+                  aria-label={isCollapsed ? `Expand ${node.name}` : `Collapse ${node.name}`}
+                >
+                  {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                </button>
+              ) : (
+                <span className={styles.chevronSpacer} />
+              )}
+              <span className={styles.folderIcon}>
+                <Folder size={14} />
+              </span>
+              <span className={styles.nodeName}>{node.name}</span>
+              <span className={styles.nodeSlug}>/{node.slug}</span>
+              {hasChildren && (
+                <span className={styles.nodeCount}>
+                  {node.children.length} sub{node.children.length === 1 ? '' : 's'}
+                </span>
+              )}
+            </div>
+            {hasChildren && !isCollapsed && <CategoryTree nodes={node.children} />}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -36,66 +60,162 @@ function CategoryTree({ nodes }: { nodes: CategoryNode[] }) {
 export function CategoriesPage() {
   const { showToast } = useToast();
   const [tree, setTree] = useState<CategoryNode[]>([]);
-  const [flat, setFlat] = useState<FlatCategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { displayOrder: '0' } });
+  const [name, setName] = useState('');
+  const [slug, setSlug] = useState('');
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [parentId, setParentId] = useState<string | null>(null);
+  const [displayOrder, setDisplayOrder] = useState('0');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  const flat = useMemo(() => flattenCategoryTree(tree), [tree]);
+  const topLevelCount = tree.length;
+  const totalCount = flat.length;
 
   const reload = () => {
-    getCategoryTree().then((result) => {
-      setTree(result);
-      setFlat(flattenCategoryTree(result));
-    });
+    setLoading(true);
+    getCategoryTree()
+      .then(setTree)
+      .finally(() => setLoading(false));
   };
 
   useEffect(reload, []);
 
-  const onSubmit = async (values: FormValues) => {
+  // Auto-derive the slug from the name until the admin edits it themselves.
+  useEffect(() => {
+    if (!slugTouched) setSlug(slugify(name));
+  }, [name, slugTouched]);
+
+  const onSubmit = async () => {
+    const next: Record<string, string> = {};
+    if (!name.trim()) next.name = 'Name is required';
+    if (!slug.trim()) next.slug = 'Slug is required';
+    if (!/^\d+$/.test(displayOrder)) next.displayOrder = 'Whole number';
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setSaving(true);
     try {
       await createCategory({
-        name: values.name,
-        slug: values.slug,
-        parentId: values.parentId || null,
-        displayOrder: Number(values.displayOrder),
+        name: name.trim(),
+        slug: slug.trim(),
+        parentId,
+        displayOrder: Number(displayOrder),
       });
-      showToast('Category created');
-      reset({ name: '', slug: '', parentId: '', displayOrder: '0' });
+      showToast(`Category “${name.trim()}” created`);
+      setName('');
+      setSlug('');
+      setSlugTouched(false);
+      setParentId(null);
+      setDisplayOrder('0');
       reload();
     } catch {
-      showToast('Failed to create category', 'error');
+      showToast('Failed to create category — the slug may already exist', 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <div className={styles.page}>
-      <div>
-        <h1>Categories</h1>
-        <Card>{tree.length === 0 ? <p>No categories yet.</p> : <CategoryTree nodes={tree} />}</Card>
-      </div>
+    <div>
+      <PageHeader title="Categories" subtitle="The browsing hierarchy customers use to find books." />
 
-      <Card>
-        <h2>New category</h2>
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-          <Input label="Name" error={errors.name?.message} {...register('name')} />
-          <Input label="Slug" error={errors.slug?.message} {...register('slug')} />
-          <Select label="Parent category" {...register('parentId')}>
-            <option value="">— None (top-level) —</option>
-            {flat.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </Select>
-          <Input label="Display order" type="number" error={errors.displayOrder?.message} {...register('displayOrder')} />
-          <Button type="submit" disabled={isSubmitting}>
-            Create category
-          </Button>
-        </form>
-      </Card>
+      <div className={styles.layout}>
+        <Card>
+          <div className={styles.stats}>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{totalCount}</span>
+              <span className={styles.statLabel}>Total categories</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{topLevelCount}</span>
+              <span className={styles.statLabel}>Top level</span>
+            </div>
+            <div className={styles.stat}>
+              <span className={styles.statValue}>{totalCount - topLevelCount}</span>
+              <span className={styles.statLabel}>Nested</span>
+            </div>
+          </div>
+
+          {loading ? (
+            <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
+          ) : tree.length === 0 ? (
+            <EmptyState
+              icon={FolderTree}
+              title="No categories yet"
+              description="Create a top-level category like “Fiction”, then nest sub-categories under it."
+            />
+          ) : (
+            <CategoryTree nodes={tree} />
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader title="New category" subtitle="Nest it under a parent, or leave it top level." />
+
+          <div className={styles.form}>
+            <Input
+              label="Name"
+              required
+              placeholder="e.g. Science Fiction"
+              value={name}
+              error={errors.name}
+              onChange={(e) => setName(e.target.value)}
+            />
+
+            <div className={styles.slugRow}>
+              <Input
+                label="Slug"
+                required
+                hint="URL segment"
+                placeholder="science-fiction"
+                value={slug}
+                error={errors.slug}
+                onChange={(e) => {
+                  setSlugTouched(true);
+                  setSlug(e.target.value);
+                }}
+              />
+              <Tooltip label="Regenerate from name">
+                <Button
+                  variant="secondary"
+                  iconOnly
+                  aria-label="Regenerate slug from name"
+                  onClick={() => {
+                    setSlugTouched(false);
+                    setSlug(slugify(name));
+                  }}
+                >
+                  <Wand2 size={15} />
+                </Button>
+              </Tooltip>
+            </div>
+
+            <Combobox
+              label="Parent category"
+              placeholder="Search — leave empty for top level"
+              options={flat.map((c) => ({ value: c.id, label: c.name, meta: c.depth > 0 ? `level ${c.depth + 1}` : 'top' }))}
+              value={parentId}
+              onChange={setParentId}
+            />
+
+            <Input
+              label="Display order"
+              hint="Lower shows first"
+              value={displayOrder}
+              error={errors.displayOrder}
+              onChange={(e) => setDisplayOrder(e.target.value)}
+            />
+
+            <Button onClick={onSubmit} disabled={saving} block>
+              <Plus size={15} />
+              {saving ? 'Creating…' : 'Create category'}
+            </Button>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

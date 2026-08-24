@@ -188,6 +188,7 @@ requires zero changes to the producer** — that's the real payoff.
 | `payment.failed` | payment | commerce, notification | Payment failed |
 | `refund.completed` | payment | user, notification | Refund processed |
 | `book.upserted` | catalog | ai | Book created/updated — re-embed it |
+| `embedding.backfill.requested` | ai | ai | Run a full catalogue re-embed asynchronously |
 
 Note `payment.captured` has **three** independent consumers, each doing something different with
 the same event. That's the pattern working as intended.
@@ -431,13 +432,29 @@ This is a genuinely good design story:
 
 - **Incremental (the default):** admin saves a book → catalog-service writes a `book.upserted`
   outbox row → relay publishes to Kafka → ai-service's `BookEventsListener` re-embeds *that one book*.
-- **Full backfill (admin-triggered):** `POST /api/v1/admin/embeddings/backfill` re-embeds the
-  entire catalogue. For bootstrapping a fresh vector store, recovering from missed events, or
-  switching embedding models.
+- **Full backfill (admin-triggered, also async over Kafka):** `POST /api/v1/admin/embeddings/backfill`
+  does **not** do the work inline. It creates an `ai.embedding_jobs` row, publishes
+  `embedding.backfill.requested`, and returns **202 Accepted** with the job id. A separate consumer
+  (`EmbeddingJobListener`, its own `ai-service-backfill` group) runs it, writing progress back to
+  the job row after each page so the admin UI can poll a live percentage.
 
 **Why both?** Events only cover changes *from now on*. They do nothing for books that already
 existed, or if the vector store is wiped. The original design re-embedded everything on every
 service startup — wasteful and slow. Event-driven + manual backfill is strictly better.
+
+**Three details worth raising in an interview:**
+
+1. **Why is the backfill async rather than a synchronous endpoint?** A full re-embed calls an
+   external embedding API once per page and can run for minutes — far too long to hold an HTTP
+   connection open. The request enqueues a job and returns immediately; the consumer does the work.
+2. **Concurrency guard.** `requestBackfill` rejects with **409** if a job is already `QUEUED` or
+   `RUNNING`. Concurrent backfills would duplicate expensive embedding-API calls for zero benefit.
+3. **Progress commits in its own transaction** (`Propagation.REQUIRES_NEW`). Without that, progress
+   updates would be invisible until the entire long-running job committed — defeating the point of
+   polling for them.
+
+**Job lifecycle:** `QUEUED → RUNNING → COMPLETED | FAILED`, with `totalBooks`, `processedBooks`,
+`currentBookTitle`, timings, and any error message recorded for the run-history view.
 
 **Design detail worth mentioning:** the document ID is the book's own UUID, so re-embedding
 **overwrites** rather than duplicating.
@@ -602,6 +619,7 @@ This is a deliberate scope decision, not unfinished work — swapping in Stripe 
 | `conversations` | chat sessions, scoped by `user_id` |
 | `messages` | `role` (USER/ASSISTANT), `content` |
 | `vector_store` | pgvector — 1536-dim embeddings + metadata (managed by Spring AI) |
+| `embedding_jobs` | backfill run history: status, progress counters, timings, error message |
 
 ---
 
@@ -1156,7 +1174,7 @@ notification 8086 · mcp 8087 · ai 8088 · Postgres 5432 · Redis 6379 · Kafka
 **Schemas:** `auth` · `users` · `catalog` · `commerce` · `payments` · `ai`
 
 **Kafka topics:** `order.created` · `order.cancelled` · `payment.captured` · `payment.failed` ·
-`refund.completed` · `book.upserted`
+`refund.completed` · `book.upserted` · `embedding.backfill.requested`
 
 **Order status:** `PENDING_PAYMENT → PAID → CONFIRMED → SHIPPED → DELIVERED`, plus
 `PAYMENT_FAILED` and `CANCELLED` (only within 48h and pre-shipping)

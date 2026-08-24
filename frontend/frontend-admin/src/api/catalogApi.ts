@@ -16,10 +16,19 @@ import type {
 } from '@/types/catalog';
 import type { IdResponse } from '@/types/api';
 
-export async function listBooks(page: number, size: number, q?: string): Promise<PageResponse<BookSummary>> {
-  const response = await apiClient.get<PageResponse<BookSummary>>('/api/v1/books', {
-    params: { page, size, q: q || undefined },
-  });
+export interface BookSearchParams {
+  page: number;
+  size: number;
+  q?: string;
+  categoryId?: string;
+  publisherId?: string;
+  format?: string;
+  minPrice?: string;
+  maxPrice?: string;
+}
+
+export async function listBooks(params: BookSearchParams): Promise<PageResponse<BookSummary>> {
+  const response = await apiClient.get<PageResponse<BookSummary>>('/api/v1/books', { params });
   return response.data;
 }
 

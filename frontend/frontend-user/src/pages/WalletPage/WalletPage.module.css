@@ -1,26 +1,84 @@
-.balance {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--color-primary);
-  margin-bottom: var(--space-6);
+.balanceCard {
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-5);
+  background:
+    radial-gradient(600px circle at 0% 0%, rgba(37, 99, 235, 0.16), transparent 60%),
+    var(--color-surface);
 }
 
 .balanceLabel {
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
 }
 
-.ledgerItem {
+.balance {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-top: var(--space-2);
+  line-height: 1.1;
+}
+
+.balanceCurrency {
+  font-size: var(--font-size-base);
+  color: var(--color-text-subtle);
+  font-weight: 500;
+}
+
+.item {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
 }
 
-.ledgerItem:last-child {
+.item:last-child {
   border-bottom: none;
+}
+
+.itemIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.creditIcon {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.debitIcon {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.itemInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemType {
+  font-weight: 500;
+}
+
+.itemDate {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 
 .credit {
@@ -31,6 +89,11 @@
   color: var(--color-danger);
 }
 
-.date {
-  color: var(--color-text-muted);
+.balanceAfter {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  width: 90px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }

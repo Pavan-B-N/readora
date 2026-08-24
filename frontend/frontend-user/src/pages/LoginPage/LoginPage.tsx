@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AlertCircle, LogIn } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { login } from '@/redux/slices/authSlice';
 import { Card } from '@/components/Card';
@@ -46,18 +47,32 @@ export function LoginPage() {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-          <Input label="Email" type="email" autoComplete="username" error={errors.email?.message} {...registerField('email')} />
+          <Input
+            label="Email"
+            type="email"
+            autoComplete="username"
+            placeholder="you@example.com"
+            error={errors.email?.message}
+            {...registerField('email')}
+          />
           <Input
             label="Password"
             type="password"
             autoComplete="current-password"
+            placeholder="••••••••"
             error={errors.password?.message}
             {...registerField('password')}
           />
 
-          {error && <div className={styles.formError}>{error}</div>}
+          {error && (
+            <div className={styles.formError}>
+              <AlertCircle size={15} />
+              {error}
+            </div>
+          )}
 
-          <Button type="submit" disabled={status === 'loading'}>
+          <Button type="submit" disabled={status === 'loading'} block>
+            <LogIn size={15} />
             {status === 'loading' ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>

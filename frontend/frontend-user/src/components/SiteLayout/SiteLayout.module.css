@@ -7,7 +7,8 @@
 .header {
   height: var(--header-height);
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: rgba(22, 27, 34, 0.85);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   position: sticky;
@@ -22,61 +23,131 @@
   padding: 0 var(--space-5);
   display: flex;
   align-items: center;
-  gap: var(--space-6);
+  gap: var(--space-5);
 }
 
 .brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.brandMark {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brandName {
   font-size: var(--font-size-lg);
   font-weight: 700;
-  color: var(--color-primary);
-  flex-shrink: 0;
+  letter-spacing: -0.02em;
 }
 
 .searchForm {
   flex: 1;
-  max-width: 480px;
+  max-width: 460px;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-subtle);
+  pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
+  height: 36px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: inherit;
   font-size: var(--font-size-sm);
+  padding: 0 var(--space-4) 0 var(--space-8);
+  transition: border-color var(--transition);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-1);
   margin-left: auto;
 }
 
 .navLink {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  font-size: var(--font-size-sm);
-  color: var(--color-text);
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
   position: relative;
   background: none;
   border: none;
-  padding: 0;
   cursor: pointer;
   font-family: inherit;
+  transition: background var(--transition), color var(--transition);
+}
+
+.navLink:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.navLinkActive {
+  color: var(--color-info);
+  background: var(--color-primary-soft);
+}
+
+.signInLink {
+  width: auto;
+  padding: 0 var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  background: var(--color-primary);
+  color: white;
+}
+
+.signInLink:hover {
+  background: var(--color-primary-hover);
+  color: white;
 }
 
 .cartBadge {
   position: absolute;
-  top: -6px;
-  right: -10px;
+  top: 2px;
+  right: 2px;
   background: var(--color-accent);
-  color: white;
-  border-radius: 999px;
-  font-size: 0.65rem;
+  color: #1a1205;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 700;
   padding: 1px 5px;
   min-width: 16px;
   text-align: center;
+  line-height: 1.4;
 }
 
 .main {
@@ -84,13 +155,24 @@
   max-width: var(--content-max-width);
   margin: 0 auto;
   width: 100%;
-  padding: var(--space-6) var(--space-5);
+  padding: var(--space-6) var(--space-5) var(--space-10);
 }
 
 .footer {
   border-top: 1px solid var(--color-border);
   padding: var(--space-5);
   text-align: center;
-  color: var(--color-text-muted);
+  color: var(--color-text-subtle);
   font-size: var(--font-size-sm);
+}
+
+@media (max-width: 640px) {
+  .headerInner {
+    gap: var(--space-3);
+    padding: 0 var(--space-3);
+  }
+
+  .brandName {
+    display: none;
+  }
 }

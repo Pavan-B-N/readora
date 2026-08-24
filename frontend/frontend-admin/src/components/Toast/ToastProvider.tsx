@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 import styles from './Toast.module.css';
 
 type ToastVariant = 'success' | 'error';
@@ -33,7 +34,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className={styles.container}>
         {toasts.map((toast) => (
-          <div key={toast.id} className={[styles.toast, styles[toast.variant]].join(' ')}>
+          <div key={toast.id} className={[styles.toast, styles[toast.variant]].join(' ')} role="status">
+            <span className={styles.icon}>
+              {toast.variant === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            </span>
             {toast.message}
           </div>
         ))}

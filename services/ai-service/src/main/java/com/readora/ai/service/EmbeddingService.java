@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 /**
  * Builds and stores book embeddings in the vector store — the single place that logic lives,
@@ -29,18 +30,31 @@ public class EmbeddingService {
         this.vectorStore = vectorStore;
     }
 
-    /** Re-embeds every book in the catalog, paginating through catalog-service's full export. */
-    public void backfillAll() {
+    /**
+     * Re-embeds every book in the catalog, paginating through catalog-service's full export.
+     *
+     * @param progressCallback invoked after each page with (booksProcessedSoFar, lastBookTitle),
+     *                         so a caller can surface live progress. Pass null to skip reporting.
+     * @return the total number of books embedded
+     */
+    public int backfillAll(BiConsumer<Integer, String> progressCallback) {
         int page = 0;
+        int processed = 0;
         List<BookDoc> books;
 
         do {
             books = catalogClient.listAllBooks(page, PAGE_SIZE);
             if (!books.isEmpty()) {
                 embed(books);
+                processed += books.size();
+                if (progressCallback != null) {
+                    progressCallback.accept(processed, books.get(books.size() - 1).title());
+                }
             }
             page++;
         } while (books.size() == PAGE_SIZE);
+
+        return processed;
     }
 
     /** Re-embeds a single book, replacing its existing vector if one exists. */

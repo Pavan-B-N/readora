@@ -1,11 +1,139 @@
-.card {
-  max-width: 480px;
+.layout {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
-.description {
-  color: var(--color-text-muted);
+.explainer {
+  display: flex;
+  gap: var(--space-3);
   font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.explainerIcon {
+  color: var(--color-info);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.runRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.progressWrap {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+  background: var(--color-info-bg);
+  border-radius: var(--radius-md);
+}
+
+.progressHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.progressLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.progressCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.progressTrack {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-hover);
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.4s ease;
+}
+
+.progressIndeterminate {
+  width: 35%;
+  animation: slide 1.2s ease-in-out infinite;
+}
+
+@keyframes slide {
+  0% { margin-left: -35%; }
+  100% { margin-left: 100%; }
+}
+
+.currentBook {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.currentBookTitle {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.mono {
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.errorCell {
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
