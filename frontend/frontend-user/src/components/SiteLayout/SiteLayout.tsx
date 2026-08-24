@@ -1,16 +1,25 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Outlet, useNavigate, useSearchParams } from 'react-router-dom';
-import { ShoppingCart, User, Package, Wallet } from 'lucide-react';
-import { useAppSelector } from '@/redux/hooks';
+import { ShoppingCart, User, Package, Wallet, LogOut } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { loggedOut } from '@/redux/slices/authSlice';
+import { cartCleared } from '@/redux/slices/cartSlice';
 import { ROUTES } from '@/constants/routes';
 import styles from './SiteLayout.module.css';
 
 export function SiteLayout() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const { accessToken } = useAppSelector((state) => state.auth);
   const itemCount = useAppSelector((state) => state.cart.itemCount);
+
+  const onLogout = () => {
+    dispatch(loggedOut());
+    dispatch(cartCleared());
+    navigate(ROUTES.home);
+  };
 
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -50,6 +59,9 @@ export function SiteLayout() {
                 <Link to={ROUTES.profile} className={styles.navLink}>
                   <User size={18} />
                 </Link>
+                <button type="button" className={styles.navLink} onClick={onLogout} aria-label="Log out">
+                  <LogOut size={18} />
+                </button>
               </>
             ) : (
               <Link to={ROUTES.login} className={styles.navLink}>

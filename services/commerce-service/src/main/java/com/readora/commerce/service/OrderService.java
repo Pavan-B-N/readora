@@ -2,6 +2,7 @@ package com.readora.commerce.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.readora.commerce.cart.CartRepository;
 import com.readora.commerce.client.CatalogClient;
 import com.readora.commerce.dto.CancelOrderRequest;
 import com.readora.commerce.dto.CancelOrderResponse;
@@ -58,6 +59,7 @@ public class OrderService {
     private final OrderStatusHistoryRepository historyRepository;
     private final OutboxEventRepository outboxEventRepository;
     private final CatalogClient catalogClient;
+    private final CartRepository cartRepository;
     private final ObjectMapper objectMapper;
 
     public OrderService(
@@ -67,6 +69,7 @@ public class OrderService {
             OrderStatusHistoryRepository historyRepository,
             OutboxEventRepository outboxEventRepository,
             CatalogClient catalogClient,
+            CartRepository cartRepository,
             ObjectMapper objectMapper
     ) {
         this.orderRepository = orderRepository;
@@ -75,6 +78,7 @@ public class OrderService {
         this.historyRepository = historyRepository;
         this.outboxEventRepository = outboxEventRepository;
         this.catalogClient = catalogClient;
+        this.cartRepository = cartRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -98,6 +102,7 @@ public class OrderService {
 
         historyRepository.save(new OrderStatusHistory(order, null, OrderStatus.PENDING_PAYMENT, null, "system"));
         publishOrderCreated(order, request);
+        cartRepository.clear(userId);
 
         return toCheckoutResponse(order);
     }

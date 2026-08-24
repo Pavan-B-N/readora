@@ -15,14 +15,17 @@ import { Button } from '@/components/Button';
 import { ROUTES } from '@/constants/routes';
 import styles from './CheckoutPage.module.css';
 
+// All fields are optional here — this form also submits for VIRTUAL delivery, where the address
+// section isn't rendered at all, so react-hook-form never registers these fields. Required-ness
+// for PHYSICAL delivery is checked imperatively in onSubmit instead, where deliveryType is known.
 const addressSchema = z.object({
-  recipientName: z.string().min(1, 'Required'),
-  line1: z.string().min(1, 'Required'),
+  recipientName: z.string().optional(),
+  line1: z.string().optional(),
   line2: z.string().optional(),
-  city: z.string().min(1, 'Required'),
-  state: z.string().min(1, 'Required'),
-  postalCode: z.string().min(1, 'Required'),
-  countryCode: z.string().length(2, 'Use a 2-letter country code'),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  postalCode: z.string().optional(),
+  countryCode: z.string().optional(),
   phone: z.string().optional(),
 });
 
@@ -41,6 +44,7 @@ export function CheckoutPage() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<AddressFormValues>({ resolver: zodResolver(addressSchema) });
 
@@ -49,11 +53,32 @@ export function CheckoutPage() {
   }, [dispatch]);
 
   const onSubmit = async (address: AddressFormValues) => {
+    if (deliveryType === 'PHYSICAL') {
+      const required = ['recipientName', 'line1', 'city', 'state', 'postalCode', 'countryCode'] as const;
+      let hasError = false;
+
+      for (const field of required) {
+        if (!address[field]?.trim()) {
+          setError(field, { message: 'Required' });
+          hasError = true;
+        }
+      }
+      if (address.countryCode?.trim() && address.countryCode.trim().length !== 2) {
+        setError('countryCode', { message: 'Use a 2-letter country code' });
+        hasError = true;
+      }
+
+      if (hasError) {
+        showToast('Fill in the full shipping address', 'error');
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const response = await checkout({
         deliveryType,
-        shippingAddress: deliveryType === 'PHYSICAL' ? address : null,
+        shippingAddress: deliveryType === 'PHYSICAL' ? (address as Required<AddressFormValues>) : null,
         paymentMethod,
         items: items.map((item) => ({ bookId: item.bookId, qty: item.qty })),
       });

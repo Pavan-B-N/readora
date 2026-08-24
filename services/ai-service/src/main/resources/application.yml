@@ -40,9 +40,10 @@ spring:
         embedding:
           options:
             deployment-name: ${AZURE_OPENAI_EMBEDDING_DEPLOYMENT}
-            # text-embedding-3-small/ada-002 both output 1536 dims — change this (and
-            # vectorstore.pgvector.dimensions below) to match whatever model you actually deploy.
-            dimensions: 1536
+            # ada-002 rejects the `dimensions` param outright (400 "This model does not support
+            # specifying dimensions"), even set to its own native size — only text-embedding-3-*
+            # models support it. Leave unset for ada-002; vectorstore.pgvector.dimensions below
+            # (1536, ada-002's native output) is what actually sizes the pgvector column.
 
     vectorstore:
       pgvector:

@@ -59,6 +59,11 @@
   font-size: var(--font-size-sm);
   color: var(--color-text);
   position: relative;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .cartBadge {
