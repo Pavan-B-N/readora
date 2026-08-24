@@ -1,0 +1,217 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.skipLink {
+  position: absolute;
+  top: -100px;
+  left: var(--space-3);
+  z-index: 1000;
+  background: var(--color-primary);
+  color: white;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: top var(--transition);
+}
+
+.skipLink:focus {
+  top: var(--space-3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: 0 var(--space-5);
+  height: 60px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+@media (max-width: 640px) {
+  .header {
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+  }
+
+  .brandText {
+    display: none;
+  }
+
+  .nav {
+    gap: 0;
+    flex: 0;
+  }
+
+  .navLabel {
+    display: none;
+  }
+
+  .navLink {
+    padding: var(--space-2);
+  }
+
+  .agent {
+    gap: var(--space-2);
+  }
+
+  .agentName {
+    display: none;
+  }
+
+  .dutyToggle {
+    padding: 0 var(--space-2);
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brandName {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.brandRole {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  transition: background var(--transition), color var(--transition);
+}
+
+.navLink:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.navLinkActive {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.agent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.agentName {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.dutyToggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.dutyToggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dutyToggleDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+.dutyToggleOn {
+  background: var(--color-success-bg);
+  border-color: rgba(var(--color-success-rgb), 0.35);
+  color: var(--color-success);
+}
+
+.dutyToggleOn .dutyToggleDot {
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(var(--color-success-rgb), 0.18);
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.logoutButton:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.content {
+  flex: 1;
+  max-width: var(--content-max-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .content {
+    padding: var(--space-4) var(--space-3);
+  }
+}
