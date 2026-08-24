@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class CatalogClient {
@@ -22,7 +23,7 @@ public class CatalogClient {
                 .build();
     }
 
-    /** Pulled in for the embedding backfill — title, authors, description, and table of contents for every active book. */
+    /** Pulled in for the full backfill — title, authors, description, and table of contents for every active book. */
     public List<BookDoc> listAllBooks(int page, int size) {
         BookExportPageResponse response = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/internal/books/export")
@@ -35,6 +36,23 @@ public class CatalogClient {
         return response != null ? response.items() : List.of();
     }
 
+    /** Pulled in for the incremental embedding consumer — same fields as listAllBooks, but for specific book ids only. */
+    public List<BookDoc> lookupBooks(List<UUID> bookIds) {
+        BookLookupResponse response = restClient.post()
+                .uri("/internal/books/lookup")
+                .body(new BookLookupRequest(bookIds))
+                .retrieve()
+                .body(BookLookupResponse.class);
+
+        return response != null ? response.items() : List.of();
+    }
+
     private record BookExportPageResponse(List<BookDoc> items, int totalPages) {
+    }
+
+    private record BookLookupRequest(List<UUID> bookIds) {
+    }
+
+    private record BookLookupResponse(List<BookDoc> items) {
     }
 }

@@ -4,48 +4,55 @@ import com.readora.ai.client.CatalogClient;
 import com.readora.ai.dto.BookDoc;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
- * Backfills the vector store from catalog-service on every startup, using each book's id as the
- * document id so re-running overwrites rather than duplicates. This is a simplification of the
- * doc's "refreshed on text-field update" behavior (which implies event-driven incremental
- * updates) — there's no catalog.book.updated event in this system yet, so a full re-embed on
- * startup is the pragmatic stand-in.
- *
- * Embeds title + authors + description + table of contents — the earlier version only embedded
- * title + authors, which left semantic search almost nothing real to match against.
+ * Builds and stores book embeddings in the vector store — the single place that logic lives,
+ * used by both the admin-triggered full backfill and the incremental Kafka consumer. Uses each
+ * book's id as the document id, so re-embedding a book overwrites its existing vector rather
+ * than duplicating it.
  */
-@Component
-public class EmbeddingBackfillService implements ApplicationRunner {
+@Service
+public class EmbeddingService {
 
     private static final int PAGE_SIZE = 50;
 
     private final CatalogClient catalogClient;
     private final VectorStore vectorStore;
 
-    public EmbeddingBackfillService(CatalogClient catalogClient, VectorStore vectorStore) {
+    public EmbeddingService(CatalogClient catalogClient, VectorStore vectorStore) {
         this.catalogClient = catalogClient;
         this.vectorStore = vectorStore;
     }
 
-    @Override
-    public void run(ApplicationArguments args) {
+    /** Re-embeds every book in the catalog, paginating through catalog-service's full export. */
+    public void backfillAll() {
         int page = 0;
         List<BookDoc> books;
 
         do {
             books = catalogClient.listAllBooks(page, PAGE_SIZE);
             if (!books.isEmpty()) {
-                vectorStore.add(books.stream().map(this::toDocument).toList());
+                embed(books);
             }
             page++;
         } while (books.size() == PAGE_SIZE);
+    }
+
+    /** Re-embeds a single book, replacing its existing vector if one exists. */
+    public void embedOne(UUID bookId) {
+        List<BookDoc> books = catalogClient.lookupBooks(List.of(bookId));
+        if (!books.isEmpty()) {
+            embed(books);
+        }
+    }
+
+    private void embed(List<BookDoc> books) {
+        vectorStore.add(books.stream().map(this::toDocument).toList());
     }
 
     private Document toDocument(BookDoc book) {

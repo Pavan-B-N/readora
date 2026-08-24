@@ -32,16 +32,10 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Chat model: gpt-oss-120b via AWS Bedrock's Converse API (tool-calling capable) -->
+        <!-- Chat + embedding models: Azure OpenAI, one starter covers both -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-model-bedrock-converse</artifactId>
-        </dependency>
-
-        <!-- Embedding model: Amazon Titan Text Embeddings V2, same Bedrock credentials -->
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-bedrock</artifactId>
+            <artifactId>spring-ai-starter-model-azure-openai</artifactId>
         </dependency>
 
         <!-- Vector store for RAG — its own pgvector-backed table, not a column on catalog's Book -->
@@ -72,6 +66,10 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
         </dependency>
 
         <dependency>

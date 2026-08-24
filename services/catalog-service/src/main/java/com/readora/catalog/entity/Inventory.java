@@ -88,6 +88,10 @@ public class Inventory {
         return qtyReserved;
     }
 
+    public int getReorderThreshold() {
+        return reorderThreshold;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;

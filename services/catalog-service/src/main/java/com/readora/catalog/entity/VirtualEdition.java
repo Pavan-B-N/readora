@@ -77,6 +77,10 @@ public class VirtualEdition {
         return fileFormat;
     }
 
+    public Long getFileSizeBytes() {
+        return fileSizeBytes;
+    }
+
     public BigDecimal getPrice() {
         return price;
     }

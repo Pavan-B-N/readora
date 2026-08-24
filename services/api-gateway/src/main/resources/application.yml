@@ -27,7 +27,7 @@ spring:
         - id: catalog-service
           uri: http://localhost:8083
           predicates:
-            - Path=/api/v1/books/**,/api/v1/categories/**,/api/v1/admin/**
+            - Path=/api/v1/books/**,/api/v1/categories/**,/api/v1/publishers/**,/api/v1/authors/**,/api/v1/admin/books/**,/api/v1/admin/categories,/api/v1/admin/publishers,/api/v1/admin/authors
         - id: commerce-service
           uri: http://localhost:8084
           predicates:
@@ -39,7 +39,7 @@ spring:
         - id: ai-service
           uri: http://localhost:8088
           predicates:
-            - Path=/api/v1/ai/**
+            - Path=/api/v1/ai/**,/api/v1/admin/embeddings/**
 
       globalcors:
         cors-configurations:
@@ -66,6 +66,8 @@ app:
       - /api/v1/auth/refresh
       - /api/v1/books/**
       - /api/v1/categories/**
+      - /api/v1/publishers/**
+      - /api/v1/authors/**
       - /api/v1/ai/search
   rate-limit:
     default-rule:

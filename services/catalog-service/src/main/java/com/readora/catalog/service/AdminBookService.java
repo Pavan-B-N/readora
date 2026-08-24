@@ -1,5 +1,9 @@
 package com.readora.catalog.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.readora.catalog.dto.AdminBookDetailResponse;
+import com.readora.catalog.dto.BookUpsertedEvent;
 import com.readora.catalog.dto.CreateBookRequest;
 import com.readora.catalog.dto.IdResponse;
 import com.readora.catalog.dto.UpdateBookRequest;
@@ -9,16 +13,19 @@ import com.readora.catalog.entity.Author;
 import com.readora.catalog.entity.Book;
 import com.readora.catalog.entity.Category;
 import com.readora.catalog.entity.Inventory;
+import com.readora.catalog.entity.OutboxEvent;
 import com.readora.catalog.entity.Publisher;
 import com.readora.catalog.entity.VirtualEdition;
 import com.readora.catalog.exception.AuthorNotFoundException;
 import com.readora.catalog.exception.BookNotFoundException;
 import com.readora.catalog.exception.CategoryNotFoundException;
 import com.readora.catalog.exception.PublisherNotFoundException;
+import com.readora.catalog.kafka.KafkaTopics;
 import com.readora.catalog.repository.AuthorRepository;
 import com.readora.catalog.repository.BookRepository;
 import com.readora.catalog.repository.CategoryRepository;
 import com.readora.catalog.repository.InventoryRepository;
+import com.readora.catalog.repository.OutboxEventRepository;
 import com.readora.catalog.repository.PublisherRepository;
 import com.readora.catalog.repository.VirtualEditionRepository;
 import org.springframework.stereotype.Service;
@@ -39,6 +46,8 @@ public class AdminBookService {
     private final AuthorRepository authorRepository;
     private final InventoryRepository inventoryRepository;
     private final VirtualEditionRepository virtualEditionRepository;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     public AdminBookService(
             BookRepository bookRepository,
@@ -46,7 +55,9 @@ public class AdminBookService {
             PublisherRepository publisherRepository,
             AuthorRepository authorRepository,
             InventoryRepository inventoryRepository,
-            VirtualEditionRepository virtualEditionRepository
+            VirtualEditionRepository virtualEditionRepository,
+            OutboxEventRepository outboxEventRepository,
+            ObjectMapper objectMapper
     ) {
         this.bookRepository = bookRepository;
         this.categoryRepository = categoryRepository;
@@ -54,6 +65,37 @@ public class AdminBookService {
         this.authorRepository = authorRepository;
         this.inventoryRepository = inventoryRepository;
         this.virtualEditionRepository = virtualEditionRepository;
+        this.outboxEventRepository = outboxEventRepository;
+        this.objectMapper = objectMapper;
+    }
+
+    @Transactional(readOnly = true)
+    public AdminBookDetailResponse getBookForEdit(UUID bookId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
+        Inventory inventory = inventoryRepository.findById(bookId).orElse(null);
+        VirtualEdition virtualEdition = virtualEditionRepository.findById(bookId).orElse(null);
+
+        AdminBookDetailResponse.Inventory inventoryDto = inventory != null
+                ? new AdminBookDetailResponse.Inventory(inventory.getQtyOnHand(), inventory.getQtyReserved(), inventory.getReorderThreshold())
+                : null;
+
+        AdminBookDetailResponse.VirtualEdition virtualEditionDto = virtualEdition != null
+                ? new AdminBookDetailResponse.VirtualEdition(
+                        virtualEdition.getFileUrl(), virtualEdition.getFileFormat(), virtualEdition.getFileSizeBytes(),
+                        virtualEdition.getPrice(), virtualEdition.getCurrency(), virtualEdition.isActive()
+                )
+                : null;
+
+        return new AdminBookDetailResponse(
+                book.getId(), book.getIsbn13(), book.getTitle(), book.getSubtitle(), book.getDescription(),
+                book.getTableOfContents(),
+                book.getCategory() != null ? book.getCategory().getId() : null,
+                book.getPublisher() != null ? book.getPublisher().getId() : null,
+                book.getAuthors().stream().map(Author::getId).toList(),
+                book.getLanguage(), book.getFormat(), book.getPageCount(), book.getPublishedOn(),
+                book.getListPrice(), book.getCurrency(), book.getCoverImageUrl(), book.isActive(),
+                inventoryDto, virtualEditionDto
+        );
     }
 
     @Transactional
@@ -78,6 +120,7 @@ public class AdminBookService {
         }
 
         bookRepository.save(book);
+        publishBookUpserted(book.getId());
         return new IdResponse(book.getId());
     }
 
@@ -108,6 +151,16 @@ public class AdminBookService {
         }
 
         bookRepository.save(book);
+        publishBookUpserted(book.getId());
+    }
+
+    private void publishBookUpserted(UUID bookId) {
+        try {
+            String payload = objectMapper.writeValueAsString(new BookUpsertedEvent(bookId));
+            outboxEventRepository.save(new OutboxEvent("Book", bookId, KafkaTopics.BOOK_UPSERTED, payload));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize outbox event payload", e);
+        }
     }
 
     @Transactional

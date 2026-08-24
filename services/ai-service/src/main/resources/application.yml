@@ -21,24 +21,34 @@ spring:
         default_schema: ai
     show-sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: ai-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
   ai:
-    bedrock:
-      aws:
-        region: ${AWS_REGION:us-east-1}
-        access-key: ${AWS_ACCESS_KEY_ID}
-        secret-key: ${AWS_SECRET_ACCESS_KEY}
-      converse:
+    azure:
+      openai:
+        endpoint: ${AZURE_OPENAI_ENDPOINT}
+        api-key: ${AZURE_OPENAI_API_KEY}
         chat:
-          model: ${BEDROCK_CHAT_MODEL_ID}
-      titan:
+          options:
+            deployment-name: ${AZURE_OPENAI_CHAT_DEPLOYMENT}
         embedding:
-          model: amazon.titan-embed-text-v2:0
+          options:
+            deployment-name: ${AZURE_OPENAI_EMBEDDING_DEPLOYMENT}
+            # text-embedding-3-small/ada-002 both output 1536 dims — change this (and
+            # vectorstore.pgvector.dimensions below) to match whatever model you actually deploy.
+            dimensions: 1536
 
     vectorstore:
       pgvector:
         schema-name: ai
         table-name: vector_store
-        dimensions: 1024
+        dimensions: 1536
         initialize-schema: true
 
     mcp:

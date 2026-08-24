@@ -20,20 +20,24 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorrelationIdFilter correlationIdFilter;
     private final GatewaySecretFilter gatewaySecretFilter;
+    private final SecurityProperties securityProperties;
 
     /**
      * @param jwtAuthenticationFilter validates Bearer tokens and populates the security context
      * @param correlationIdFilter     assigns/propagates the request's correlation id
      * @param gatewaySecretFilter     rejects requests that didn't come through api-gateway
+     * @param securityProperties      supplies the config-driven list of routes that don't require authentication
      */
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             CorrelationIdFilter correlationIdFilter,
-            GatewaySecretFilter gatewaySecretFilter
+            GatewaySecretFilter gatewaySecretFilter,
+            SecurityProperties securityProperties
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.correlationIdFilter = correlationIdFilter;
         this.gatewaySecretFilter = gatewaySecretFilter;
+        this.securityProperties = securityProperties;
     }
 
     /** @return the BCrypt password encoder used to hash and verify user passwords */
@@ -53,15 +57,13 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        String[] publicRoutes = securityProperties.publicRoutes().toArray(String[]::new);
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/refresh"
-                        ).permitAll()
+                        .requestMatchers(publicRoutes).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

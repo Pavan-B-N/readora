@@ -2,6 +2,7 @@ package com.readora.catalog.service;
 
 import com.readora.catalog.dto.BookExportItem;
 import com.readora.catalog.dto.BookExportPage;
+import com.readora.catalog.dto.BookLookupResponse;
 import com.readora.catalog.dto.VirtualEditionLookupResponse;
 import com.readora.catalog.entity.Author;
 import com.readora.catalog.entity.Book;
@@ -48,6 +49,22 @@ public class InternalCatalogService {
                 .toList();
 
         return new BookExportPage(items, page.getTotalPages());
+    }
+
+    /** Text export for the specific book ids requested — used by ai-service's incremental embedding consumer, so it doesn't have to paginate the whole catalog for one changed book. */
+    @Transactional(readOnly = true)
+    public BookLookupResponse lookupBooks(List<UUID> bookIds) {
+        List<BookExportItem> items = bookRepository.findAllById(bookIds).stream()
+                .map(book -> new BookExportItem(
+                        book.getId(),
+                        book.getTitle(),
+                        book.getAuthors().stream().map(Author::getName).toList(),
+                        book.getDescription(),
+                        book.getTableOfContents()
+                ))
+                .toList();
+
+        return new BookLookupResponse(items);
     }
 
     /** Virtual-edition availability and pricing lookup for commerce-service's virtual checkout path. */

@@ -1,6 +1,8 @@
 package com.readora.catalog.controller;
 
 import com.readora.catalog.dto.BookExportPage;
+import com.readora.catalog.dto.BookLookupRequest;
+import com.readora.catalog.dto.BookLookupResponse;
 import com.readora.catalog.dto.VirtualEditionLookupRequest;
 import com.readora.catalog.dto.VirtualEditionLookupResponse;
 import com.readora.catalog.service.InternalCatalogService;
@@ -57,5 +59,18 @@ public class InternalCatalogController {
     @PostMapping("/virtual-editions/lookup")
     public ResponseEntity<VirtualEditionLookupResponse> lookupVirtualEditions(@RequestBody VirtualEditionLookupRequest request) {
         return ResponseEntity.ok(internalCatalogService.lookupVirtualEditions(request.bookIds()));
+    }
+
+    @Operation(
+            summary = "Look up book text for specific ids",
+            description = "Internal, service-to-service only. Called by ai-service's incremental embedding consumer to re-embed one changed book without paginating the whole catalog.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Books found for the requested ids (missing ids are silently omitted)")
+    })
+    @PostMapping("/books/lookup")
+    public ResponseEntity<BookLookupResponse> lookupBooks(@RequestBody BookLookupRequest request) {
+        return ResponseEntity.ok(internalCatalogService.lookupBooks(request.bookIds()));
     }
 }

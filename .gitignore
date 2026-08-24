@@ -1,6 +1,46 @@
+# Claude Code / AI tooling
 .claude
-.idea
 ai-context
+
+# Editors / IDEs
+.idea
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.sw?
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Secrets / local config — every service's, plus infra's and each frontend's
 .env
+.env.local
+.env.*.local
+!.env.example
+
+# Java / Maven (services/*/target)
 target/
+hs_err_pid*.log
+
+# Node / Vite (frontend/*, e2e)
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Playwright (e2e)
+test-results/
+playwright-report/
+
+# run-all.sh / stop-all.sh runtime output
+/logs/
+/pids/
+
+# OTel Java agent — 24MB binary, fetched via infra/otel/download-agent.sh
+infra/otel/opentelemetry-javaagent.jar

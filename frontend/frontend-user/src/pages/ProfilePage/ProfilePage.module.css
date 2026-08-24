@@ -1,0 +1,52 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.profileRow {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+
+.profileLabel {
+  color: var(--color-text-muted);
+  margin-right: var(--space-2);
+}
+
+.addressCard {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-sm);
+  position: relative;
+}
+
+.addressLabel {
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.defaultBadge {
+  font-size: 0.7rem;
+  color: var(--color-primary);
+  margin-left: var(--space-2);
+}
+
+.removeButton {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

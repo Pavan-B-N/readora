@@ -1,5 +1,6 @@
 package com.readora.catalog.controller;
 
+import com.readora.catalog.dto.AdminBookDetailResponse;
 import com.readora.catalog.dto.CreateBookRequest;
 import com.readora.catalog.dto.IdResponse;
 import com.readora.catalog.dto.UpdateBookRequest;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -32,6 +34,21 @@ public class AdminBookController {
 
     public AdminBookController(AdminBookService adminBookService) {
         this.adminBookService = adminBookService;
+    }
+
+    @Operation(
+            summary = "Get a book for editing",
+            description = "Requires the ADMIN role. Returns every field the edit form needs, including ones with no public read use (tableOfContents, coverImageUrl), plus current inventory and virtual-edition state.",
+            tags = {"Admin Books"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Book detail returned"),
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role"),
+            @ApiResponse(responseCode = "404", description = "The book does not exist")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<AdminBookDetailResponse> getBookForEdit(@PathVariable UUID id) {
+        return ResponseEntity.ok(adminBookService.getBookForEdit(id));
     }
 
     @Operation(

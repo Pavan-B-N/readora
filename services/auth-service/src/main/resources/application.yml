@@ -28,5 +28,9 @@ app:
     refresh-token-ttl-days: 30
   security:
     max-failed-login-attempts: 5
+    public-routes:
+      - /api/v1/auth/register
+      - /api/v1/auth/login
+      - /api/v1/auth/refresh
   gateway:
     secret: ${GATEWAY_SECRET}

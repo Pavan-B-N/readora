@@ -1,0 +1,71 @@
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
+import { login } from '@/redux/slices/authSlice';
+import { Card } from '@/components/Card';
+import { Input } from '@/components/Input';
+import { Button } from '@/components/Button';
+import { ROUTES } from '@/constants/routes';
+import styles from './LoginPage.module.css';
+
+const loginSchema = z.object({
+  email: z.string().email('Enter a valid email'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+export function LoginPage() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { status, error } = useAppSelector((state) => state.auth);
+
+  const {
+    register: registerField,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) });
+
+  const onSubmit = async (values: LoginFormValues) => {
+    const result = await dispatch(login(values));
+    if (login.fulfilled.match(result)) {
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? ROUTES.home;
+      navigate(from, { replace: true });
+    }
+  };
+
+  return (
+    <div className={styles.page}>
+      <Card className={styles.card}>
+        <div>
+          <h1 className={styles.title}>Welcome back</h1>
+          <p className={styles.subtitle}>Sign in to your Readora account</p>
+        </div>
+
+        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+          <Input label="Email" type="email" autoComplete="username" error={errors.email?.message} {...registerField('email')} />
+          <Input
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            error={errors.password?.message}
+            {...registerField('password')}
+          />
+
+          {error && <div className={styles.formError}>{error}</div>}
+
+          <Button type="submit" disabled={status === 'loading'}>
+            {status === 'loading' ? 'Signing in…' : 'Sign in'}
+          </Button>
+        </form>
+
+        <div className={styles.altAction}>
+          New to Readora? <Link to={ROUTES.register}>Create an account</Link>
+        </div>
+      </Card>
+    </div>
+  );
+}

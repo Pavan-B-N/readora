@@ -1,0 +1,36 @@
+.balance {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: var(--space-6);
+}
+
+.balanceLabel {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 400;
+}
+
+.ledgerItem {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+}
+
+.ledgerItem:last-child {
+  border-bottom: none;
+}
+
+.credit {
+  color: var(--color-success);
+}
+
+.debit {
+  color: var(--color-danger);
+}
+
+.date {
+  color: var(--color-text-muted);
+}

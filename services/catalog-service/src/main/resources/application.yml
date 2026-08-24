@@ -21,6 +21,12 @@ spring:
         default_schema: catalog
     show-sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
 app:
   gateway:
     secret: ${GATEWAY_SECRET}
@@ -28,4 +34,6 @@ app:
     public-routes:
       - /api/v1/books/**
       - /api/v1/categories/**
+      - /api/v1/publishers/**
+      - /api/v1/authors/**
       - /internal/**

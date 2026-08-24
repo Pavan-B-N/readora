@@ -11,7 +11,6 @@ import com.readora.auth.exception.InvalidCredentialsException;
 import com.readora.auth.exception.RefreshTokenInvalidException;
 import com.readora.auth.exception.RefreshTokenReusedException;
 import com.readora.auth.repository.RefreshTokenRepository;
-import com.readora.auth.repository.RoleRepository;
 import com.readora.auth.repository.UserRepository;
 import com.readora.auth.security.JwtService;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +31,7 @@ public class AuthService {
 
     // Repositories
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final RoleService roleService;
     private final RefreshTokenRepository refreshTokenRepository;
 
 
@@ -43,7 +42,7 @@ public class AuthService {
 
     /**
      * @param userRepository            persists and queries user accounts
-     * @param roleRepository            looks up roles to assign at registration
+     * @param roleService               looks up (or lazily creates) roles to assign at registration
      * @param refreshTokenRepository    persists and queries refresh tokens
      * @param passwordEncoder           hashes and verifies passwords
      * @param jwtService                signs access tokens
@@ -52,7 +51,7 @@ public class AuthService {
      */
     public AuthService(
             UserRepository userRepository,
-            RoleRepository roleRepository,
+            RoleService roleService,
             RefreshTokenRepository refreshTokenRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService,
@@ -60,7 +59,7 @@ public class AuthService {
             @Value("${app.jwt.refresh-token-ttl-days}") long refreshTokenTtlDays
     ) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
+        this.roleService = roleService;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -83,7 +82,7 @@ public class AuthService {
         }
 
         User user = new User(request.email(), passwordEncoder.encode(request.password()));
-        roleRepository.findByCode(RoleCode.CUSTOMER).ifPresent(user::addRole);
+        user.addRole(roleService.getOrCreate(RoleCode.CUSTOMER));
 
         userRepository.save(user);
 

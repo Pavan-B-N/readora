@@ -1,0 +1,33 @@
+.header {
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-5);
+}
+
+.empty {
+  color: var(--color-text-muted);
+  padding: var(--space-8) 0;
+  text-align: center;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  justify-content: center;
+  font-size: var(--font-size-sm);
+}

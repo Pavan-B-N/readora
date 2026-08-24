@@ -1,9 +1,11 @@
 package com.readora.catalog.service;
 
+import com.readora.catalog.dto.AuthorResponse;
 import com.readora.catalog.dto.BookDetailResponse;
 import com.readora.catalog.dto.BookSummaryResponse;
 import com.readora.catalog.dto.CategoryResponse;
 import com.readora.catalog.dto.PageResponse;
+import com.readora.catalog.dto.PublisherResponse;
 import com.readora.catalog.dto.RelatedBookResponse;
 import com.readora.catalog.entity.Book;
 import com.readora.catalog.entity.BookFormat;
@@ -12,11 +14,13 @@ import com.readora.catalog.entity.Category;
 import com.readora.catalog.entity.Inventory;
 import com.readora.catalog.entity.RelatedBook;
 import com.readora.catalog.exception.BookNotFoundException;
+import com.readora.catalog.repository.AuthorRepository;
 import com.readora.catalog.repository.BookImageRepository;
 import com.readora.catalog.repository.BookRepository;
 import com.readora.catalog.repository.BookSpecifications;
 import com.readora.catalog.repository.CategoryRepository;
 import com.readora.catalog.repository.InventoryRepository;
+import com.readora.catalog.repository.PublisherRepository;
 import com.readora.catalog.repository.RelatedBookRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,19 +39,25 @@ public class CatalogService {
     private final RelatedBookRepository relatedBookRepository;
     private final InventoryRepository inventoryRepository;
     private final CategoryRepository categoryRepository;
+    private final PublisherRepository publisherRepository;
+    private final AuthorRepository authorRepository;
 
     public CatalogService(
             BookRepository bookRepository,
             BookImageRepository bookImageRepository,
             RelatedBookRepository relatedBookRepository,
             InventoryRepository inventoryRepository,
-            CategoryRepository categoryRepository
+            CategoryRepository categoryRepository,
+            PublisherRepository publisherRepository,
+            AuthorRepository authorRepository
     ) {
         this.bookRepository = bookRepository;
         this.bookImageRepository = bookImageRepository;
         this.relatedBookRepository = relatedBookRepository;
         this.inventoryRepository = inventoryRepository;
         this.categoryRepository = categoryRepository;
+        this.publisherRepository = publisherRepository;
+        this.authorRepository = authorRepository;
     }
 
     @Transactional(readOnly = true)
@@ -115,6 +125,20 @@ public class CatalogService {
     public List<CategoryResponse> getCategoryTree() {
         return categoryRepository.findAllByParentIsNullOrderByDisplayOrder().stream()
                 .map(this::toTreeNode)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublisherResponse> getAllPublishers() {
+        return publisherRepository.findAll().stream()
+                .map(p -> new PublisherResponse(p.getId(), p.getName(), p.getSlug()))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AuthorResponse> getAllAuthors() {
+        return authorRepository.findAll().stream()
+                .map(a -> new AuthorResponse(a.getId(), a.getName(), a.getSlug(), a.getBio()))
                 .toList();
     }
 
