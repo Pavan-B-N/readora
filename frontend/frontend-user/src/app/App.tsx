@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from '@/redux/store';
 import { bootstrapSession } from '@/api/client';
+import { fetchCart } from '@/redux/slices/cartSlice';
 import { ToastProvider } from '@/components/Toast';
 import { router } from './router';
 
@@ -10,7 +11,14 @@ function AppRoutes() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    bootstrapSession().finally(() => setReady(true));
+    bootstrapSession()
+      .then(() => {
+        // The cart badge in the header otherwise only rehydrates once the user visits a page
+        // that happens to dispatch fetchCart itself — a plain refresh would show 0 items even
+        // though the server-side cart (Redis, 30-day TTL) is untouched.
+        if (store.getState().auth.accessToken) store.dispatch(fetchCart());
+      })
+      .finally(() => setReady(true));
   }, []);
 
   if (!ready) {

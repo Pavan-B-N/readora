@@ -9,19 +9,20 @@ import {
   listPublishers,
   updateBook,
 } from '@/api/catalogApi';
-import type { AdminBookDetail, Author, BookFormat, Publisher } from '@/types/catalog';
+import type { AdminBookDetail, Author, Publisher } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { slugify } from '@/utils/slugify';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
 import { Badge } from '@/components/Badge';
-import { Input, Select, Textarea } from '@/components/Input';
+import { Input, Textarea } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
 import { PageHeader } from '@/components/PageHeader';
 import { TocBuilder, tocSectionsToJson, jsonToTocSections, type TocSection } from '@/components/TocBuilder';
 import { InventorySection } from '../BookFormPage/InventorySection';
 import { VirtualEditionSection } from '../BookFormPage/VirtualEditionSection';
+import { ReviewsSection } from '../BookFormPage/ReviewsSection';
 import { ROUTES } from '@/constants/routes';
 import styles from './BookDetailPage.module.css';
 
@@ -36,7 +37,6 @@ interface FormState {
   categoryId: string | null;
   publisherId: string | null;
   authorIds: string[];
-  format: BookFormat;
   language: string;
   pageCount: string;
   publishedOn: string;
@@ -54,7 +54,6 @@ function detailToForm(detail: AdminBookDetail): FormState {
     categoryId: detail.categoryId,
     publisherId: detail.publisherId,
     authorIds: detail.authorIds,
-    format: detail.format,
     language: detail.language ?? '',
     pageCount: detail.pageCount != null ? String(detail.pageCount) : '',
     publishedOn: detail.publishedOn ?? '',
@@ -168,7 +167,6 @@ export function BookDetailPage() {
         publisherId: form.publisherId,
         authorIds: form.authorIds,
         language: form.language.trim() || null,
-        format: form.format,
         pageCount: form.pageCount ? Number(form.pageCount) : null,
         publishedOn: form.publishedOn || null,
         listPrice: form.listPrice.trim(),
@@ -321,7 +319,7 @@ export function BookDetailPage() {
       {isPhysical && (
         <Card>
           <CardHeader
-            title="Pricing, format & contents"
+            title="Pricing & contents"
             subtitle="Physical-edition specific — hidden for virtual-only titles."
             actions={
               editing === 'pricing' ? (
@@ -337,14 +335,9 @@ export function BookDetailPage() {
               <div className={styles.row3}>
                 <Input label="List price" required value={form.listPrice} error={errors.listPrice} onChange={(e) => set({ listPrice: e.target.value })} />
                 <Input label="Currency" required value={form.currency} error={errors.currency} onChange={(e) => set({ currency: e.target.value })} />
-                <Select label="Format" value={form.format} onChange={(e) => set({ format: e.target.value as BookFormat })}>
-                  <option value="HARDCOVER">Hardcover</option>
-                  <option value="PAPERBACK">Paperback</option>
-                  <option value="EBOOK">Ebook</option>
-                </Select>
+                <Input label="Language" value={form.language} onChange={(e) => set({ language: e.target.value })} />
               </div>
               <div className={styles.row3}>
-                <Input label="Language" value={form.language} onChange={(e) => set({ language: e.target.value })} />
                 <Input label="Page count" value={form.pageCount} error={errors.pageCount} onChange={(e) => set({ pageCount: e.target.value })} />
                 <Input label="Published on" type="date" value={form.publishedOn} onChange={(e) => set({ publishedOn: e.target.value })} />
               </div>
@@ -359,7 +352,6 @@ export function BookDetailPage() {
           ) : (
             <div className={styles.reviewGrid}>
               <ReviewItem label="Price" value={`${form.listPrice} ${form.currency}`} />
-              <ReviewItem label="Format" value={form.format} />
               <ReviewItem label="Language" value={form.language || null} />
               <ReviewItem label="Page count" value={form.pageCount || null} />
               <ReviewItem label="Published on" value={form.publishedOn || null} />
@@ -372,6 +364,8 @@ export function BookDetailPage() {
       {isPhysical && <InventorySection bookId={bookId!} inventory={detail.inventory} />}
 
       <VirtualEditionSection bookId={bookId!} virtualEdition={detail.virtualEdition} onChanged={reload} />
+
+      <ReviewsSection bookId={bookId!} />
 
       <Card>
         <CardHeader title="Audit" subtitle="Who listed this book, and whether its search index is current." />

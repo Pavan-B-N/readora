@@ -10,6 +10,7 @@ import type {
   CreatePublisherRequest,
   PageResponse,
   Publisher,
+  Review,
   Store,
   UpdateBookRequest,
   UpdateInventoryRequest,
@@ -89,4 +90,13 @@ export async function upsertVirtualEdition(bookId: string, request: UpsertVirtua
 
 export async function deactivateVirtualEdition(bookId: string): Promise<void> {
   await apiClient.delete(`/api/v1/admin/books/${bookId}/virtual-edition`);
+}
+
+export async function getBookReviews(bookId: string): Promise<PageResponse<Review>> {
+  const response = await apiClient.get<PageResponse<Review>>(`/api/v1/books/${bookId}/reviews`, { params: { size: 50 } });
+  return response.data;
+}
+
+export async function deleteReview(reviewId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/reviews/${reviewId}`);
 }

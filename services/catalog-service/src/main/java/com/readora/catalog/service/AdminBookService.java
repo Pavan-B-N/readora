@@ -2,6 +2,7 @@ package com.readora.catalog.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.readora.catalog.client.UserServiceClient;
 import com.readora.catalog.dto.AdminBookDetailResponse;
 import com.readora.catalog.dto.BookUpsertedEvent;
 import com.readora.catalog.dto.CreateBookRequest;
@@ -17,6 +18,8 @@ import com.readora.catalog.entity.OutboxEvent;
 import com.readora.catalog.entity.Publisher;
 import com.readora.catalog.entity.Store;
 import com.readora.catalog.entity.VirtualEdition;
+import com.readora.catalog.exception.AdminStoreAccessDeniedException;
+import com.readora.catalog.exception.AdminStoreNotAssignedException;
 import com.readora.catalog.exception.AuthorNotFoundException;
 import com.readora.catalog.exception.BookNotFoundException;
 import com.readora.catalog.exception.CategoryNotFoundException;
@@ -53,6 +56,7 @@ public class AdminBookService {
     private final VirtualEditionRepository virtualEditionRepository;
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
+    private final UserServiceClient userServiceClient;
 
     public AdminBookService(
             BookRepository bookRepository,
@@ -63,7 +67,8 @@ public class AdminBookService {
             InventoryRepository inventoryRepository,
             VirtualEditionRepository virtualEditionRepository,
             OutboxEventRepository outboxEventRepository,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            UserServiceClient userServiceClient
     ) {
         this.bookRepository = bookRepository;
         this.categoryRepository = categoryRepository;
@@ -74,11 +79,40 @@ public class AdminBookService {
         this.virtualEditionRepository = virtualEditionRepository;
         this.outboxEventRepository = outboxEventRepository;
         this.objectMapper = objectMapper;
+        this.userServiceClient = userServiceClient;
+    }
+
+    /**
+     * Resolves which store the caller may manage books under. Never trust a client-supplied
+     * storeId for this — it's always derived server-side from the caller's own assignment.
+     */
+    private UUID resolveCallerStoreId() {
+        UUID storeId = userServiceClient.getAdminStoreId(CurrentUserContext.require());
+        if (storeId == null) {
+            throw new AdminStoreNotAssignedException();
+        }
+        return storeId;
+    }
+
+    /**
+     * Loads a book and enforces store-scoping: a book stocked at a specific store may only be
+     * managed by the admin assigned to that store. A book with no store (pure virtual/no physical
+     * presence, see Book.store) isn't owned by any store, so it's left open to any admin —
+     * unrelated to the cross-store leak this guards against. 404s rather than 403s on a mismatch,
+     * matching commerce-service's findByIdAndUserId convention: a book belonging to another store
+     * simply doesn't exist as far as this admin is concerned.
+     */
+    private Book requireManageableBook(UUID bookId, UUID callerStoreId) {
+        Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
+        if (book.getStore() != null && !book.getStore().getId().equals(callerStoreId)) {
+            throw new BookNotFoundException();
+        }
+        return book;
     }
 
     @Transactional(readOnly = true)
     public AdminBookDetailResponse getBookForEdit(UUID bookId) {
-        Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
+        Book book = requireManageableBook(bookId, resolveCallerStoreId());
         Inventory inventory = inventoryRepository.findById(bookId).orElse(null);
         VirtualEdition virtualEdition = virtualEditionRepository.findById(bookId).orElse(null);
 
@@ -101,7 +135,7 @@ public class AdminBookService {
                 book.getPublisher() != null ? book.getPublisher().getId() : null,
                 book.getStore() != null ? book.getStore().getId() : null,
                 book.getAuthors().stream().map(Author::getId).toList(),
-                book.getLanguage(), book.getFormat(), book.getPageCount(), book.getPublishedOn(),
+                book.getLanguage(), book.getPageCount(), book.getPublishedOn(),
                 book.getListPrice(), book.getCurrency(), book.getCoverImageUrl(), book.isActive(),
                 book.getCreatedByUserId(), book.getCreatedAt(), book.getEmbeddedAt(), book.needsReembedding(),
                 inventoryDto, virtualEditionDto
@@ -116,14 +150,19 @@ public class AdminBookService {
         Publisher publisher = request.publisherId() != null
                 ? publisherRepository.findById(request.publisherId()).orElseThrow(PublisherNotFoundException::new)
                 : null;
-        Store store = request.storeId() != null
-                ? storeRepository.findById(request.storeId()).orElseThrow(StoreNotFoundException::new)
-                : null;
+
+        Store store = null;
+        if (request.storeId() != null) {
+            if (!request.storeId().equals(resolveCallerStoreId())) {
+                throw new AdminStoreAccessDeniedException();
+            }
+            store = storeRepository.findById(request.storeId()).orElseThrow(StoreNotFoundException::new);
+        }
         UUID createdByUserId = CurrentUserContext.get().orElse(null);
 
         Book book = new Book(
                 request.isbn13(), request.title(), request.subtitle(), request.description(), category,
-                publisher, store, request.language(), request.format(), request.pageCount(), request.publishedOn(),
+                publisher, store, request.language(), request.pageCount(), request.publishedOn(),
                 request.listPrice(), request.currency(), request.coverImageUrl(), createdByUserId
         );
         book.setTableOfContents(request.tableOfContents());
@@ -140,7 +179,7 @@ public class AdminBookService {
 
     @Transactional
     public void updateBook(UUID bookId, UpdateBookRequest request) {
-        Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
+        Book book = requireManageableBook(bookId, resolveCallerStoreId());
 
         Category category = request.categoryId() != null
                 ? categoryRepository.findById(request.categoryId()).orElseThrow(CategoryNotFoundException::new)
@@ -151,7 +190,7 @@ public class AdminBookService {
 
         book.update(
                 request.title(), request.subtitle(), request.description(), request.tableOfContents(),
-                category, publisher, request.language(), request.format(), request.pageCount(),
+                category, publisher, request.language(), request.pageCount(),
                 request.publishedOn(), request.listPrice(), request.currency(), request.coverImageUrl(),
                 request.isActive()
         );
@@ -179,7 +218,7 @@ public class AdminBookService {
 
     @Transactional
     public void updateInventory(UUID bookId, UpdateInventoryRequest request) {
-        Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
+        Book book = requireManageableBook(bookId, resolveCallerStoreId());
 
         Inventory inventory = inventoryRepository.findById(bookId)
                 .orElseGet(() -> new Inventory(book, 0, 0));

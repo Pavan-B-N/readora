@@ -130,7 +130,6 @@ export function VirtualBookFormPage() {
         storeId: null,
         authorIds: form.authorIds,
         language: form.language.trim() || null,
-        format: 'EBOOK',
         pageCount: null,
         publishedOn: null,
         listPrice: form.price.trim(),

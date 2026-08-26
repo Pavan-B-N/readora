@@ -1,27 +1,15 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { Link } from 'react-router-dom';
-import { MessageCircle, X, Send, Sparkles, RotateCcw, Maximize2, Minimize2 } from 'lucide-react';
-import { getConversationMessages, listConversations, semanticSearch, streamChat } from '@/api/aiApi';
-import { getBookDetail } from '@/api/catalogApi';
-import type { BookDetail } from '@/types/catalog';
+import { Link, useNavigate } from 'react-router-dom';
+import { MessageCircle, X, Send, Sparkles, RotateCcw, Maximize2 } from 'lucide-react';
+import { listConversations } from '@/api/aiApi';
 import { useAppSelector } from '@/redux/hooks';
 import { Tooltip } from '@/components/Tooltip';
 import { RichText } from './RichText';
 import { ChatBookCarousel } from './ChatBookCarousel';
 import { ChatBookPicker } from './ChatBookPicker';
+import { useChatSession } from './useChatSession';
 import { ROUTES } from '@/constants/routes';
 import styles from './ChatWidget.module.css';
-
-interface ChatMessage {
-  role: 'user' | 'assistant' | 'error';
-  content: string;
-  books?: BookDetail[];
-}
-
-// First tunable knob to revisit once there's real usage data: raise it if the carousel shows up
-// for clearly unrelated chit-chat, lower it if it's missing for genuine book questions.
-const BOOK_RELEVANCE_THRESHOLD = 0.5;
-const MAX_CAROUSEL_BOOKS = 5;
 
 const SUGGESTIONS = [
   'Recommend a book about focus and productivity',
@@ -31,137 +19,32 @@ const SUGGESTIONS = [
 
 export function ChatWidget() {
   const accessToken = useAppSelector((state) => state.auth.accessToken);
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [fullScreen, setFullScreen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [draft, setDraft] = useState('');
-  const [streaming, setStreaming] = useState(false);
-  const [pickerBook, setPickerBook] = useState<BookDetail | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const conversationIdRef = useRef<string | null>(null);
+
+  const { messages, draft, setDraft, streaming, pickerBook, setPickerBook, send, reset, loadConversation } =
+    useChatSession(Boolean(accessToken));
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, streaming]);
 
-  // Abandon an in-flight stream if the widget unmounts, so it doesn't keep writing to dead state.
-  useEffect(() => () => abortRef.current?.abort(), []);
-
   // Resume the most recent conversation on load, instead of always starting fresh.
   useEffect(() => {
     if (!accessToken) {
-      conversationIdRef.current = null;
-      setMessages([]);
+      loadConversation(null);
       return;
     }
-
-    listConversations(1).then(([latest]) => {
-      if (!latest) return;
-      conversationIdRef.current = latest.conversationId;
-      getConversationMessages(latest.conversationId).then((history) => {
-        setMessages(history.map((m) => ({ role: m.role === 'USER' ? 'user' : 'assistant', content: m.content })));
-      });
-    });
+    listConversations(1).then(([latest]) => loadConversation(latest?.conversationId ?? null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
-
-  const attachBookResults = async (assistantIndex: number, forQuery: string) => {
-    try {
-      const { items } = await semanticSearch(forQuery, MAX_CAROUSEL_BOOKS);
-      const relevant = items.filter((i) => i.score >= BOOK_RELEVANCE_THRESHOLD).slice(0, MAX_CAROUSEL_BOOKS);
-      if (relevant.length === 0) return;
-
-      const books = await Promise.all(relevant.map((i) => getBookDetail(i.bookId).catch(() => null)));
-      const found = books.filter((b): b is BookDetail => b !== null);
-      if (found.length === 0) return;
-
-      setMessages((m) => {
-        const next = [...m];
-        if (next[assistantIndex]) next[assistantIndex] = { ...next[assistantIndex], books: found };
-        return next;
-      });
-    } catch {
-      // Best-effort — a failed lookup just means no carousel for this turn, not a chat error.
-    }
-  };
-
-  const send = async (text: string) => {
-    const message = text.trim();
-    if (!message || streaming) return;
-
-    setDraft('');
-    setMessages((m) => [...m, { role: 'user', content: message }, { role: 'assistant', content: '' }]);
-    setStreaming(true);
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    try {
-      const resolvedConversationId = await streamChat(
-        message,
-        conversationIdRef.current,
-        (chunk) => {
-          setMessages((m) => {
-            const next = [...m];
-            const last = next[next.length - 1];
-            if (last?.role === 'assistant') {
-              next[next.length - 1] = { ...last, content: last.content + chunk };
-            }
-            return next;
-          });
-        },
-        controller.signal,
-      );
-      conversationIdRef.current = resolvedConversationId;
-
-      // An empty reply means the model produced nothing — surface it rather than leaving a blank bubble.
-      let hadContent = false;
-      setMessages((m) => {
-        const next = [...m];
-        const last = next[next.length - 1];
-        if (last?.role === 'assistant' && !last.content.trim()) {
-          next[next.length - 1] = {
-            role: 'error',
-            content: "The assistant didn't return a reply. It may not be configured yet.",
-          };
-        } else {
-          hadContent = true;
-        }
-        return next;
-      });
-
-      if (hadContent) {
-        const assistantIndex = messages.length + 1;
-        attachBookResults(assistantIndex, message);
-      }
-    } catch (error) {
-      if ((error as Error).name === 'AbortError') return;
-      setMessages((m) => {
-        const next = [...m];
-        if (next[next.length - 1]?.role === 'assistant' && !next[next.length - 1].content) next.pop();
-        return [
-          ...next,
-          { role: 'error', content: "Couldn't reach the assistant. Please try again in a moment." },
-        ];
-      });
-    } finally {
-      setStreaming(false);
-      abortRef.current = null;
-    }
-  };
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       send(draft);
     }
-  };
-
-  const reset = () => {
-    abortRef.current?.abort();
-    conversationIdRef.current = null;
-    setMessages([]);
-    setStreaming(false);
   };
 
   if (!open) {
@@ -180,7 +63,7 @@ export function ChatWidget() {
   }
 
   return (
-    <div className={[styles.panel, fullScreen && styles.panelFullScreen].filter(Boolean).join(' ')} role="dialog" aria-label="Book assistant">
+    <div className={styles.panel} role="dialog" aria-label="Book assistant">
       <div className={styles.header}>
         <span className={styles.headerIcon}>
           <Sparkles size={16} />
@@ -199,14 +82,14 @@ export function ChatWidget() {
               </button>
             </Tooltip>
           )}
-          <Tooltip label={fullScreen ? 'Exit full screen' : 'Full screen'}>
+          <Tooltip label="Open full page">
             <button
               type="button"
               className={styles.iconButton}
-              onClick={() => setFullScreen((f) => !f)}
-              aria-label={fullScreen ? 'Exit full screen' : 'Open full screen'}
+              onClick={() => navigate(ROUTES.assistant)}
+              aria-label="Open the assistant in a full page"
             >
-              {fullScreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+              <Maximize2 size={15} />
             </button>
           </Tooltip>
           <Tooltip label="Close">

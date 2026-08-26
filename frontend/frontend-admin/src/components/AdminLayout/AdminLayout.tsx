@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store } from 'lucide-react';
+import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store, Undo2 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
 import { getMe } from '@/api/userApi';
 import { listStores } from '@/api/catalogApi';
@@ -20,7 +20,10 @@ const NAV_GROUPS = [
   },
   {
     label: 'Operations',
-    items: [{ to: ROUTES.embeddings, label: 'Embeddings', icon: Sparkles }],
+    items: [
+      { to: ROUTES.returns, label: 'Returns', icon: Undo2 },
+      { to: ROUTES.embeddings, label: 'Embeddings', icon: Sparkles },
+    ],
   },
 ];
 
@@ -32,7 +35,7 @@ export function AdminLayout() {
 
   useEffect(() => {
     Promise.all([getMe(), listStores()]).then(([me, stores]) => {
-      const assigned = stores.find((s) => s.id === me.preferredStoreId);
+      const assigned = stores.find((s) => s.id === me.adminStoreId);
       setStoreName(assigned?.name ?? null);
     });
   }, []);

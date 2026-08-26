@@ -2,8 +2,6 @@ package com.readora.catalog.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -86,10 +84,6 @@ public class Book {
     @Column(name = "language")
     private String language;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "format", nullable = false)
-    private BookFormat format;
-
     @Column(name = "page_count")
     private Integer pageCount;
 
@@ -127,7 +121,7 @@ public class Book {
 
     public Book(
             String isbn13, String title, String subtitle, String description, Category category,
-            Publisher publisher, Store store, String language, BookFormat format, Integer pageCount,
+            Publisher publisher, Store store, String language, Integer pageCount,
             LocalDate publishedOn, BigDecimal listPrice, String currency, String coverImageUrl,
             UUID createdByUserId
     ) {
@@ -139,7 +133,6 @@ public class Book {
         this.publisher = publisher;
         this.store = store;
         this.language = language;
-        this.format = format;
         this.pageCount = pageCount;
         this.publishedOn = publishedOn;
         this.listPrice = listPrice;
@@ -176,7 +169,7 @@ public class Book {
      */
     public void update(
             String title, String subtitle, String description, String tableOfContents,
-            Category category, Publisher publisher, String language, BookFormat format,
+            Category category, Publisher publisher, String language,
             Integer pageCount, LocalDate publishedOn, BigDecimal listPrice, String currency,
             String coverImageUrl, boolean isActive
     ) {
@@ -187,7 +180,6 @@ public class Book {
         this.category = category;
         this.publisher = publisher;
         this.language = language;
-        this.format = format;
         this.pageCount = pageCount;
         this.publishedOn = publishedOn;
         this.listPrice = listPrice;
@@ -244,10 +236,6 @@ public class Book {
 
     public String getLanguage() {
         return language;
-    }
-
-    public BookFormat getFormat() {
-        return format;
     }
 
     public Integer getPageCount() {

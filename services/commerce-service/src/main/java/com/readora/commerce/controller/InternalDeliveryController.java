@@ -1,0 +1,61 @@
+package com.readora.commerce.controller;
+
+import com.readora.commerce.dto.OrderDeliveryDetailResponse;
+import com.readora.commerce.dto.UpdateDeliveryStatusRequest;
+import com.readora.commerce.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
+
+@Tag(name = "Internal")
+@RestController
+@RequestMapping("/internal/orders")
+public class InternalDeliveryController {
+
+    private final OrderService orderService;
+
+    public InternalDeliveryController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @Operation(
+            summary = "Get an order's full delivery detail",
+            description = "Internal, service-to-service only — protected by the shared gateway secret. Called by delivery-agent-service to show an agent everything needed to fulfill a physical order, including the full shipping address.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Delivery detail returned"),
+            @ApiResponse(responseCode = "404", description = "No such order")
+    })
+    @GetMapping("/{id}/delivery-detail")
+    public ResponseEntity<OrderDeliveryDetailResponse> getDeliveryDetail(@PathVariable UUID id) {
+        return ResponseEntity.ok(orderService.getDeliveryDetail(id));
+    }
+
+    @Operation(
+            summary = "Advance an order's delivery status",
+            description = "Internal, service-to-service only — protected by the shared gateway secret. Called by delivery-agent-service as an agent claims, ships, and delivers a physical order. Enforces CONFIRMED -> ASSIGNED -> SHIPPED -> DELIVERED with no skipped steps.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Status updated"),
+            @ApiResponse(responseCode = "404", description = "No such order"),
+            @ApiResponse(responseCode = "409", description = "The requested status can't follow the order's current status")
+    })
+    @PutMapping("/{id}/delivery-status")
+    public ResponseEntity<Void> updateDeliveryStatus(@PathVariable UUID id, @Valid @RequestBody UpdateDeliveryStatusRequest request) {
+        orderService.updateDeliveryStatus(id, request.status(), request.deliveryAgentId(), request.deliveryAgentName());
+        return ResponseEntity.noContent().build();
+    }
+}

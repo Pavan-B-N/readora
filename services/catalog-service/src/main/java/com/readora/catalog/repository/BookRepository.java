@@ -18,6 +18,9 @@ public interface BookRepository extends JpaRepository<Book, UUID>, JpaSpecificat
 
     List<Book> findAllByCategory_IdInAndIdNotInAndIsActiveTrue(Set<UUID> categoryIds, Set<UUID> excludeBookIds, Pageable pageable);
 
+    /** Backs the typeahead suggest endpoint — cheap substring match, capped by the caller's Pageable. */
+    List<Book> findAllByIsActiveTrueAndTitleContainingIgnoreCase(String title, Pageable pageable);
+
     @Query("SELECT b FROM Book b WHERE b.embeddedAt IS NULL OR b.updatedAt > b.embeddedAt")
     Page<Book> findNeedingReembedding(Pageable pageable);
 

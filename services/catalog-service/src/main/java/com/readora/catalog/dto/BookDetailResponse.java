@@ -14,7 +14,6 @@ public record BookDetailResponse(
         List<AuthorRef> authors,
         CategoryRef category,
         PublisherRef publisher,
-        String format,
         Integer pageCount,
         String language,
         LocalDate publishedOn,
@@ -23,9 +22,12 @@ public record BookDetailResponse(
         List<String> images,
         Availability availability,
         int estimatedDeliveryDays,
-        VirtualEditionRef virtualEdition
+        VirtualEditionRef virtualEdition,
+        List<String> topics,
+        Double averageRating,
+        long reviewCount
 ) {
-    public record AuthorRef(UUID id, String name) {
+    public record AuthorRef(UUID id, String name, String bio) {
     }
 
     public record CategoryRef(UUID id, String name) {

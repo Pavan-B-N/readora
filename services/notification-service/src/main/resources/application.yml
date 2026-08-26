@@ -35,4 +35,9 @@ app:
   gateway:
     secret: ${GATEWAY_SECRET}
   security:
-    public-routes: []
+    # SockJS negotiates its transport (the /ws/info polling requests, xhr-streaming, etc.) over
+    # plain HTTP before a STOMP session exists, so it can't carry a Bearer token the way a normal
+    # API call does. That's fine: StompAuthChannelInterceptor independently rejects any CONNECT
+    # frame without a valid JWT, so real auth still happens — just at the STOMP level, not here.
+    public-routes:
+      - /ws/**

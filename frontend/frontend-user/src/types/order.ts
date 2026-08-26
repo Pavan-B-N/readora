@@ -43,6 +43,7 @@ export interface OrderSummary {
   currency: string;
   placedAt: string;
   cancellable: boolean;
+  deliveredAt: string | null;
 }
 
 export interface OrderDetail {
@@ -72,6 +73,8 @@ export interface OrderDetail {
   paymentMethod: string;
   currency: string;
   placedAt: string;
+  deliveryAgentName: string | null;
+  deliveredAt: string | null;
 }
 
 export interface CancelOrderResponse {

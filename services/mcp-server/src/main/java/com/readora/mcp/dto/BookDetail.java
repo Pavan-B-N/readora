@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record BookDetail(
-        String id, String title, String format, String publisher, BigDecimal listPrice,
+        String id, String title, String publisher, BigDecimal listPrice,
         String currency, Availability availability
 ) {
     public record Availability(String status, int quantityAvailable) {

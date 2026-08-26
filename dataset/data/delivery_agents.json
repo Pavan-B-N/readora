@@ -1,0 +1,20 @@
+[
+  {
+    "email": "agent.bangalore@readora.dev",
+    "name": "Ravi Kumar",
+    "phone": "+91-9000000015",
+    "storeId": "00000000-0000-0000-0000-0000000000b1"
+  },
+  {
+    "email": "agent.mumbai@readora.dev",
+    "name": "Sanjay Pawar",
+    "phone": "+91-9000000016",
+    "storeId": "00000000-0000-0000-0000-0000000000b2"
+  },
+  {
+    "email": "agent.delhi@readora.dev",
+    "name": "Amit Yadav",
+    "phone": "+91-9000000017",
+    "storeId": "00000000-0000-0000-0000-0000000000b3"
+  }
+]

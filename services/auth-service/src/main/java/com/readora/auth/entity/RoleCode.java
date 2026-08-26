@@ -4,7 +4,8 @@ package com.readora.auth.entity;
 public enum RoleCode {
 
     CUSTOMER("Default role for registered customers"),
-    ADMIN("Administrative role with elevated privileges");
+    ADMIN("Administrative role with elevated privileges"),
+    DELIVERY_AGENT("Delivers physical orders assigned to them");
 
     private final String description;
 

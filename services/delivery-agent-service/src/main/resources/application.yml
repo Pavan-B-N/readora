@@ -1,0 +1,41 @@
+server:
+  port: 8089
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: delivery-agent-service
+
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: delivery
+    show-sql: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: delivery-agent-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  gateway:
+    secret: ${GATEWAY_SECRET}
+  commerce-service:
+    base-url: http://localhost:8084
+  security:
+    public-routes:
+      - /internal/**

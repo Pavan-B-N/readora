@@ -43,6 +43,17 @@ public class UserProfile {
     @Column(name = "preferred_store_id")
     private UUID preferredStoreId;
 
+    /**
+     * The store an ADMIN is assigned to manage — deliberately separate from
+     * {@link #preferredStoreId} and not exposed through {@code UpdateProfileRequest}, so an admin
+     * can never grant themselves another store's scope by editing their own profile the way a
+     * customer changes their shopping store. Only set out-of-band (seed data today; a proper
+     * admin-provisioning flow would own this later). Null for customers and for admins not yet
+     * assigned to a store.
+     */
+    @Column(name = "admin_store_id")
+    private UUID adminStoreId;
+
     /** Comma-separated category UUIDs, collected at signup to personalize recommendations — not a queried relational structure, same reasoning as Book.tableOfContents. */
     @Column(name = "favorite_category_ids", columnDefinition = "text")
     private String favoriteCategoryIds;
@@ -112,6 +123,14 @@ public class UserProfile {
 
     public void setPreferredStoreId(UUID preferredStoreId) {
         this.preferredStoreId = preferredStoreId;
+    }
+
+    public UUID getAdminStoreId() {
+        return adminStoreId;
+    }
+
+    public void setAdminStoreId(UUID adminStoreId) {
+        this.adminStoreId = adminStoreId;
     }
 
     public String getFavoriteCategoryIds() {

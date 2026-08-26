@@ -1,0 +1,212 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-0000000000b1",
+    "name": "Readora Bangalore",
+    "city": "Bangalore",
+    "line1": "100 Indiranagar 100ft Road",
+    "line2": "Near CMH Road",
+    "state": "Karnataka",
+    "postalCode": "560038",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000b2",
+    "name": "Readora Mumbai",
+    "city": "Mumbai",
+    "line1": "45 Linking Road",
+    "line2": "Bandra West",
+    "state": "Maharashtra",
+    "postalCode": "400050",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000b3",
+    "name": "Readora Delhi",
+    "city": "Delhi",
+    "line1": "12 Khan Market",
+    "line2": null,
+    "state": "Delhi",
+    "postalCode": "110003",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000b4",
+    "name": "Readora Hyderabad",
+    "city": "Hyderabad",
+    "line1": "88 Road No. 36",
+    "line2": "Jubilee Hills",
+    "state": "Telangana",
+    "postalCode": "500033",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000b5",
+    "name": "Readora Chennai",
+    "city": "Chennai",
+    "line1": "23 Anna Salai",
+    "line2": null,
+    "state": "Tamil Nadu",
+    "postalCode": "600002",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000b6",
+    "name": "Readora Kolkata",
+    "city": "Kolkata",
+    "line1": "56 Park Street",
+    "line2": null,
+    "state": "West Bengal",
+    "postalCode": "700016",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000b7",
+    "name": "Readora Pune",
+    "city": "Pune",
+    "line1": "14 FC Road",
+    "line2": "Shivajinagar",
+    "state": "Maharashtra",
+    "postalCode": "411005",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000b8",
+    "name": "Readora Ahmedabad",
+    "city": "Ahmedabad",
+    "line1": "101 SG Highway",
+    "line2": "Bodakdev",
+    "state": "Gujarat",
+    "postalCode": "380054",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000b9",
+    "name": "Readora Jaipur",
+    "city": "Jaipur",
+    "line1": "7 MI Road",
+    "line2": null,
+    "state": "Rajasthan",
+    "postalCode": "302001",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000ba",
+    "name": "Readora Lucknow",
+    "city": "Lucknow",
+    "line1": "22 Hazratganj",
+    "line2": null,
+    "state": "Uttar Pradesh",
+    "postalCode": "226001",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000bb",
+    "name": "Readora Chandigarh",
+    "city": "Chandigarh",
+    "line1": "18 Sector 17",
+    "line2": null,
+    "state": "Chandigarh",
+    "postalCode": "160017",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000bc",
+    "name": "Readora Kochi",
+    "city": "Kochi",
+    "line1": "34 MG Road",
+    "line2": null,
+    "state": "Kerala",
+    "postalCode": "682016",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000bd",
+    "name": "Readora Bhopal",
+    "city": "Bhopal",
+    "line1": "9 New Market",
+    "line2": "TT Nagar",
+    "state": "Madhya Pradesh",
+    "postalCode": "462003",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000be",
+    "name": "Readora Nagpur",
+    "city": "Nagpur",
+    "line1": "5 Sitabuldi Main Road",
+    "line2": null,
+    "state": "Maharashtra",
+    "postalCode": "440012",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000bf",
+    "name": "Readora Indore",
+    "city": "Indore",
+    "line1": "60 AB Road",
+    "line2": null,
+    "state": "Madhya Pradesh",
+    "postalCode": "452001",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000c0",
+    "name": "Readora Surat",
+    "city": "Surat",
+    "line1": "27 Ring Road",
+    "line2": null,
+    "state": "Gujarat",
+    "postalCode": "395002",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000c1",
+    "name": "Readora Patna",
+    "city": "Patna",
+    "line1": "11 Boring Road",
+    "line2": null,
+    "state": "Bihar",
+    "postalCode": "800001",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000c2",
+    "name": "Readora Guwahati",
+    "city": "Guwahati",
+    "line1": "3 GS Road",
+    "line2": null,
+    "state": "Assam",
+    "postalCode": "781005",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000c3",
+    "name": "Readora Coimbatore",
+    "city": "Coimbatore",
+    "line1": "19 Avinashi Road",
+    "line2": null,
+    "state": "Tamil Nadu",
+    "postalCode": "641018",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000c4",
+    "name": "Readora Visakhapatnam",
+    "city": "Visakhapatnam",
+    "line1": "8 Beach Road",
+    "line2": null,
+    "state": "Andhra Pradesh",
+    "postalCode": "530002",
+    "countryCode": "IN"
+  },
+  {
+    "id": "00000000-0000-0000-0000-0000000000c5",
+    "name": "Readora Thiruvananthapuram",
+    "city": "Thiruvananthapuram",
+    "line1": "15 MG Road",
+    "line2": null,
+    "state": "Kerala",
+    "postalCode": "695001",
+    "countryCode": "IN"
+  }
+]

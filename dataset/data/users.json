@@ -263,6 +263,34 @@
       "phone": "+91-9000000014",
       "walletBalance": 0.0,
       "marketingOptIn": false,
+      "assignedStoreId": "00000000-0000-0000-0000-0000000000b1",
+      "addresses": []
+    },
+    {
+      "email": "agent.bangalore@readora.dev",
+      "displayName": "Ravi Kumar",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000015",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.mumbai@readora.dev",
+      "displayName": "Sanjay Pawar",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000016",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.delhi@readora.dev",
+      "displayName": "Amit Yadav",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000017",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
       "addresses": []
     }
   ]

@@ -5,6 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 public record ReserveStockResponse(List<Item> items) {
-    public record Item(UUID bookId, String title, String isbn13, BigDecimal unitPrice) {
+    public record Item(UUID bookId, String title, String isbn13, BigDecimal unitPrice, UUID storeId) {
     }
 }

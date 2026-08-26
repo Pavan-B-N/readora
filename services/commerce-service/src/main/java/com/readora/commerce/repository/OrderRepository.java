@@ -1,10 +1,12 @@
 package com.readora.commerce.repository;
 
 import com.readora.commerce.entity.Order;
+import com.readora.commerce.entity.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,4 +17,9 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     Page<Order> findAllByUserIdOrderByPlacedAtDesc(UUID userId, Pageable pageable);
 
     Optional<Order> findByIdAndUserId(UUID id, UUID userId);
+
+    /** Store-scoped, for the admin returns view — mirrors AdminBookService's findByIdAndStoreId ownership pattern. */
+    Page<Order> findAllByStoreIdAndStatusInOrderByPlacedAtDesc(UUID storeId, List<OrderStatus> statuses, Pageable pageable);
+
+    Optional<Order> findByIdAndStoreId(UUID id, UUID storeId);
 }

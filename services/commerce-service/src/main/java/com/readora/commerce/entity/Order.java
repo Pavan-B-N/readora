@@ -74,6 +74,37 @@ public class Order {
     @Column(name = "delivery_type", nullable = false)
     private DeliveryType deliveryType;
 
+    /** The store fulfilling this order's physical items — null for VIRTUAL-only orders. */
+    @Column(name = "store_id")
+    private UUID storeId;
+
+    /**
+     * Snapshot of whichever delivery agent claimed this order — never a live lookup into
+     * delivery-agent-service, same reasoning as OrderItem's title/isbn snapshots.
+     */
+    @Column(name = "delivery_agent_id")
+    private UUID deliveryAgentId;
+
+    @Column(name = "delivery_agent_name")
+    private String deliveryAgentName;
+
+    @Column(name = "delivered_at")
+    private Instant deliveredAt;
+
+    /**
+     * Lets a store admin acknowledge a cancellation/return case with a note — the "way to act on
+     * it" for return/refund visibility, since refunds themselves are fully automatic (dummy
+     * payment provider, no manual approval gate) and there's no separate dispute-ticket entity.
+     */
+    @Column(name = "admin_reviewed_at")
+    private Instant adminReviewedAt;
+
+    @Column(name = "admin_reviewed_by_user_id")
+    private UUID adminReviewedByUserId;
+
+    @Column(name = "admin_note", columnDefinition = "text")
+    private String adminNote;
+
     protected Order() {
     }
 
@@ -105,6 +136,33 @@ public class Order {
         this.status = newStatus;
     }
 
+    public void setStoreId(UUID storeId) {
+        this.storeId = storeId;
+    }
+
+    /** A delivery agent has claimed this physical order. */
+    public void assignToAgent(UUID agentId, String agentName) {
+        this.status = OrderStatus.ASSIGNED;
+        this.deliveryAgentId = agentId;
+        this.deliveryAgentName = agentName;
+    }
+
+    /** Out for delivery — kept as the SHIPPED status, see OrderStatus's javadoc. */
+    public void markOutForDelivery() {
+        this.status = OrderStatus.SHIPPED;
+    }
+
+    public void markDelivered() {
+        this.status = OrderStatus.DELIVERED;
+        this.deliveredAt = Instant.now();
+    }
+
+    public void markReviewed(UUID reviewerId, String note) {
+        this.adminReviewedAt = Instant.now();
+        this.adminReviewedByUserId = reviewerId;
+        this.adminNote = note;
+    }
+
     public void cancel(String reason) {
         this.status = OrderStatus.CANCELLED;
         this.cancelledAt = Instant.now();
@@ -113,10 +171,11 @@ public class Order {
 
     public boolean isCancellable() {
         boolean withinWindow = placedAt.isAfter(Instant.now().minus(java.time.Duration.ofHours(48)));
-        boolean notShippedOrBeyond = status != OrderStatus.SHIPPED
+        boolean notAssignedOrBeyond = status != OrderStatus.ASSIGNED
+                && status != OrderStatus.SHIPPED
                 && status != OrderStatus.DELIVERED
                 && status != OrderStatus.CANCELLED;
-        return withinWindow && notShippedOrBeyond;
+        return withinWindow && notAssignedOrBeyond;
     }
 
     public void returnOrder(String reason) {
@@ -126,13 +185,11 @@ public class Order {
     }
 
     /**
-     * Approximated against placedAt rather than an actual delivery timestamp — this build
-     * doesn't track a separate deliveredAt (physical orders never reach DELIVERED at all, since
-     * there's no shipping integration; only virtual orders do, and they deliver instantly, so
-     * placedAt is delivery time for every order that can actually reach this state today).
+     * Uses the real deliveredAt timestamp, set by markDelivered() for both physical (agent marks
+     * it) and virtual (instant on payment capture) orders — no more approximating from placedAt.
      */
     public boolean isReturnable() {
-        boolean withinWindow = placedAt.isAfter(Instant.now().minus(java.time.Duration.ofDays(7)));
+        boolean withinWindow = deliveredAt != null && deliveredAt.isAfter(Instant.now().minus(java.time.Duration.ofDays(7)));
         return status == OrderStatus.DELIVERED && withinWindow;
     }
 
@@ -194,6 +251,38 @@ public class Order {
 
     public DeliveryType getDeliveryType() {
         return deliveryType;
+    }
+
+    public UUID getStoreId() {
+        return storeId;
+    }
+
+    public UUID getDeliveryAgentId() {
+        return deliveryAgentId;
+    }
+
+    public String getDeliveryAgentName() {
+        return deliveryAgentName;
+    }
+
+    public Instant getDeliveredAt() {
+        return deliveredAt;
+    }
+
+    public Instant getAdminReviewedAt() {
+        return adminReviewedAt;
+    }
+
+    public UUID getAdminReviewedByUserId() {
+        return adminReviewedByUserId;
+    }
+
+    public String getAdminNote() {
+        return adminNote;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
     }
 
     @Override

@@ -1,5 +1,14 @@
-export type BookFormat = 'HARDCOVER' | 'PAPERBACK' | 'EBOOK';
 export type VirtualFileFormat = 'PDF' | 'EPUB';
+
+export interface Review {
+  id: string;
+  userId: string;
+  authorDisplayName: string;
+  rating: number;
+  comment: string | null;
+  verifiedPurchase: boolean;
+  createdAt: string;
+}
 
 export interface CategoryNode {
   id: string;
@@ -38,7 +47,6 @@ export interface BookSummary {
   title: string;
   authors: string[];
   publisher: string | null;
-  format: BookFormat;
   listPrice: string;
   currency: string;
   coverImageUrl: string | null;
@@ -81,7 +89,6 @@ export interface CreateBookRequest {
   storeId: string | null;
   authorIds: string[];
   language: string | null;
-  format: BookFormat;
   pageCount: number | null;
   publishedOn: string | null;
   listPrice: string;
@@ -98,7 +105,6 @@ export interface UpdateBookRequest {
   publisherId: string | null;
   authorIds: string[] | null;
   language: string | null;
-  format: BookFormat;
   pageCount: number | null;
   publishedOn: string | null;
   listPrice: string;
@@ -132,7 +138,6 @@ export interface AdminBookDetail {
   storeId: string | null;
   authorIds: string[];
   language: string | null;
-  format: BookFormat;
   pageCount: number | null;
   publishedOn: string | null;
   listPrice: string;

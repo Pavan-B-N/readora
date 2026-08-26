@@ -20,7 +20,10 @@ import { useToast } from '@/components/Toast';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
 import { Modal } from '@/components/Modal';
+import { Spinner } from '@/components/Spinner';
+import { StarRating } from '@/components/StarRating';
 import { ROUTES } from '@/constants/routes';
+import { ReviewsSection } from './ReviewsSection';
 import styles from './BookDetailPage.module.css';
 
 const MAX_PER_TITLE = 10;
@@ -48,7 +51,7 @@ export function BookDetailPage() {
     if (accessToken) dispatch(fetchCart());
   }, [accessToken, dispatch]);
 
-  if (!book) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+  if (!book) return <Spinner />;
 
   const inStock = book.availability.status === 'IN_STOCK';
   const hasVirtual = book.virtualEdition !== null;
@@ -129,8 +132,17 @@ export function BookDetailPage() {
             by <span className={styles.authorName}>{book.authors.map((a) => a.name).join(', ')}</span>
           </p>
 
+          {book.reviewCount > 0 && (
+            <div className={styles.ratingSummary}>
+              <StarRating value={book.averageRating ?? 0} size={15} />
+              <span className={styles.ratingValue}>{book.averageRating?.toFixed(1)}</span>
+              <span className={styles.ratingCount}>
+                ({book.reviewCount} review{book.reviewCount === 1 ? '' : 's'})
+              </span>
+            </div>
+          )}
+
           <div className={styles.metaRow}>
-            <Badge>{book.format}</Badge>
             {book.pageCount && <Badge>{book.pageCount} pages</Badge>}
             {book.language && <Badge>{book.language.toUpperCase()}</Badge>}
             {book.publisher && <Badge>{book.publisher.name}</Badge>}
@@ -207,27 +219,17 @@ export function BookDetailPage() {
                   <Download size={13} />
                   Virtual
                 </span>
-                <div className={styles.qtyStepper}>
-                  <button
-                    type="button"
-                    className={styles.qtyButton}
-                    onClick={() => changeQty('VIRTUAL', virtualLine.qty - 1)}
-                    disabled={busy}
-                    aria-label={virtualLine.qty === 1 ? 'Remove virtual edition' : 'Decrease virtual quantity'}
-                  >
-                    <Minus size={13} />
-                  </button>
-                  <span className={styles.qtyValue}>{virtualLine.qty}</span>
-                  <button
-                    type="button"
-                    className={styles.qtyButton}
-                    onClick={() => changeQty('VIRTUAL', virtualLine.qty + 1)}
-                    disabled={busy || virtualLine.qty >= MAX_PER_TITLE}
-                    aria-label="Increase virtual quantity"
-                  >
-                    <Plus size={13} />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className={styles.qtyButton}
+                  onClick={() => changeQty('VIRTUAL', 0)}
+                  disabled={busy}
+                  aria-label="Remove virtual edition"
+                  title="A virtual edition is a single digital copy"
+                >
+                  <Minus size={13} />
+                  In cart
+                </button>
               </div>
             )}
 
@@ -241,14 +243,39 @@ export function BookDetailPage() {
             </div>
           )}
 
+          {book.topics.length > 0 && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>Topics</h2>
+              <div className={styles.topics}>
+                {book.topics.map((topic) => (
+                  <span className={styles.topicTag} key={topic}>
+                    {topic}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {book.authors.some((a) => a.bio) && (
+            <div className={styles.section}>
+              <h2 className={styles.sectionTitle}>About the author{book.authors.length > 1 ? 's' : ''}</h2>
+              <div className={styles.authorBios}>
+                {book.authors
+                  .filter((a) => a.bio)
+                  .map((author) => (
+                    <div className={styles.authorBio} key={author.id}>
+                      <span className={styles.authorBioName}>{author.name}</span>
+                      <p className={styles.authorBioText}>{author.bio}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+
           <div className={styles.specs}>
             <div className={styles.spec}>
               <span className={styles.specLabel}>ISBN-13</span>
               <span className={styles.specValue}>{book.isbn13}</span>
-            </div>
-            <div className={styles.spec}>
-              <span className={styles.specLabel}>Format</span>
-              <span className={styles.specValue}>{book.format}</span>
             </div>
             {book.publishedOn && (
               <div className={styles.spec}>
@@ -261,6 +288,8 @@ export function BookDetailPage() {
               <span className={styles.specValue}>~30 min from your store</span>
             </div>
           </div>
+
+          <ReviewsSection bookId={book.id} />
 
           {related.length > 0 && (
             <div className={styles.section}>

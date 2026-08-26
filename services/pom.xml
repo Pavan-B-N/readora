@@ -30,6 +30,7 @@
         <module>notification-service</module>
         <module>mcp-server</module>
         <module>ai-service</module>
+        <module>delivery-agent-service</module>
     </modules>
 
 </project>

@@ -8,6 +8,7 @@ import com.readora.payment.dto.OrderReturnedEvent;
 import com.readora.payment.dto.PaymentCapturedEvent;
 import com.readora.payment.dto.PaymentResponse;
 import com.readora.payment.dto.RefundCompletedEvent;
+import com.readora.payment.dto.RefundStatusResponse;
 import com.readora.payment.entity.OutboxEvent;
 import com.readora.payment.entity.Payment;
 import com.readora.payment.entity.PaymentAttempt;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -122,6 +124,13 @@ public class PaymentService {
             return;
         }
 
+        // Kafka delivers order.cancelled/order.returned at-least-once — without this guard, a
+        // redelivery would mint a second Refund row (fresh UUID) and double-credit the wallet,
+        // since downstream idempotency in user-service dedupes by refundId, which would differ.
+        if (refundRepository.findByPayment_Id(payment.getId()).isPresent()) {
+            return;
+        }
+
         Refund refund = new Refund(payment, refundAmount, reason);
         refund.complete();
         refundRepository.save(refund);
@@ -153,6 +162,21 @@ public class PaymentService {
                 payment.getCapturedAt(),
                 null
         );
+    }
+
+    /**
+     * Batch lookup for commerce-service's admin returns view — one round trip for a whole page
+     * of orders rather than N+1 internal calls. Orders with no refund row yet (event not
+     * processed by this service, or none applicable) are simply absent from the result.
+     */
+    @Transactional(readOnly = true)
+    public List<RefundStatusResponse> getRefundStatuses(List<UUID> orderIds) {
+        if (orderIds.isEmpty()) {
+            return List.of();
+        }
+        return refundRepository.findAllByPayment_OrderIdIn(orderIds).stream()
+                .map(r -> new RefundStatusResponse(r.getPayment().getOrderId(), r.getStatus().name(), r.getAmount(), r.getCompletedAt()))
+                .toList();
     }
 
     private void publish(String aggregateType, UUID aggregateId, String topic, Object payload) {

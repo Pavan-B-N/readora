@@ -1,0 +1,135 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+
+.table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  vertical-align: top;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-8) !important;
+}
+
+.orderCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.orderNumber {
+  font-weight: 500;
+}
+
+.orderMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.refundCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.refundAmount {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.pending {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.reason {
+  color: var(--color-text-muted);
+  max-width: 220px;
+}
+
+.reviewed {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reviewedLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.reviewedNote {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  max-width: 220px;
+}
+
+.reviewForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 200px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.paginationActions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.skeletonRow td {
+  padding: var(--space-4);
+}
+
+.skeleton {
+  height: 12px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-hover) 0%,
+    var(--color-border) 50%,
+    var(--color-surface-hover) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.3s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

@@ -23,7 +23,9 @@ public record OrderDetailResponse(
         BigDecimal walletAmountUsed,
         String paymentMethod,
         String currency,
-        Instant placedAt
+        Instant placedAt,
+        String deliveryAgentName,
+        Instant deliveredAt
 ) {
     public record Item(
             UUID bookId, String title, String isbn13, int qty, BigDecimal unitPrice, BigDecimal lineTotal,

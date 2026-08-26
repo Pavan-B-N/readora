@@ -7,17 +7,37 @@ import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
+import { Spinner } from '@/components/Spinner';
 import { ROUTES } from '@/constants/routes';
 import styles from './OrderDetailPage.module.css';
 
-const READABLE_STATUSES = new Set(['PAID', 'CONFIRMED', 'SHIPPED', 'DELIVERED']);
+const READABLE_STATUSES = new Set(['PAID', 'CONFIRMED', 'ASSIGNED', 'SHIPPED', 'DELIVERED']);
 
 const POLL_INTERVAL_MS = 2000;
+
+const TRACKER_STEPS = ['Order placed', 'Assigned to agent', 'Out for delivery', 'Delivered'];
+
+/** null for statuses the tracker doesn't apply to (pre-confirmation, cancelled, payment failed). */
+function trackerStepIndex(status: string): number | null {
+  switch (status) {
+    case 'CONFIRMED':
+      return 0;
+    case 'ASSIGNED':
+      return 1;
+    case 'SHIPPED':
+      return 2;
+    case 'DELIVERED':
+    case 'RETURNED':
+      return 3;
+    default:
+      return null;
+  }
+}
 
 function statusVariant(status: string) {
   if (status === 'DELIVERED' || status === 'CONFIRMED' || status === 'PAID') return 'success' as const;
   if (status === 'CANCELLED' || status === 'PAYMENT_FAILED' || status === 'RETURNED') return 'danger' as const;
-  if (status === 'SHIPPED') return 'info' as const;
+  if (status === 'ASSIGNED' || status === 'SHIPPED') return 'info' as const;
   return 'warning' as const;
 }
 
@@ -26,6 +46,39 @@ function prettyStatus(status: string) {
     .split('_')
     .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
     .join(' ');
+}
+
+/** SHIPPED is stored as-is (see backend's OrderStatus javadoc) but reads as "Out for delivery" here. */
+function displayStatus(status: string) {
+  if (status === 'SHIPPED') return 'Out for delivery';
+  return prettyStatus(status);
+}
+
+function DeliveryTracker({ status }: { status: string }) {
+  const currentIndex = trackerStepIndex(status);
+  if (currentIndex === null) return null;
+
+  return (
+    <div className={styles.tracker}>
+      {TRACKER_STEPS.map((label, i) => {
+        const done = i < currentIndex;
+        const current = i === currentIndex;
+        return (
+          <div className={styles.trackerStep} key={label}>
+            <span className={[styles.trackerLine, done && styles.trackerLineDone].filter(Boolean).join(' ')} />
+            <span
+              className={[styles.trackerDot, done && styles.trackerDotDone, current && styles.trackerDotCurrent]
+                .filter(Boolean)
+                .join(' ')}
+            />
+            <span className={[styles.trackerLabel, (done || current) && styles.trackerLabelActive].filter(Boolean).join(' ')}>
+              {label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function OrderDetailPage() {
@@ -89,7 +142,7 @@ export function OrderDetailPage() {
     }
   };
 
-  if (!order) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+  if (!order) return <Spinner />;
 
   const isSettlingUpi = order.status === 'PENDING_PAYMENT' && order.paymentMethod === 'UPI';
 
@@ -103,12 +156,15 @@ export function OrderDetailPage() {
           </span>
           <div className={styles.deliveryBadgeRow}>
             <Badge variant={statusVariant(order.status)} dot pulse={isSettlingUpi}>
-              {prettyStatus(order.status)}
+              {displayStatus(order.status)}
             </Badge>
             <Badge variant="neutral">
               {order.deliveryType === 'VIRTUAL' ? <Download size={11} /> : <Truck size={11} />}
               {order.deliveryType === 'VIRTUAL' ? 'Virtual' : 'Physical'}
             </Badge>
+            {order.deliveryAgentName && (
+              <Badge variant="neutral">Agent: {order.deliveryAgentName}</Badge>
+            )}
           </div>
           {isSettlingUpi && (
             <span className={styles.upiPending}>
@@ -135,6 +191,18 @@ export function OrderDetailPage() {
 
       <div className={styles.layout}>
         <div className={styles.stack}>
+          {order.deliveryType === 'PHYSICAL' && (
+            <Card>
+              <CardHeader title="Delivery tracking" />
+              <DeliveryTracker status={order.status} />
+              {order.deliveredAt && (
+                <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
+                  Delivered {new Date(order.deliveredAt).toLocaleString()}
+                </p>
+              )}
+            </Card>
+          )}
+
           <Card>
             <CardHeader title="Items" />
             {order.items.map((item) => (
@@ -185,7 +253,7 @@ export function OrderDetailPage() {
                       .join(' ')}
                   />
                   <span className={styles.timelineText}>
-                    <span className={styles.timelineStatus}>{prettyStatus(entry.toStatus)}</span>
+                    <span className={styles.timelineStatus}>{displayStatus(entry.toStatus)}</span>
                     <span className={styles.timelineTime}>{new Date(entry.at).toLocaleString()}</span>
                   </span>
                 </div>
@@ -225,7 +293,7 @@ export function OrderDetailPage() {
           <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
             {order.deliveryType === 'VIRTUAL'
               ? 'Digital delivery — no shipping required.'
-              : 'Cancellable within 48 hours, before shipping.'}
+              : 'Cancellable within 48 hours, before a delivery agent is assigned.'}
           </p>
         </Card>
       </div>

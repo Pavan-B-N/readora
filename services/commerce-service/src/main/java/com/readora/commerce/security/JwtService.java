@@ -1,5 +1,6 @@
 package com.readora.commerce.security;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,6 +41,25 @@ public class JwtService {
             return Optional.of(UUID.fromString(subject));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Extracts the caller's role codes from a token's claims. Only call this after {@link
+     * #extractUserId(String)} has confirmed the token verifies.
+     */
+    public List<String> extractRoles(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            List<?> rawRoles = claims.get("roles", List.class);
+            return rawRoles == null ? List.of() : rawRoles.stream().map(String::valueOf).toList();
+        } catch (JwtException | IllegalArgumentException e) {
+            return List.of();
         }
     }
 }

@@ -12,6 +12,7 @@ public record MeResponse(
         String phone,
         String locale,
         UUID preferredStoreId,
+        UUID adminStoreId,
         List<UUID> favoriteCategoryIds,
         WalletSummary wallet
 ) {

@@ -11,6 +11,7 @@ import com.readora.commerce.dto.CheckoutRequest;
 import com.readora.commerce.dto.CheckoutResponse;
 import com.readora.commerce.dto.OrderCancelledEvent;
 import com.readora.commerce.dto.OrderCreatedEvent;
+import com.readora.commerce.dto.OrderDeliveryDetailResponse;
 import com.readora.commerce.dto.OrderDetailResponse;
 import com.readora.commerce.dto.OrderReturnedEvent;
 import com.readora.commerce.dto.OrderStatusChangedEvent;
@@ -31,6 +32,8 @@ import com.readora.commerce.entity.OrderStatusHistory;
 import com.readora.commerce.entity.OutboxEvent;
 import com.readora.commerce.exception.CartEmptyException;
 import com.readora.commerce.exception.InsufficientWalletBalanceException;
+import com.readora.commerce.exception.InvalidDeliveryTransitionException;
+import com.readora.commerce.exception.MultipleStoresInCartException;
 import com.readora.commerce.exception.OrderAlreadyCancelledException;
 import com.readora.commerce.exception.OrderAlreadyShippedException;
 import com.readora.commerce.exception.OrderCancelWindowExpiredException;
@@ -99,7 +102,8 @@ public class OrderService {
 
     /** One resolved, priced line — physical (reserved stock) or virtual (looked-up edition) — before persistence. */
     private record PricedLine(
-            UUID bookId, String title, String isbnSnapshot, BigDecimal unitPrice, int qty, DeliveryType deliveryType
+            UUID bookId, String title, String isbnSnapshot, BigDecimal unitPrice, int qty,
+            DeliveryType deliveryType, UUID storeId
     ) {
     }
 
@@ -160,6 +164,7 @@ public class OrderService {
                 generateOrderNumber(), userId, "INR", subtotal, shippingFee, packagingFee, taxAmount, grandTotal,
                 walletAmountUsed, paymentMethod, idempotencyKey, orderDeliveryType
         );
+        order.setStoreId(resolveStoreId(lines));
         orderRepository.save(order);
 
         for (PricedLine line : lines) {
@@ -194,9 +199,28 @@ public class OrderService {
         for (int idx = 0; idx < reserved.items().size(); idx++) {
             ReserveStockResponse.Item item = reserved.items().get(idx);
             int qty = physicalItems.get(idx).qty();
-            lines.add(new PricedLine(item.bookId(), item.title(), item.isbn13(), item.unitPrice(), qty, DeliveryType.PHYSICAL));
+            lines.add(new PricedLine(
+                    item.bookId(), item.title(), item.isbn13(), item.unitPrice(), qty, DeliveryType.PHYSICAL, item.storeId()
+            ));
         }
         return lines;
+    }
+
+    /**
+     * Physical browsing is store-scoped per customer, so every physical line should share one
+     * store — this is a defensive check, not an expected path, given there's no legitimate way
+     * today to add items from two different stores to the same cart.
+     */
+    private UUID resolveStoreId(List<PricedLine> lines) {
+        List<UUID> storeIds = lines.stream()
+                .filter(l -> l.deliveryType() == DeliveryType.PHYSICAL)
+                .map(PricedLine::storeId)
+                .distinct()
+                .toList();
+        if (storeIds.size() > 1) {
+            throw new MultipleStoresInCartException();
+        }
+        return storeIds.isEmpty() ? null : storeIds.get(0);
     }
 
     /**
@@ -215,7 +239,7 @@ public class OrderService {
                 throw new VirtualEditionNotAvailableException(item.bookId());
             }
             int qty = virtualItems.get(idx).qty();
-            lines.add(new PricedLine(item.bookId(), item.title(), null, item.price(), qty, DeliveryType.VIRTUAL));
+            lines.add(new PricedLine(item.bookId(), item.title(), null, item.price(), qty, DeliveryType.VIRTUAL, null));
         }
         return lines;
     }
@@ -225,7 +249,7 @@ public class OrderService {
         return orderRepository.findAllByUserIdOrderByPlacedAtDesc(userId, pageable)
                 .map(order -> new OrderSummaryResponse(
                         order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getGrandTotal(),
-                        order.getCurrency(), order.getPlacedAt(), order.isCancellable()
+                        order.getCurrency(), order.getPlacedAt(), order.isCancellable(), order.getDeliveredAt()
                 ));
     }
 
@@ -256,7 +280,8 @@ public class OrderService {
                 order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getDeliveryType().name(),
                 items, addressDto, history, order.isCancellable(), order.isReturnable(), order.getSubtotal(), order.getShippingFee(),
                 order.getPackagingFee(), order.getTaxAmount(), order.getGrandTotal(), order.getWalletAmountUsed(),
-                order.getPaymentMethod(), order.getCurrency(), order.getPlacedAt()
+                order.getPaymentMethod(), order.getCurrency(), order.getPlacedAt(),
+                order.getDeliveryAgentName(), order.getDeliveredAt()
         );
     }
 
@@ -267,7 +292,9 @@ public class OrderService {
         if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new OrderAlreadyCancelledException();
         }
-        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
+        if (order.getStatus() == OrderStatus.ASSIGNED
+                || order.getStatus() == OrderStatus.SHIPPED
+                || order.getStatus() == OrderStatus.DELIVERED) {
             throw new OrderAlreadyShippedException();
         }
         if (!order.isCancellable()) {
@@ -327,10 +354,63 @@ public class OrderService {
         recordHistory(order, OrderStatus.PAID, OrderStatus.CONFIRMED, null, "system");
 
         if (order.getDeliveryType() == DeliveryType.VIRTUAL) {
-            order.transitionTo(OrderStatus.DELIVERED);
+            order.markDelivered();
             orderRepository.save(order);
             recordHistory(order, OrderStatus.CONFIRMED, OrderStatus.DELIVERED, null, "system");
         }
+    }
+
+    /** Full order detail for delivery-agent-service — see OrderDeliveryDetailResponse's javadoc for why this isn't OrderDetailResponse. */
+    @Transactional(readOnly = true)
+    public OrderDeliveryDetailResponse getDeliveryDetail(UUID orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow(OrderNotFoundException::new);
+
+        List<OrderDeliveryDetailResponse.Item> items = orderItemRepository.findAllByOrderId(orderId).stream()
+                .map(i -> new OrderDeliveryDetailResponse.Item(i.getTitleSnapshot(), i.getQty()))
+                .toList();
+
+        OrderShippingAddress address = shippingAddressRepository.findByOrderId(orderId).orElse(null);
+        OrderDeliveryDetailResponse.ShippingAddress addressDto = address != null
+                ? new OrderDeliveryDetailResponse.ShippingAddress(
+                        address.getRecipientName(), address.getLine1(), address.getLine2(), address.getCity(),
+                        address.getState(), address.getPostalCode(), address.getCountryCode(), address.getPhone()
+                )
+                : null;
+
+        return new OrderDeliveryDetailResponse(
+                order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getStoreId(),
+                addressDto, items, order.getPlacedAt()
+        );
+    }
+
+    /**
+     * Called by delivery-agent-service (via InternalDeliveryController) as an agent progresses a
+     * physical order. Enforces CONFIRMED -> ASSIGNED -> SHIPPED -> DELIVERED in order — no
+     * skipping a step.
+     */
+    @Transactional
+    public void updateDeliveryStatus(UUID orderId, OrderStatus newStatus, UUID deliveryAgentId, String deliveryAgentName) {
+        Order order = orderRepository.findById(orderId).orElseThrow(OrderNotFoundException::new);
+        OrderStatus previousStatus = order.getStatus();
+
+        boolean legal = switch (newStatus) {
+            case ASSIGNED -> previousStatus == OrderStatus.CONFIRMED;
+            case SHIPPED -> previousStatus == OrderStatus.ASSIGNED;
+            case DELIVERED -> previousStatus == OrderStatus.SHIPPED;
+            default -> false;
+        };
+        if (!legal) {
+            throw new InvalidDeliveryTransitionException();
+        }
+
+        switch (newStatus) {
+            case ASSIGNED -> order.assignToAgent(deliveryAgentId, deliveryAgentName);
+            case SHIPPED -> order.markOutForDelivery();
+            case DELIVERED -> order.markDelivered();
+            default -> throw new InvalidDeliveryTransitionException();
+        }
+        orderRepository.save(order);
+        recordHistory(order, previousStatus, newStatus, null, "delivery-agent");
     }
 
     @Transactional
@@ -349,7 +429,8 @@ public class OrderService {
     private void recordHistory(Order order, OrderStatus fromStatus, OrderStatus toStatus, String reason, String changedBy) {
         historyRepository.save(new OrderStatusHistory(order, fromStatus, toStatus, reason, changedBy));
         publish("Order", order.getId(), KafkaTopics.ORDER_STATUS_CHANGED, new OrderStatusChangedEvent(
-                order.getId(), order.getUserId(), order.getOrderNumber(), toStatus.name()
+                order.getId(), order.getUserId(), order.getOrderNumber(), toStatus.name(),
+                order.getDeliveryType().name(), order.getStoreId()
         ));
     }
 

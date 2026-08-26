@@ -42,18 +42,6 @@
   transition: all 0.2s ease-out;
 }
 
-.panelFullScreen {
-  top: var(--space-5);
-  left: var(--space-5);
-  bottom: var(--space-5);
-  right: var(--space-5);
-  width: auto;
-  height: auto;
-  max-width: none;
-  max-height: none;
-  border-radius: var(--radius-lg);
-}
-
 .turn {
   display: flex;
   flex-direction: column;

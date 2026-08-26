@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter implements Ord
 
             if (userId.isPresent()) {
                 try {
-                    CurrentUserContext.set(userId.get());
+                    CurrentUserContext.set(userId.get(), jwtService.extractRoles(token));
                     filterChain.doFilter(request, response);
                 } finally {
                     CurrentUserContext.clear();

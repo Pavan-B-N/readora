@@ -44,9 +44,17 @@ public class CartService {
                 .findFirst()
                 .orElse(null);
 
-        int newQty = (existing != null ? existing.qty() : 0) + request.qty();
-        if (newQty > MAX_QTY_PER_TITLE) {
-            throw new QtyLimitExceededException();
+        // A virtual edition is a digital copy licensed once per purchase — there's no concept of
+        // "2 copies" of a file, so it's always exactly 1 regardless of what's requested or
+        // already in the cart, unlike physical stock which genuinely accumulates.
+        int newQty;
+        if (request.deliveryType() == DeliveryType.VIRTUAL) {
+            newQty = 1;
+        } else {
+            newQty = (existing != null ? existing.qty() : 0) + request.qty();
+            if (newQty > MAX_QTY_PER_TITLE) {
+                throw new QtyLimitExceededException();
+            }
         }
 
         BookInfo book = catalogClient.getBook(request.bookId());
@@ -71,12 +79,13 @@ public class CartService {
         if (qty == 0) {
             items.removeIf(i -> i.bookId().equals(bookId) && i.deliveryType() == deliveryType);
         } else {
-            if (qty > MAX_QTY_PER_TITLE) {
+            int clampedQty = deliveryType == DeliveryType.VIRTUAL ? 1 : qty;
+            if (clampedQty > MAX_QTY_PER_TITLE) {
                 throw new QtyLimitExceededException();
             }
             BookInfo book = catalogClient.getBook(bookId);
-            validateAvailability(book, deliveryType, qty);
-            items.replaceAll(i -> i.bookId().equals(bookId) && i.deliveryType() == deliveryType ? i.withQty(qty) : i);
+            validateAvailability(book, deliveryType, clampedQty);
+            items.replaceAll(i -> i.bookId().equals(bookId) && i.deliveryType() == deliveryType ? i.withQty(clampedQty) : i);
         }
 
         cartRepository.saveItems(userId, items);

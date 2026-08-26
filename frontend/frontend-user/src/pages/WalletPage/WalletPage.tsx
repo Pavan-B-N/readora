@@ -9,6 +9,7 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Modal } from '@/components/Modal';
 import { EmptyState } from '@/components/EmptyState';
+import { Spinner } from '@/components/Spinner';
 import styles from './WalletPage.module.css';
 
 const QUICK_AMOUNTS = ['200', '500', '1000'];
@@ -86,7 +87,7 @@ export function WalletPage() {
     }
   };
 
-  if (!wallet) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+  if (!wallet) return <Spinner />;
 
   return (
     <div>

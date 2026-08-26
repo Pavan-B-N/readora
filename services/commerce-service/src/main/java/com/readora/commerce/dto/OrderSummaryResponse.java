@@ -11,6 +11,7 @@ public record OrderSummaryResponse(
         BigDecimal grandTotal,
         String currency,
         Instant placedAt,
-        boolean cancellable
+        boolean cancellable,
+        Instant deliveredAt
 ) {
 }

@@ -1,7 +1,6 @@
 package com.readora.catalog.repository;
 
 import com.readora.catalog.entity.Book;
-import com.readora.catalog.entity.BookFormat;
 import com.readora.catalog.entity.VirtualEdition;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -23,8 +22,8 @@ public final class BookSpecifications {
     }
 
     public static Specification<Book> withFilters(
-            String query, UUID categoryId, UUID publisherId, BookFormat format,
-            BigDecimal minPrice, BigDecimal maxPrice, boolean virtualOnly
+            String query, UUID categoryId, UUID publisherId,
+            BigDecimal minPrice, BigDecimal maxPrice, boolean virtualOnly, UUID storeId
     ) {
         return (root, criteriaQuery, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -37,6 +36,12 @@ public final class BookSpecifications {
                 predicates.add(root.get("id").in(hasActiveVirtualEdition));
             } else {
                 predicates.add(cb.isNotNull(root.get("store")));
+                // Virtual editions are store-independent by design (see the branch above), so
+                // this only scopes the physical tab — "books actually stocked at the store the
+                // customer is delivering from," not just "any physical book anywhere."
+                if (storeId != null) {
+                    predicates.add(cb.equal(root.get("store").get("id"), storeId));
+                }
             }
 
             if (query != null && !query.isBlank()) {
@@ -47,9 +52,6 @@ public final class BookSpecifications {
             }
             if (publisherId != null) {
                 predicates.add(cb.equal(root.get("publisher").get("id"), publisherId));
-            }
-            if (format != null) {
-                predicates.add(cb.equal(root.get("format"), format));
             }
             if (minPrice != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("listPrice"), minPrice));

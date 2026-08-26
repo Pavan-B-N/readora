@@ -8,5 +8,6 @@ export const ROUTES = {
   publishers: '/publishers',
   authors: '/authors',
   embeddings: '/embeddings',
+  returns: '/returns',
   profile: '/profile',
 } as const;

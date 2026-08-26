@@ -38,4 +38,5 @@ app:
   gateway:
     secret: ${GATEWAY_SECRET}
   security:
-    public-routes: []
+    public-routes:
+      - /internal/**

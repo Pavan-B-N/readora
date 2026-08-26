@@ -1,15 +1,19 @@
 package com.readora.catalog.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.catalog.client.CommerceClient;
 import com.readora.catalog.dto.AuthorResponse;
 import com.readora.catalog.dto.BookDetailResponse;
+import com.readora.catalog.dto.BookSuggestionResponse;
 import com.readora.catalog.dto.BookSummaryResponse;
 import com.readora.catalog.dto.CategoryResponse;
 import com.readora.catalog.dto.PageResponse;
 import com.readora.catalog.dto.PublisherResponse;
 import com.readora.catalog.dto.RelatedBookResponse;
+import com.readora.catalog.entity.Author;
 import com.readora.catalog.entity.Book;
-import com.readora.catalog.entity.BookFormat;
 import com.readora.catalog.entity.BookImage;
 import com.readora.catalog.entity.Category;
 import com.readora.catalog.entity.Inventory;
@@ -24,6 +28,7 @@ import com.readora.catalog.repository.CategoryRepository;
 import com.readora.catalog.repository.InventoryRepository;
 import com.readora.catalog.repository.PublisherRepository;
 import com.readora.catalog.repository.RelatedBookRepository;
+import com.readora.catalog.repository.ReviewRepository;
 import com.readora.catalog.repository.VirtualEditionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,7 +54,9 @@ public class CatalogService {
     private final PublisherRepository publisherRepository;
     private final AuthorRepository authorRepository;
     private final VirtualEditionRepository virtualEditionRepository;
+    private final ReviewRepository reviewRepository;
     private final CommerceClient commerceClient;
+    private final ObjectMapper objectMapper;
 
     public CatalogService(
             BookRepository bookRepository,
@@ -59,7 +67,9 @@ public class CatalogService {
             PublisherRepository publisherRepository,
             AuthorRepository authorRepository,
             VirtualEditionRepository virtualEditionRepository,
-            CommerceClient commerceClient
+            ReviewRepository reviewRepository,
+            CommerceClient commerceClient,
+            ObjectMapper objectMapper
     ) {
         this.bookRepository = bookRepository;
         this.bookImageRepository = bookImageRepository;
@@ -69,7 +79,27 @@ public class CatalogService {
         this.publisherRepository = publisherRepository;
         this.authorRepository = authorRepository;
         this.virtualEditionRepository = virtualEditionRepository;
+        this.reviewRepository = reviewRepository;
         this.commerceClient = commerceClient;
+        this.objectMapper = objectMapper;
+    }
+
+    /**
+     * Flattens the stored {@code {"Section": ["topic", ...], ...}} JSON into a single list of
+     * topic names — just names for now, no nested section structure exposed to callers.
+     */
+    private List<String> extractTopics(String tableOfContentsJson) {
+        if (tableOfContentsJson == null || tableOfContentsJson.isBlank()) {
+            return List.of();
+        }
+        try {
+            Map<String, List<String>> sections = objectMapper.readValue(
+                    tableOfContentsJson, new TypeReference<Map<String, List<String>>>() {
+                    });
+            return sections.values().stream().flatMap(List::stream).toList();
+        } catch (JsonProcessingException e) {
+            return List.of();
+        }
     }
 
     /**
@@ -81,11 +111,11 @@ public class CatalogService {
      */
     @Transactional(readOnly = true)
     public PageResponse<BookSummaryResponse> search(
-            String query, UUID categoryId, UUID publisherId, BookFormat format,
-            BigDecimal minPrice, BigDecimal maxPrice, boolean virtualOnly, Pageable pageable
+            String query, UUID categoryId, UUID publisherId,
+            BigDecimal minPrice, BigDecimal maxPrice, boolean virtualOnly, UUID storeId, Pageable pageable
     ) {
         Page<Book> page = bookRepository.findAll(
-                BookSpecifications.withFilters(query, categoryId, publisherId, format, minPrice, maxPrice, virtualOnly),
+                BookSpecifications.withFilters(query, categoryId, publisherId, minPrice, maxPrice, virtualOnly, storeId),
                 pageable
         );
 
@@ -105,12 +135,20 @@ public class CatalogService {
         Inventory inventory = inventoryRepository.findById(bookId).orElse(null);
         int available = inventory != null ? inventory.getAvailable() : 0;
 
+        // The gallery table supports multiple images per book, but is never populated in seed
+        // data — every book's real image lives in the simpler coverImageUrl column instead (the
+        // one every list/grid view already reads from). Fall back to it so the detail page's
+        // hero image doesn't show a placeholder for a book that clearly has an image everywhere
+        // else it's displayed.
         List<String> images = bookImageRepository.findAllByBookIdOrderBySortOrder(bookId).stream()
                 .map(BookImage::getUrl)
                 .toList();
+        if (images.isEmpty() && book.getCoverImageUrl() != null) {
+            images = List.of(book.getCoverImageUrl());
+        }
 
         List<BookDetailResponse.AuthorRef> authors = book.getAuthors().stream()
-                .map(a -> new BookDetailResponse.AuthorRef(a.getId(), a.getName()))
+                .map(a -> new BookDetailResponse.AuthorRef(a.getId(), a.getName(), a.getBio()))
                 .toList();
 
         BookDetailResponse.CategoryRef category = book.getCategory() != null
@@ -126,12 +164,15 @@ public class CatalogService {
                 .map(ve -> new BookDetailResponse.VirtualEditionRef(ve.getPrice(), ve.getCurrency()))
                 .orElse(null);
 
+        ReviewRepository.RatingAggregate rating = reviewRepository.getAggregateForBook(bookId);
+
         return new BookDetailResponse(
                 book.getId(), book.getIsbn13(), book.getTitle(), book.getSubtitle(), book.getDescription(),
-                authors, category, publisher, book.getFormat().name(), book.getPageCount(), book.getLanguage(),
+                authors, category, publisher, book.getPageCount(), book.getLanguage(),
                 book.getPublishedOn(), book.getListPrice(), book.getCurrency(), images,
                 new BookDetailResponse.Availability(available > 0 ? "IN_STOCK" : "OUT_OF_STOCK", available),
-                3, virtualEdition
+                3, virtualEdition, extractTopics(book.getTableOfContents()),
+                rating.getAverageRating(), rating.getReviewCount()
         );
     }
 
@@ -197,17 +238,41 @@ public class CatalogService {
                 .toList();
     }
 
+    /**
+     * Backs the header search bar's typeahead — a plain case-insensitive title substring match,
+     * same as the main search's query filter, just capped to a handful of results and returned
+     * with a lighter payload. Deliberately not routed through ai-service's semantic search: that
+     * endpoint embeds the query synchronously per call and sits behind a 20-req/min gateway rate
+     * limit, both a poor fit for a call fired on every keystroke.
+     */
+    @Transactional(readOnly = true)
+    public List<BookSuggestionResponse> suggest(String query, int limit) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        int cappedLimit = Math.min(Math.max(limit, 1), 10);
+        return bookRepository
+                .findAllByIsActiveTrueAndTitleContainingIgnoreCase(query, PageRequest.of(0, cappedLimit))
+                .stream()
+                .map(book -> new BookSuggestionResponse(
+                        book.getId(), book.getTitle(), book.getAuthors().stream().map(Author::getName).toList(),
+                        book.getListPrice(), book.getCurrency(), book.getCoverImageUrl()
+                ))
+                .toList();
+    }
+
     private BookSummaryResponse toSummary(Book book) {
         Inventory inventory = inventoryRepository.findById(book.getId()).orElse(null);
         int available = inventory != null ? inventory.getAvailable() : 0;
 
         List<String> authorNames = book.getAuthors().stream().map(a -> a.getName()).toList();
         String publisherName = book.getPublisher() != null ? book.getPublisher().getName() : null;
+        ReviewRepository.RatingAggregate rating = reviewRepository.getAggregateForBook(book.getId());
 
         return new BookSummaryResponse(
                 book.getId(), book.getIsbn13(), book.getTitle(), authorNames, publisherName,
-                book.getFormat().name(), book.getListPrice(), book.getCurrency(), book.getCoverImageUrl(),
-                available > 0 ? "IN_STOCK" : "OUT_OF_STOCK"
+                book.getListPrice(), book.getCurrency(), book.getCoverImageUrl(),
+                available > 0 ? "IN_STOCK" : "OUT_OF_STOCK", rating.getAverageRating(), rating.getReviewCount()
         );
     }
 
@@ -219,10 +284,11 @@ public class CatalogService {
         String publisherName = book.getPublisher() != null ? book.getPublisher().getName() : null;
         BigDecimal price = virtualEdition != null ? virtualEdition.getPrice() : book.getListPrice();
         String currency = virtualEdition != null ? virtualEdition.getCurrency() : book.getCurrency();
+        ReviewRepository.RatingAggregate rating = reviewRepository.getAggregateForBook(book.getId());
 
         return new BookSummaryResponse(
                 book.getId(), book.getIsbn13(), book.getTitle(), authorNames, publisherName,
-                book.getFormat().name(), price, currency, book.getCoverImageUrl(), "IN_STOCK"
+                price, currency, book.getCoverImageUrl(), "IN_STOCK", rating.getAverageRating(), rating.getReviewCount()
         );
     }
 }

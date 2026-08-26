@@ -10,10 +10,11 @@ public record BookSummaryResponse(
         String title,
         List<String> authors,
         String publisher,
-        String format,
         BigDecimal listPrice,
         String currency,
         String coverImageUrl,
-        String availability
+        String availability,
+        Double averageRating,
+        long reviewCount
 ) {
 }

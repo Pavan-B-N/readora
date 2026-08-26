@@ -2,7 +2,7 @@
   {
     "name": "Abraham Silberschatz",
     "slug": "abraham-silberschatz",
-    "bio": null
+    "bio": "Computer scientist and co-author of the standard textbook \"Database System Concepts,\" known for his work on database and operating systems."
   },
   {
     "name": "Agatha Christie",
@@ -12,202 +12,202 @@
   {
     "name": "Aldous Huxley",
     "slug": "aldous-huxley",
-    "bio": null
+    "bio": "English writer and philosopher best known for the dystopian novel \"Brave New World.\""
   },
   {
     "name": "Andrew Hunt",
     "slug": "andrew-hunt",
-    "bio": null
+    "bio": "Software engineer and co-author of \"The Pragmatic Programmer,\" a foundational text on software craftsmanship."
   },
   {
     "name": "Arthur Conan Doyle",
     "slug": "arthur-conan-doyle",
-    "bio": null
+    "bio": "Scottish writer who created the detective Sherlock Holmes, one of the most enduring characters in fiction."
   },
   {
     "name": "Blake Masters",
     "slug": "blake-masters",
-    "bio": null
+    "bio": "Entrepreneur and investor who co-authored \"Zero to One\" from his notes on Peter Thiel's Stanford course."
   },
   {
     "name": "Brian W. Kernighan",
     "slug": "brian-w-kernighan",
-    "bio": null
+    "bio": "Computer scientist who helped define the C programming language and shape the early Unix operating system."
   },
   {
     "name": "Charles Duhigg",
     "slug": "charles-duhigg",
-    "bio": null
+    "bio": "Journalist and author of \"The Power of Habit,\" exploring the science of habit formation."
   },
   {
     "name": "Charles E. Leiserson",
     "slug": "charles-e-leiserson",
-    "bio": null
+    "bio": "Computer scientist and co-author of \"Introduction to Algorithms,\" a standard text on algorithm design."
   },
   {
     "name": "Clifford Stein",
     "slug": "clifford-stein",
-    "bio": null
+    "bio": "Computer scientist and co-author of \"Introduction to Algorithms.\""
   },
   {
     "name": "Daniel Kahneman",
     "slug": "daniel-kahneman",
-    "bio": null
+    "bio": "Psychologist and Nobel laureate in economics, known for his work on cognitive biases and decision-making in \"Thinking, Fast and Slow.\""
   },
   {
     "name": "David Thomas",
     "slug": "david-thomas",
-    "bio": null
+    "bio": "Software engineer and co-author of \"The Pragmatic Programmer.\""
   },
   {
     "name": "Dennis M. Ritchie",
     "slug": "dennis-m-ritchie",
-    "bio": null
+    "bio": "Computer scientist who created the C programming language and co-created the Unix operating system."
   },
   {
     "name": "Douglas Adams",
     "slug": "douglas-adams",
-    "bio": null
+    "bio": "English author best known for the science-fiction comedy series \"The Hitchhiker's Guide to the Galaxy.\""
   },
   {
     "name": "Elisabeth Robson",
     "slug": "elisabeth-robson",
-    "bio": null
+    "bio": "Author and instructional designer known for explaining complex technical topics for O'Reilly Media."
   },
   {
     "name": "Eric Freeman",
     "slug": "eric-freeman",
-    "bio": null
+    "bio": "Author known for the \"Head First\" series of accessible, visually-driven programming books."
   },
   {
     "name": "Eric Ries",
     "slug": "eric-ries",
-    "bio": null
+    "bio": "Entrepreneur and author of \"The Lean Startup,\" a foundational text on building startups through rapid experimentation."
   },
   {
     "name": "Erich Gamma",
     "slug": "erich-gamma",
-    "bio": null
+    "bio": "Software engineer and one of the \"Gang of Four\" authors of \"Design Patterns.\""
   },
   {
     "name": "F. Scott Fitzgerald",
     "slug": "f-scott-fitzgerald",
-    "bio": null
+    "bio": "American novelist best known for \"The Great Gatsby,\" a defining portrait of the Jazz Age."
   },
   {
     "name": "Fyodor Dostoevsky",
     "slug": "fyodor-dostoevsky",
-    "bio": null
+    "bio": "Russian novelist known for psychologically intense works including \"Crime and Punishment.\""
   },
   {
     "name": "Gabriel Garc\u00eda M\u00e1rquez",
     "slug": "gabriel-garcia-marquez",
-    "bio": null
+    "bio": "Colombian novelist and Nobel laureate, a pioneer of magical realism best known for \"One Hundred Years of Solitude.\""
   },
   {
     "name": "Gerald Jay Sussman",
     "slug": "gerald-jay-sussman",
-    "bio": null
+    "bio": "Computer scientist and educator known for his foundational contributions to computer science curricula."
   },
   {
     "name": "Gillian Flynn",
     "slug": "gillian-flynn",
-    "bio": null
+    "bio": "American author known for tense psychological thrillers including \"Gone Girl.\""
   },
   {
     "name": "Harold Abelson",
     "slug": "harold-abelson",
-    "bio": null
+    "bio": "Computer scientist and MIT professor known for his foundational work in computer science education."
   },
   {
     "name": "Harper Lee",
     "slug": "harper-lee",
-    "bio": null
+    "bio": "American novelist best known for \"To Kill a Mockingbird,\" a landmark work on racial injustice in the American South."
   },
   {
     "name": "Henry Korth",
     "slug": "henry-korth",
-    "bio": null
+    "bio": "Computer scientist and co-author of \"Database System Concepts.\""
   },
   {
     "name": "J.D. Salinger",
     "slug": "j-d-salinger",
-    "bio": null
+    "bio": "American author best known for \"The Catcher in the Rye,\" a defining novel of postwar alienation."
   },
   {
     "name": "James Clear",
     "slug": "james-clear",
-    "bio": null
+    "bio": "Author and speaker known for \"Atomic Habits,\" a practical guide to behavior change."
   },
   {
     "name": "Jane Austen",
     "slug": "jane-austen",
-    "bio": null
+    "bio": "English novelist known for witty social commentary in works including \"Pride and Prejudice.\""
   },
   {
     "name": "Jerry I. Porras",
     "slug": "jerry-i-porras",
-    "bio": null
+    "bio": "Organizational theorist and co-author of \"Built to Last.\""
   },
   {
     "name": "Jim Collins",
     "slug": "jim-collins",
-    "bio": null
+    "bio": "Management researcher and author of \"Good to Great\" and \"Built to Last.\""
   },
   {
     "name": "John Vlissides",
     "slug": "john-vlissides",
-    "bio": null
+    "bio": "Software engineer and one of the \"Gang of Four\" authors of \"Design Patterns.\""
   },
   {
     "name": "Joshua Bloch",
     "slug": "joshua-bloch",
-    "bio": null
+    "bio": "Software engineer known for his work on Java's core libraries and the book \"Effective Java.\""
   },
   {
     "name": "Kyle Simpson",
     "slug": "kyle-simpson",
-    "bio": null
+    "bio": "Author and developer known for the \"You Don't Know JS\" book series on JavaScript internals."
   },
   {
     "name": "Malcolm Gladwell",
     "slug": "malcolm-gladwell",
-    "bio": null
+    "bio": "Journalist and author known for accessible explorations of social science, including \"Outliers.\""
   },
   {
     "name": "Margaret Atwood",
     "slug": "margaret-atwood",
-    "bio": null
+    "bio": "Canadian author known for \"The Handmaid's Tale,\" a landmark work of dystopian fiction."
   },
   {
     "name": "Neal Stephenson",
     "slug": "neal-stephenson",
-    "bio": null
+    "bio": "American author known for speculative fiction including \"Snow Crash,\" which popularized the term \"metaverse.\""
   },
   {
     "name": "Neil deGrasse Tyson",
     "slug": "neil-degrasse-tyson",
-    "bio": null
+    "bio": "Astrophysicist and science communicator, author of \"Astrophysics for People in a Hurry.\""
   },
   {
     "name": "Orson Scott Card",
     "slug": "orson-scott-card",
-    "bio": null
+    "bio": "American author best known for the science-fiction novel \"Ender's Game.\""
   },
   {
     "name": "Peter Thiel",
     "slug": "peter-thiel",
-    "bio": null
+    "bio": "Entrepreneur and investor, co-founder of PayPal and author of \"Zero to One.\""
   },
   {
     "name": "Ralph Johnson",
     "slug": "ralph-johnson",
-    "bio": null
+    "bio": "Software engineer and one of the \"Gang of Four\" authors of \"Design Patterns.\""
   },
   {
     "name": "Ray Bradbury",
     "slug": "ray-bradbury",
-    "bio": null
+    "bio": "American author known for speculative fiction including \"Fahrenheit 451.\""
   },
   {
     "name": "Readora Editorial",
@@ -217,56 +217,56 @@
   {
     "name": "Richard Dawkins",
     "slug": "richard-dawkins",
-    "bio": null
+    "bio": "Evolutionary biologist known for \"The Selfish Gene,\" which popularized gene-centered evolution."
   },
   {
     "name": "Richard Helm",
     "slug": "richard-helm",
-    "bio": null
+    "bio": "Software engineer and one of the \"Gang of Four\" authors of \"Design Patterns.\""
   },
   {
     "name": "Ronald L. Rivest",
     "slug": "ronald-l-rivest",
-    "bio": null
+    "bio": "Cryptographer and computer scientist, co-inventor of the RSA algorithm and co-author of \"Introduction to Algorithms.\""
   },
   {
     "name": "S. Sudarshan",
     "slug": "s-sudarshan",
-    "bio": null
+    "bio": "Computer scientist and co-author of \"Database System Concepts.\""
   },
   {
     "name": "Stephen Hawking",
     "slug": "stephen-hawking",
-    "bio": null
+    "bio": "Theoretical physicist and cosmologist, author of \"A Brief History of Time.\""
   },
   {
     "name": "Stieg Larsson",
     "slug": "stieg-larsson",
-    "bio": null
+    "bio": "Swedish journalist and author of \"The Girl with the Dragon Tattoo.\""
   },
   {
     "name": "Tara Westover",
     "slug": "tara-westover",
-    "bio": null
+    "bio": "American author of the memoir \"Educated,\" recounting her journey from an isolated upbringing to a Cambridge PhD."
   },
   {
     "name": "Thomas H. Cormen",
     "slug": "thomas-h-cormen",
-    "bio": null
+    "bio": "Computer scientist and lead author of \"Introduction to Algorithms.\""
   },
   {
     "name": "Thomas Harris",
     "slug": "thomas-harris",
-    "bio": null
+    "bio": "American author known for psychological thrillers including \"The Silence of the Lambs.\""
   },
   {
     "name": "Viktor E. Frankl",
     "slug": "viktor-e-frankl",
-    "bio": null
+    "bio": "Austrian psychiatrist and Holocaust survivor, author of \"Man's Search for Meaning.\""
   },
   {
     "name": "William Gibson",
     "slug": "william-gibson",
-    "bio": null
+    "bio": "American-Canadian author who coined the term \"cyberspace\" and pioneered cyberpunk fiction with \"Neuromancer.\""
   }
 ]

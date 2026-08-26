@@ -1,5 +1,6 @@
 package com.readora.commerce.client;
 
+import com.readora.commerce.dto.AdminStoreResponse;
 import com.readora.commerce.dto.WalletBalance;
 import com.readora.commerce.exception.ServiceException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -51,6 +52,24 @@ public class UserServiceClient {
     }
 
     private WalletBalance getWalletBalanceFallback(UUID userId, Throwable t) {
+        throw translate(t);
+    }
+
+    /**
+     * Resolves which store an admin is scoped to — same fail-closed semantics as
+     * catalog-service's identical method: an error here must never be treated as "no store."
+     */
+    @CircuitBreaker(name = "user-service", fallbackMethod = "getAdminStoreIdFallback")
+    @Retry(name = "user-service")
+    public UUID getAdminStoreId(UUID userId) {
+        AdminStoreResponse response = restClient.get()
+                .uri("/internal/admin-users/{userId}/store", userId)
+                .retrieve()
+                .body(AdminStoreResponse.class);
+        return response != null ? response.storeId() : null;
+    }
+
+    private UUID getAdminStoreIdFallback(UUID userId, Throwable t) {
         throw translate(t);
     }
 

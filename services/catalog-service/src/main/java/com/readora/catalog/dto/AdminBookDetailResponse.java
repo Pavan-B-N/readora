@@ -1,6 +1,5 @@
 package com.readora.catalog.dto;
 
-import com.readora.catalog.entity.BookFormat;
 import com.readora.catalog.entity.VirtualFileFormat;
 
 import java.math.BigDecimal;
@@ -22,7 +21,6 @@ public record AdminBookDetailResponse(
         UUID storeId,
         List<UUID> authorIds,
         String language,
-        BookFormat format,
         Integer pageCount,
         LocalDate publishedOn,
         BigDecimal listPrice,

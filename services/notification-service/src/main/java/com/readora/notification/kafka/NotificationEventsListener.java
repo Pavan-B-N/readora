@@ -45,7 +45,8 @@ public class NotificationEventsListener {
             case "PENDING_PAYMENT" -> new String[]{"Order placed", "Your order " + orderNumber + " has been placed."};
             case "PAID" -> new String[]{"Payment received", "We've received payment for order " + orderNumber + "."};
             case "CONFIRMED" -> new String[]{"Order confirmed", "Order " + orderNumber + " is confirmed and being prepared."};
-            case "SHIPPED" -> new String[]{"Order shipped", "Order " + orderNumber + " is on its way."};
+            case "ASSIGNED" -> new String[]{"Delivery agent assigned", "Order " + orderNumber + " has been assigned to a delivery agent."};
+            case "SHIPPED" -> new String[]{"Out for delivery", "Order " + orderNumber + " is out for delivery."};
             case "DELIVERED" -> new String[]{"Order delivered", "Order " + orderNumber + " has been delivered."};
             case "CANCELLED" -> new String[]{"Order cancelled", "Order " + orderNumber + " was cancelled."};
             case "PAYMENT_FAILED" -> new String[]{

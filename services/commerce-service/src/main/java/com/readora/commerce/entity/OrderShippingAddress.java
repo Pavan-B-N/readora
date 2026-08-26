@@ -79,6 +79,10 @@ public class OrderShippingAddress {
         return line1;
     }
 
+    public String getLine2() {
+        return line2;
+    }
+
     public String getCity() {
         return city;
     }
@@ -93,5 +97,9 @@ public class OrderShippingAddress {
 
     public String getCountryCode() {
         return countryCode;
+    }
+
+    public String getPhone() {
+        return phone;
     }
 }

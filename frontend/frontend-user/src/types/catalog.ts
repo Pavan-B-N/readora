@@ -1,16 +1,15 @@
-export type BookFormat = 'HARDCOVER' | 'PAPERBACK' | 'EBOOK';
-
 export interface BookSummary {
   id: string;
   isbn13: string;
   title: string;
   authors: string[];
   publisher: string | null;
-  format: BookFormat;
   listPrice: string;
   currency: string;
   coverImageUrl: string | null;
   availability: 'IN_STOCK' | 'OUT_OF_STOCK';
+  averageRating: number | null;
+  reviewCount: number;
 }
 
 export interface BookDetail {
@@ -19,10 +18,9 @@ export interface BookDetail {
   title: string;
   subtitle: string | null;
   description: string | null;
-  authors: { id: string; name: string }[];
+  authors: { id: string; name: string; bio: string | null }[];
   category: { id: string; name: string } | null;
   publisher: { id: string; name: string } | null;
-  format: BookFormat;
   pageCount: number | null;
   language: string | null;
   publishedOn: string | null;
@@ -32,7 +30,30 @@ export interface BookDetail {
   availability: { status: 'IN_STOCK' | 'OUT_OF_STOCK'; quantityAvailable: number };
   estimatedDeliveryDays: number;
   virtualEdition: { price: string; currency: string } | null;
+  topics: string[];
+  averageRating: number | null;
+  reviewCount: number;
 }
+
+export interface BookSuggestion {
+  id: string;
+  title: string;
+  authors: string[];
+  listPrice: string;
+  currency: string;
+  coverImageUrl: string | null;
+}
+
+export interface Review {
+  id: string;
+  userId: string;
+  authorDisplayName: string;
+  rating: number;
+  comment: string | null;
+  verifiedPurchase: boolean;
+  createdAt: string;
+}
+
 
 export interface RelatedBook {
   id: string;

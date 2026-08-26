@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { loggedOut } from '@/redux/slices/authSlice';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
-import { Input, Select } from '@/components/Input';
+import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
 import { PageHeader } from '@/components/PageHeader';
@@ -26,7 +26,6 @@ export function ProfilePage() {
   const [stores, setStores] = useState<Store[]>([]);
   const [displayName, setDisplayName] = useState('');
   const [phone, setPhone] = useState('');
-  const [preferredStoreId, setPreferredStoreId] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -35,7 +34,6 @@ export function ProfilePage() {
       setStores(storeList);
       setDisplayName(meResult.displayName ?? '');
       setPhone(meResult.phone ?? '');
-      setPreferredStoreId(meResult.preferredStoreId ?? '');
     });
   }, []);
 
@@ -45,7 +43,6 @@ export function ProfilePage() {
       const updated = await updateProfile({
         displayName: displayName.trim() || null,
         phone: phone.trim() || null,
-        preferredStoreId: preferredStoreId || null,
       });
       setMe(updated);
       showToast('Profile updated');
@@ -112,19 +109,13 @@ export function ProfilePage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
-            <Select
+            <Input
               label="Assigned store"
-              hint="Books you list are scoped to this store"
-              value={preferredStoreId}
-              onChange={(e) => setPreferredStoreId(e.target.value)}
-            >
-              <option value="">Unassigned</option>
-              {stores.map((store) => (
-                <option key={store.id} value={store.id}>
-                  {store.name} — {store.city}
-                </option>
-              ))}
-            </Select>
+              hint="Books you list are scoped to this store — set by a super-admin, not editable here"
+              disabled
+              value={stores.find((s) => s.id === me.adminStoreId)?.name ?? 'Not assigned'}
+              onChange={() => {}}
+            />
 
             <Button onClick={onSave} disabled={saving} block>
               <Save size={15} />

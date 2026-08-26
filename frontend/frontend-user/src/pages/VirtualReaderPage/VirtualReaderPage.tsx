@@ -6,6 +6,7 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { ArrowLeft, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 import { getVirtualContent } from '@/api/catalogApi';
 import { Button } from '@/components/Button';
+import { Spinner } from '@/components/Spinner';
 import styles from './VirtualReaderPage.module.css';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
@@ -115,7 +116,7 @@ export function VirtualReaderPage() {
       </div>
 
       <div className={styles.viewer}>
-        {loading && <p className={styles.status}>Loading…</p>}
+        {loading && <Spinner />}
         {error && <p className={styles.status}>{error}</p>}
         {!loading && !error && (
           <canvas ref={canvasRef} className={styles.canvas} onContextMenu={(e) => e.preventDefault()} />

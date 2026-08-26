@@ -1,0 +1,126 @@
+.wrapper {
+  flex: 1;
+  max-width: 460px;
+  position: relative;
+}
+
+.searchForm {
+  width: 100%;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-subtle);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  padding: 0 var(--space-4) 0 var(--space-8);
+  transition: border-color var(--transition);
+}
+
+.searchInput::placeholder {
+  color: var(--color-text-subtle);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  z-index: 50;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+}
+
+.suggestion:hover,
+.suggestionActive {
+  background: var(--color-surface-hover);
+}
+
+.suggestionCover {
+  flex-shrink: 0;
+  width: 32px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-subtle);
+  overflow: hidden;
+}
+
+.suggestionCover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.suggestionText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.suggestionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestionAuthors {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestionPrice {
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}

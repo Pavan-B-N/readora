@@ -105,9 +105,26 @@ public class UserService {
 
         return new MeResponse(
                 userId, email, profile.getDisplayName(), profile.getAvatarUrl(), profile.getPhone(), profile.getLocale(),
-                profile.getPreferredStoreId(), favoriteCategoryIds,
+                profile.getPreferredStoreId(), profile.getAdminStoreId(), favoriteCategoryIds,
                 new MeResponse.WalletSummary(wallet.getBalance(), wallet.getCurrency())
         );
+    }
+
+    /**
+     * Called only by catalog-service (via the internal, gateway-secret-gated endpoint) to resolve
+     * which store an admin's book-management requests are scoped to. Never derived from — or
+     * settable through — {@link #updateProfile}: that's the whole point, see
+     * {@link UserProfile#getAdminStoreId()}.
+     */
+    @Transactional(readOnly = true)
+    public UUID getAdminStoreId(UUID userId) {
+        return userProfileRepository.findById(userId).map(UserProfile::getAdminStoreId).orElse(null);
+    }
+
+    /** Read-only lookup — unlike getMe(), does not provision a profile as a side effect. */
+    @Transactional(readOnly = true)
+    public String getDisplayName(UUID userId) {
+        return userProfileRepository.findById(userId).map(UserProfile::getDisplayName).orElse(null);
     }
 
     private UserProfile provisionProfile(UUID userId) {

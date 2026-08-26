@@ -10,6 +10,7 @@ import { CategoriesPage } from '@/pages/CategoriesPage/CategoriesPage';
 import { PublishersPage } from '@/pages/PublishersPage/PublishersPage';
 import { AuthorsPage } from '@/pages/AuthorsPage/AuthorsPage';
 import { EmbeddingsPage } from '@/pages/EmbeddingsPage/EmbeddingsPage';
+import { ReturnsPage } from '@/pages/ReturnsPage/ReturnsPage';
 import { ProfilePage } from '@/pages/ProfilePage/ProfilePage';
 import { ROUTES } from '@/constants/routes';
 
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.publishers, element: <PublishersPage /> },
           { path: ROUTES.authors, element: <AuthorsPage /> },
           { path: ROUTES.embeddings, element: <EmbeddingsPage /> },
+          { path: ROUTES.returns, element: <ReturnsPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
         ],
       },

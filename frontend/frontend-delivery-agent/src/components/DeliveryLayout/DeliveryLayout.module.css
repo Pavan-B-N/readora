@@ -1,0 +1,114 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: 0 var(--space-5);
+  height: 60px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brandMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brandName {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.brandRole {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  transition: background var(--transition), color var(--transition);
+}
+
+.navLink:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.navLinkActive {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.agent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.agentName {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.logoutButton:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.content {
+  flex: 1;
+  max-width: var(--content-max-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5);
+}

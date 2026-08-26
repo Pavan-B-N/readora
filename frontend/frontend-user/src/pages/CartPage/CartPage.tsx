@@ -8,6 +8,7 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Tooltip } from '@/components/Tooltip';
 import { EmptyState } from '@/components/EmptyState';
+import { Spinner } from '@/components/Spinner';
 import { ROUTES } from '@/constants/routes';
 import styles from './CartPage.module.css';
 
@@ -23,7 +24,7 @@ export function CartPage() {
   }, [dispatch]);
 
   if (status === 'loading' && items.length === 0) {
-    return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+    return <Spinner />;
   }
 
   if (items.length === 0) {
@@ -71,31 +72,37 @@ export function CartPage() {
                 </Badge>
               </div>
 
-              <div className={styles.qtyStepper}>
-                <button
-                  type="button"
-                  className={styles.qtyButton}
-                  onClick={() =>
-                    dispatch(updateCartItemQty({ bookId: item.bookId, deliveryType: item.deliveryType, qty: item.qty - 1 }))
-                  }
-                  disabled={item.qty <= 1}
-                  aria-label="Decrease quantity"
-                >
-                  <Minus size={13} />
-                </button>
-                <span className={styles.qtyValue}>{item.qty}</span>
-                <button
-                  type="button"
-                  className={styles.qtyButton}
-                  onClick={() =>
-                    dispatch(updateCartItemQty({ bookId: item.bookId, deliveryType: item.deliveryType, qty: item.qty + 1 }))
-                  }
-                  disabled={item.qty >= MAX_PER_TITLE}
-                  aria-label="Increase quantity"
-                >
-                  <Plus size={13} />
-                </button>
-              </div>
+              {item.deliveryType === 'VIRTUAL' ? (
+                <span className={styles.qtyFixed} title="A virtual edition is a single digital copy">
+                  Qty 1
+                </span>
+              ) : (
+                <div className={styles.qtyStepper}>
+                  <button
+                    type="button"
+                    className={styles.qtyButton}
+                    onClick={() =>
+                      dispatch(updateCartItemQty({ bookId: item.bookId, deliveryType: item.deliveryType, qty: item.qty - 1 }))
+                    }
+                    disabled={item.qty <= 1}
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus size={13} />
+                  </button>
+                  <span className={styles.qtyValue}>{item.qty}</span>
+                  <button
+                    type="button"
+                    className={styles.qtyButton}
+                    onClick={() =>
+                      dispatch(updateCartItemQty({ bookId: item.bookId, deliveryType: item.deliveryType, qty: item.qty + 1 }))
+                    }
+                    disabled={item.qty >= MAX_PER_TITLE}
+                    aria-label="Increase quantity"
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
+              )}
 
               <div className={styles.lineTotal}>₹{item.lineTotal}</div>
 

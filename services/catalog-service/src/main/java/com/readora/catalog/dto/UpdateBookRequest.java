@@ -1,6 +1,5 @@
 package com.readora.catalog.dto;
 
-import com.readora.catalog.entity.BookFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -19,7 +18,6 @@ public record UpdateBookRequest(
         UUID publisherId,
         List<UUID> authorIds,
         String language,
-        @NotNull BookFormat format,
         Integer pageCount,
         LocalDate publishedOn,
         @NotNull BigDecimal listPrice,

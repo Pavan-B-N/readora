@@ -49,6 +49,8 @@ app:
     base-url: http://localhost:8083
   user-service:
     base-url: http://localhost:8082
+  payment-service:
+    base-url: http://localhost:8085
 
 resilience4j:
   timelimiter:
@@ -56,6 +58,8 @@ resilience4j:
       catalog-service:
         timeout-duration: 3s
       user-service:
+        timeout-duration: 3s
+      payment-service:
         timeout-duration: 3s
   retry:
     instances:
@@ -66,6 +70,9 @@ resilience4j:
           - com.readora.commerce.exception.BookNotFoundException
           - com.readora.commerce.exception.InsufficientStockException
       user-service:
+        max-attempts: 3
+        wait-duration: 500ms
+      payment-service:
         max-attempts: 3
         wait-duration: 500ms
   circuitbreaker:
@@ -82,6 +89,14 @@ resilience4j:
           - com.readora.commerce.exception.BookNotFoundException
           - com.readora.commerce.exception.InsufficientStockException
       user-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+      payment-service:
         sliding-window-type: COUNT_BASED
         sliding-window-size: 5
         minimum-number-of-calls: 5

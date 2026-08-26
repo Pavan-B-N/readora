@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Info } from 'lucide-react';
 import { createAuthor, createBook, getCategoryTree, listAuthors, listPublishers, listStores } from '@/api/catalogApi';
-import type { Author, BookFormat, Publisher, Store } from '@/types/catalog';
+import type { Author, Publisher, Store } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { slugify } from '@/utils/slugify';
 import { getMe } from '@/api/userApi';
 import { useToast } from '@/components/Toast';
 import { Card } from '@/components/Card';
-import { Input, Select, Textarea } from '@/components/Input';
+import { Input, Textarea } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
 import { Stepper, type Step } from '@/components/Stepper';
@@ -20,7 +20,7 @@ import styles from './BookFormPage.module.css';
 const STEPS: Step[] = [
   { label: 'Details', description: 'Title & identity' },
   { label: 'Classification', description: 'Category & authors' },
-  { label: 'Contents', description: 'Format & topics' },
+  { label: 'Contents', description: 'Language & topics' },
 ];
 
 interface FormState {
@@ -33,7 +33,6 @@ interface FormState {
   storeId: string;
   authorIds: string[];
   language: string;
-  format: BookFormat;
   pageCount: string;
   publishedOn: string;
   listPrice: string;
@@ -51,7 +50,6 @@ const EMPTY_FORM: FormState = {
   storeId: '',
   authorIds: [],
   language: 'en',
-  format: 'PAPERBACK',
   pageCount: '',
   publishedOn: '',
   listPrice: '',
@@ -82,6 +80,7 @@ export function BookFormPage() {
   const [authors, setAuthors] = useState<Author[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [creatingAuthor, setCreatingAuthor] = useState(false);
+  const [noStoreAssigned, setNoStoreAssigned] = useState(false);
 
   const setStep = (next: number) => {
     setStepState(next);
@@ -99,9 +98,13 @@ export function BookFormPage() {
         setPublishers(pubs);
         setAuthors(auths);
         setStores(storeList);
-        // Admins are locked to their assigned store — they can't list a book under another one.
-        const assignedStoreId = me.preferredStoreId ?? storeList[0]?.id;
-        if (assignedStoreId) set({ storeId: assignedStoreId });
+        // Admins are locked to their assigned store — the backend enforces this too, so there's
+        // no client-side fallback to "just pick the first store" if unassigned.
+        if (me.adminStoreId) {
+          set({ storeId: me.adminStoreId });
+        } else {
+          setNoStoreAssigned(true);
+        }
       },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,7 +153,11 @@ export function BookFormPage() {
     }
 
     if (index === 1) {
-      if (!form.storeId) next.storeId = 'Select a store';
+      if (!form.storeId) {
+        next.storeId = noStoreAssigned
+          ? "Your account isn't assigned to a store — ask a super-admin to assign one"
+          : 'Select a store';
+      }
       if (form.authorIds.length === 0) next.authorIds = 'Select at least one author';
     }
 
@@ -190,7 +197,6 @@ export function BookFormPage() {
         storeId: form.storeId,
         authorIds: form.authorIds,
         language: form.language.trim() || null,
-        format: form.format,
         pageCount: form.pageCount ? Number(form.pageCount) : null,
         publishedOn: form.publishedOn || null,
         listPrice: form.listPrice.trim(),
@@ -303,12 +309,19 @@ export function BookFormPage() {
 
               <Input
                 label="Store"
-                hint="You can only list books under your own assigned store"
+                hint={
+                  noStoreAssigned
+                    ? "Your account has no store assignment — you can't create books until one is set"
+                    : 'You can only list books under your own assigned store'
+                }
+                error={errors.storeId}
                 disabled
                 value={
                   stores.length === 0
                     ? 'Loading…'
-                    : (stores.find((s) => s.id === form.storeId)?.name ?? 'None')
+                    : noStoreAssigned
+                      ? 'Not assigned'
+                      : (stores.find((s) => s.id === form.storeId)?.name ?? 'None')
                 }
                 onChange={() => {}}
               />
@@ -355,17 +368,12 @@ export function BookFormPage() {
 
           {step === 2 && (
             <div className={styles.form}>
-              <h3 className={styles.sectionTitle}>Format &amp; contents</h3>
+              <h3 className={styles.sectionTitle}>Contents</h3>
               <p className={styles.sectionSubtitle}>
-                Physical format, and the topics this book covers.
+                Language, length, and the topics this book covers.
               </p>
 
               <div className={styles.row3}>
-                <Select label="Format" value={form.format} onChange={(e) => set({ format: e.target.value as BookFormat })}>
-                  <option value="HARDCOVER">Hardcover</option>
-                  <option value="PAPERBACK">Paperback</option>
-                  <option value="EBOOK">Ebook</option>
-                </Select>
                 <Input
                   label="Language"
                   placeholder="en"
@@ -416,7 +424,6 @@ export function BookFormPage() {
                     null
                   }
                 />
-                <ReviewItem label="Format" value={form.format} />
                 <ReviewItem label="Sections" value={toc.length ? `${toc.length}` : null} />
               </div>
 

@@ -90,6 +90,7 @@ CREATE SCHEMA IF NOT EXISTS commerce;
 CREATE SCHEMA IF NOT EXISTS payments;
 CREATE SCHEMA IF NOT EXISTS notifications;
 CREATE SCHEMA IF NOT EXISTS ai;
+CREATE SCHEMA IF NOT EXISTS delivery;
 
 
 -- ============================================================================
@@ -128,7 +129,7 @@ CREATE TABLE IF NOT EXISTS auth.roles (
     description text,
 
     CONSTRAINT chk_auth_roles_code
-        CHECK (code IN ('CUSTOMER', 'ADMIN'))
+        CHECK (code IN ('CUSTOMER', 'ADMIN', 'DELIVERY_AGENT'))
 );
 
 
@@ -183,6 +184,11 @@ CREATE TABLE IF NOT EXISTS users.user_profiles (
     locale                text,
     marketing_opt_in      boolean NOT NULL DEFAULT false,
     preferred_store_id    uuid,
+    -- The store an ADMIN is assigned to manage. Deliberately separate from preferred_store_id
+    -- (the customer's shopping-preference field) and never set by the update-profile endpoint,
+    -- so an admin can't grant themselves another store's scope the way a customer switches
+    -- their delivery store.
+    admin_store_id        uuid,
     favorite_category_ids text
 );
 
@@ -339,7 +345,6 @@ CREATE TABLE IF NOT EXISTS catalog.books (
     publisher_id      uuid NOT NULL,
     store_id          uuid,
     language          text NOT NULL,
-    format            varchar NOT NULL,
     page_count        int,
     published_on      date,
     list_price        numeric(10, 2) NOT NULL,
@@ -361,10 +366,7 @@ CREATE TABLE IF NOT EXISTS catalog.books (
 
     CONSTRAINT fk_books_store
         FOREIGN KEY (store_id)
-        REFERENCES catalog.stores(id),
-
-    CONSTRAINT chk_books_format
-        CHECK (format IN ('HARDCOVER', 'PAPERBACK', 'EBOOK'))
+        REFERENCES catalog.stores(id)
 );
 
 
@@ -462,6 +464,33 @@ CREATE TABLE IF NOT EXISTS catalog.related_books (
 );
 
 
+-- Stores book reviews/ratings. user_id is a cross-service reference to auth.User, unconstrained
+-- for the same reason users.user_profiles.user_id is (different service/schema entirely).
+-- author_display_name is a snapshot taken at write time, not a live lookup.
+CREATE TABLE IF NOT EXISTS catalog.reviews (
+    id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    book_id             uuid NOT NULL,
+    user_id             uuid NOT NULL,
+    author_display_name text,
+    rating              int NOT NULL,
+    comment             text,
+    verified_purchase   boolean NOT NULL DEFAULT false,
+    created_at          timestamptz NOT NULL DEFAULT now(),
+    updated_at          timestamptz NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_reviews_book
+        FOREIGN KEY (book_id)
+        REFERENCES catalog.books(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_reviews_rating
+        CHECK (rating BETWEEN 1 AND 5),
+
+    CONSTRAINT uq_reviews_book_user
+        UNIQUE (book_id, user_id)
+);
+
+
 -- Stores catalog transactional outbox events.
 CREATE TABLE IF NOT EXISTS catalog.outbox_events (
     id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -498,6 +527,13 @@ CREATE TABLE IF NOT EXISTS commerce.orders (
     cancel_reason   text,
     idempotency_key text NOT NULL UNIQUE,
     delivery_type   varchar NOT NULL,
+    store_id            uuid,
+    delivery_agent_id   uuid,
+    delivery_agent_name text,
+    delivered_at        timestamptz,
+    admin_reviewed_at         timestamptz,
+    admin_reviewed_by_user_id uuid,
+    admin_note                text,
 
     CONSTRAINT chk_order_status
         CHECK (
@@ -505,6 +541,7 @@ CREATE TABLE IF NOT EXISTS commerce.orders (
                 'PENDING_PAYMENT',
                 'PAID',
                 'CONFIRMED',
+                'ASSIGNED',
                 'SHIPPED',
                 'DELIVERED',
                 'PAYMENT_FAILED',
@@ -563,7 +600,7 @@ CREATE TABLE IF NOT EXISTS commerce.order_shipping_addresses (
 CREATE TABLE IF NOT EXISTS commerce.order_status_history (
     id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     order_id    uuid NOT NULL,
-    from_status varchar NOT NULL,
+    from_status varchar,
     to_status   varchar NOT NULL,
     reason      text,
     changed_by  text,
@@ -794,6 +831,43 @@ CREATE TABLE IF NOT EXISTS ai.embedding_jobs (
 
 
 -- ============================================================================
+-- DELIVERY-AGENT SERVICE
+-- ============================================================================
+
+-- A delivery agent's profile — user_id is a cross-service reference to auth.User, same
+-- reasoning as users.user_profiles.user_id (plain UUID, never a JPA relationship). store_id is
+-- likewise a cross-service reference to catalog.stores, unconstrained for the same reason.
+CREATE TABLE IF NOT EXISTS delivery.delivery_agents (
+    user_id    uuid PRIMARY KEY,
+    name       text NOT NULL,
+    phone      text,
+    store_id   uuid NOT NULL,
+    is_active  boolean NOT NULL DEFAULT true,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+
+-- One row per physical order that reached CONFIRMED — created by delivery-agent-service's Kafka
+-- listener, not seeded. This is this service's own bookkeeping/queue; commerce.orders.status
+-- stays the source of truth for what the customer sees.
+CREATE TABLE IF NOT EXISTS delivery.delivery_assignments (
+    id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id             uuid NOT NULL UNIQUE,
+    order_number         text NOT NULL,
+    store_id             uuid NOT NULL,
+    agent_id             uuid,
+    status               varchar NOT NULL DEFAULT 'UNASSIGNED',
+    created_at           timestamptz NOT NULL DEFAULT now(),
+    assigned_at          timestamptz,
+    out_for_delivery_at  timestamptz,
+    delivered_at         timestamptz,
+
+    CONSTRAINT chk_delivery_assignment_status
+        CHECK (status IN ('UNASSIGNED', 'ASSIGNED', 'OUT_FOR_DELIVERY', 'DELIVERED'))
+);
+
+
+-- ============================================================================
 -- VECTOR STORE
 -- ============================================================================
 --
@@ -888,6 +962,11 @@ VALUES
         gen_random_uuid(),
         'ADMIN',
         'Administrative role with elevated privileges'
+    ),
+    (
+        gen_random_uuid(),
+        'DELIVERY_AGENT',
+        'Delivers physical orders assigned to them'
     )
 ON CONFLICT (code) DO NOTHING;
 
@@ -926,8 +1005,11 @@ ON CONFLICT (slug) DO NOTHING;
 -- 8b. STORES
 -- ============================================================================
 --
--- Quick-commerce model: every book belongs to exactly one store, and a customer shops one
--- store at a time. Only Bangalore is seeded today; more stores can be added later.
+-- Quick-commerce model: every physical book belongs to exactly one store, and a customer shops
+-- one store at a time. Stores span 21 Indian cities so store-scoped browsing and delivery
+-- actually vary by which one a customer picks.
+
+\set stores_json `cat "data/stores.json"`
 
 INSERT INTO catalog.stores (
     id,
@@ -939,16 +1021,18 @@ INSERT INTO catalog.stores (
     postal_code,
     country_code
 )
-VALUES (
-    '00000000-0000-0000-0000-0000000000b1',
-    'Readora Bangalore',
-    'Bangalore',
-    '100 Indiranagar 100ft Road',
-    'Near CMH Road',
-    'Karnataka',
-    '560038',
-    'IN'
-)
+SELECT
+    (s->>'id')::uuid,
+    s->>'name',
+    s->>'city',
+    s->>'line1',
+    s->>'line2',
+    s->>'state',
+    s->>'postalCode',
+    s->>'countryCode'
+FROM jsonb_array_elements(
+    :'stores_json'::jsonb
+) AS s
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -1029,7 +1113,6 @@ INSERT INTO catalog.books (
     publisher_id,
     store_id,
     language,
-    format,
     page_count,
     published_on,
     list_price,
@@ -1052,7 +1135,6 @@ SELECT
     -- "virtualOnly" in the seed JSON gets no store — it's a universal virtual-only title.
     CASE WHEN (b->>'virtualOnly')::boolean IS TRUE THEN NULL::uuid ELSE '00000000-0000-0000-0000-0000000000b1'::uuid END,
     b->>'language',
-    b->>'format',
     (b->>'pageCount')::int,
     (b->>'publishedOn')::date,
     (b->>'listPrice')::numeric,
@@ -1215,20 +1297,24 @@ JOIN auth.roles AS r
 ON CONFLICT DO NOTHING;
 
 
--- Create user profiles.
+-- Create user profiles. admin_store_id is only ever populated here (from the seed data's
+-- assignedStoreId, present only on ADMIN entries) — there's no application endpoint that sets it,
+-- by design.
 INSERT INTO users.user_profiles (
     user_id,
     display_name,
     phone,
     marketing_opt_in,
-    preferred_store_id
+    preferred_store_id,
+    admin_store_id
 )
 SELECT
     au.id,
     u->>'displayName',
     u->>'phone',
     (u->>'marketingOptIn')::boolean,
-    '00000000-0000-0000-0000-0000000000b1'
+    '00000000-0000-0000-0000-0000000000b1',
+    NULLIF(u->>'assignedStoreId', '')::uuid
 FROM jsonb_array_elements(
     (:'users_json'::jsonb)->'users'
 ) AS u
@@ -1302,6 +1388,35 @@ WHERE NOT EXISTS (
     FROM users.addresses AS existing
     WHERE existing.user_id = au.id
 );
+
+
+-- ============================================================================
+-- 15b. DELIVERY AGENTS
+-- ============================================================================
+
+-- Load delivery agents JSON.
+\set delivery_agents_json `cat "data/delivery_agents.json"`
+
+
+-- Creates each agent's profile, resolving their user id by email (already inserted above as
+-- part of the generic auth.users/user_roles seed with role DELIVERY_AGENT).
+INSERT INTO delivery.delivery_agents (
+    user_id,
+    name,
+    phone,
+    store_id
+)
+SELECT
+    au.id,
+    a->>'name',
+    a->>'phone',
+    (a->>'storeId')::uuid
+FROM jsonb_array_elements(
+    :'delivery_agents_json'::jsonb
+) AS a
+JOIN auth.users AS au
+    ON au.email = a->>'email'
+ON CONFLICT (user_id) DO NOTHING;
 
 
 -- ============================================================================
@@ -1384,6 +1499,11 @@ UNION ALL
 
 SELECT 'catalog.virtual_editions', COUNT(*)
 FROM catalog.virtual_editions
+
+UNION ALL
+
+SELECT 'delivery.delivery_agents', COUNT(*)
+FROM delivery.delivery_agents
 
 ORDER BY table_name;
 

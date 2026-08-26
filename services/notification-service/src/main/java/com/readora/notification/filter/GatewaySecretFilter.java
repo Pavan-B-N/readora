@@ -31,6 +31,17 @@ public class GatewaySecretFilter extends OncePerRequestFilter implements Ordered
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * The STOMP/SockJS endpoint is deliberately reachable directly by the browser (see
+     * WebSocketConfig's allowedOriginPatterns) — unlike every other route here, it was never
+     * meant to be gateway-only, so it can't carry a secret only server-to-server callers know.
+     * Its own auth happens at the STOMP CONNECT frame via StompAuthChannelInterceptor instead.
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/ws");
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,

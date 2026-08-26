@@ -5,6 +5,10 @@
   align-items: start;
 }
 
+.content {
+  min-width: 0;
+}
+
 .sidebar {
   position: sticky;
   top: calc(var(--header-height) + var(--space-5));
@@ -57,11 +61,28 @@
   font-size: var(--font-size-xs);
 }
 
-.filterBar {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--space-3);
-  margin-bottom: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.filterBar > * {
+  flex: 1 1 150px;
+  max-width: 190px;
 }
 
 .editionTabs {
@@ -70,7 +91,7 @@
   background: var(--color-surface-hover);
   border-radius: var(--radius-pill);
   padding: 3px;
-  margin-bottom: var(--space-4);
+  flex-shrink: 0;
 }
 
 .editionTab {
@@ -119,6 +140,21 @@
   color: var(--color-text);
 }
 
+.recommendationsRowWrapper {
+  position: relative;
+}
+
+.recommendationsRowWrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: var(--space-2);
+  width: 48px;
+  background: linear-gradient(to right, transparent, var(--color-bg));
+  pointer-events: none;
+}
+
 .recommendationsRow {
   display: flex;
   gap: var(--space-4);
@@ -128,6 +164,7 @@
 
 .recommendationCard {
   flex: 0 0 150px;
+  min-width: 0;
 }
 
 .heading {
@@ -265,7 +302,12 @@
     padding-left: var(--space-3);
   }
 
-  .filterBar {
-    grid-template-columns: 1fr;
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterBar > * {
+    max-width: none;
   }
 }

@@ -10,4 +10,6 @@ export const ROUTES = {
   wallet: '/wallet',
   profile: '/profile',
   read: (bookId: string) => `/read/${bookId}`,
+  assistant: '/assistant',
+  assistantConversation: (conversationId: string) => `/assistant/${conversationId}`,
 } as const;

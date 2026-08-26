@@ -30,6 +30,14 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
     private static final String ADMIN_PATH_PREFIX = "/api/v1/admin/";
     private static final String ADMIN_ROLE = "ADMIN";
 
+    /**
+     * Reading reviews is public, posting one isn't — the shared publicRoutes list has no
+     * per-method concept (every other public route is GET-only anyway, so this hasn't mattered
+     * until now), so this one path gets a narrow, explicit GET-only exemption instead of widening
+     * that config format for a single case.
+     */
+    private static final String REVIEWS_PATH = "/api/v1/books/*/reviews";
+
     private final SecurityProperties securityProperties;
     private final ObjectMapper objectMapper;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -47,7 +55,7 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
     ) throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        if (isPublicRoute(path)) {
+        if (isPublicRoute(path) || isPublicGet(request, path)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -68,6 +76,10 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
     private boolean isPublicRoute(String path) {
         return securityProperties.publicRoutes().stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
+
+    private boolean isPublicGet(HttpServletRequest request, String path) {
+        return "GET".equalsIgnoreCase(request.getMethod()) && pathMatcher.match(REVIEWS_PATH, path);
     }
 
     private void rejectUnauthenticated(HttpServletRequest request, HttpServletResponse response) throws IOException {

@@ -7,13 +7,14 @@ import { Card } from '@/components/Card';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
+import { Spinner } from '@/components/Spinner';
 import { ROUTES } from '@/constants/routes';
 import styles from './OrdersPage.module.css';
 
 function statusVariant(status: string) {
   if (status === 'DELIVERED' || status === 'CONFIRMED' || status === 'PAID') return 'success' as const;
   if (status === 'CANCELLED' || status === 'PAYMENT_FAILED') return 'danger' as const;
-  if (status === 'SHIPPED') return 'info' as const;
+  if (status === 'ASSIGNED' || status === 'SHIPPED') return 'info' as const;
   return 'warning' as const;
 }
 
@@ -22,6 +23,12 @@ function prettyStatus(status: string) {
     .split('_')
     .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
     .join(' ');
+}
+
+/** SHIPPED is stored as-is (see backend's OrderStatus javadoc) but reads as "Out for delivery" here. */
+function displayStatus(status: string) {
+  if (status === 'SHIPPED') return 'Out for delivery';
+  return prettyStatus(status);
 }
 
 export function OrdersPage() {
@@ -40,7 +47,7 @@ export function OrdersPage() {
       <h1>Your orders</h1>
 
       {loading ? (
-        <p style={{ color: 'var(--color-text-muted)', marginTop: 'var(--space-4)' }}>Loading…</p>
+        <Spinner />
       ) : orders.length === 0 ? (
         <Card style={{ marginTop: 'var(--space-5)' }}>
           <EmptyState
@@ -74,7 +81,7 @@ export function OrdersPage() {
                   </div>
                 </span>
                 <Badge variant={statusVariant(order.status)} dot>
-                  {prettyStatus(order.status)}
+                  {displayStatus(order.status)}
                 </Badge>
                 <span className={styles.total}>₹{order.grandTotal}</span>
                 <ChevronRight size={16} className={styles.chevron} />

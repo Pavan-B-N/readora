@@ -40,7 +40,7 @@ public class ReadoraMcpTools {
         return catalogClient.search(query).items();
     }
 
-    @Tool(description = "Get the full book record for one book id, including format and publisher")
+    @Tool(description = "Get the full book record for one book id, including publisher")
     public BookDetail getBookDetails(@ToolParam(description = "the book's id") String bookId) {
         return catalogClient.getDetail(bookId);
     }

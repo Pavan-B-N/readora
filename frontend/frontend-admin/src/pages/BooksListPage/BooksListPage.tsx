@@ -201,7 +201,6 @@ export function BooksListPage() {
             <tr>
               <th>Title</th>
               <th>Authors</th>
-              <th>Format</th>
               <th>Price</th>
               <th>Availability</th>
             </tr>
@@ -210,7 +209,7 @@ export function BooksListPage() {
             {loading
               ? Array.from({ length: 6 }).map((_, i) => (
                   <tr className={styles.skeletonRow} key={i}>
-                    {Array.from({ length: 5 }).map((__, j) => (
+                    {Array.from({ length: 4 }).map((__, j) => (
                       <td key={j}>
                         <div className={styles.skeleton} style={{ width: j === 0 ? '70%' : '50%' }} />
                       </td>
@@ -235,7 +234,6 @@ export function BooksListPage() {
                       </div>
                     </td>
                     <td>{book.authors.join(', ') || '—'}</td>
-                    <td>{book.format}</td>
                     <td className={styles.price}>
                       {book.listPrice} {book.currency}
                     </td>

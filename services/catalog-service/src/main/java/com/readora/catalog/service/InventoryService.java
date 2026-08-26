@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Called directly by commerce-service during checkout (internal, gateway-secret protected, not
@@ -46,7 +47,8 @@ public class InventoryService {
             }
             inventoryRepository.save(inventory);
 
-            return new ReserveStockResponse.Item(book.getId(), book.getTitle(), book.getIsbn13(), book.getListPrice());
+            UUID storeId = book.getStore() != null ? book.getStore().getId() : null;
+            return new ReserveStockResponse.Item(book.getId(), book.getTitle(), book.getIsbn13(), book.getListPrice(), storeId);
         }).toList();
 
         return new ReserveStockResponse(results);

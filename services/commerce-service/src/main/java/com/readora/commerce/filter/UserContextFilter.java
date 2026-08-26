@@ -18,8 +18,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Instant;
 
+/** Deny-by-default for authentication. Additionally gates /api/v1/admin/** on the ADMIN role — same convention as catalog-service/ai-service. */
 @Component
 public class UserContextFilter extends OncePerRequestFilter implements Ordered {
+
+    private static final String ADMIN_PATH_PREFIX = "/api/v1/admin/";
+    private static final String ADMIN_ROLE = "ADMIN";
 
     private final SecurityProperties securityProperties;
     private final ObjectMapper objectMapper;
@@ -44,7 +48,12 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
         }
 
         if (CurrentUserContext.get().isEmpty()) {
-            reject(request, response);
+            rejectUnauthenticated(request, response);
+            return;
+        }
+
+        if (path.startsWith(ADMIN_PATH_PREFIX) && !CurrentUserContext.hasRole(ADMIN_ROLE)) {
+            rejectForbidden(request, response);
             return;
         }
 
@@ -56,18 +65,21 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private void reject(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+    private void rejectUnauthenticated(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        writeError(request, response, HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "This endpoint requires an authenticated caller.");
+    }
+
+    private void rejectForbidden(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        writeError(request, response, HttpStatus.FORBIDDEN, "FORBIDDEN", "This endpoint requires the ADMIN role.");
+    }
+
+    private void writeError(
+            HttpServletRequest request, HttpServletResponse response, HttpStatus status, String code, String message
+    ) throws IOException {
+        response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        ErrorResponse body = new ErrorResponse(
-                "UNAUTHENTICATED",
-                "This endpoint requires an authenticated caller.",
-                HttpStatus.UNAUTHORIZED.value(),
-                request.getRequestURI(),
-                null,
-                Instant.now()
-        );
+        ErrorResponse body = new ErrorResponse(code, message, status.value(), request.getRequestURI(), null, Instant.now());
 
         response.getWriter().write(objectMapper.writeValueAsString(body));
     }

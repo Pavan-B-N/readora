@@ -12,6 +12,7 @@ import { OrderDetailPage } from '@/pages/OrderDetailPage/OrderDetailPage';
 import { WalletPage } from '@/pages/WalletPage/WalletPage';
 import { ProfilePage } from '@/pages/ProfilePage/ProfilePage';
 import { VirtualReaderPage } from '@/pages/VirtualReaderPage/VirtualReaderPage';
+import { AssistantPage } from '@/pages/AssistantPage/AssistantPage';
 import { ROUTES } from '@/constants/routes';
 
 export const router = createBrowserRouter([
@@ -32,6 +33,8 @@ export const router = createBrowserRouter([
           { path: ROUTES.wallet, element: <WalletPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
           { path: '/read/:bookId', element: <VirtualReaderPage /> },
+          { path: ROUTES.assistant, element: <AssistantPage /> },
+          { path: '/assistant/:conversationId', element: <AssistantPage /> },
         ],
       },
     ],

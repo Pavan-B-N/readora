@@ -1,10 +1,10 @@
 package com.readora.catalog.controller;
 
 import com.readora.catalog.dto.BookDetailResponse;
+import com.readora.catalog.dto.BookSuggestionResponse;
 import com.readora.catalog.dto.BookSummaryResponse;
 import com.readora.catalog.dto.PageResponse;
 import com.readora.catalog.dto.RelatedBookResponse;
-import com.readora.catalog.entity.BookFormat;
 import com.readora.catalog.security.CurrentUserContext;
 import com.readora.catalog.service.CatalogService;
 import com.readora.catalog.service.VirtualContentService;
@@ -43,7 +43,7 @@ public class BookController {
 
     @Operation(
             summary = "Search the catalogue",
-            description = "Searches and filters books by free-text query, category, publisher, format, and price range. virtualOnly=false (default) is the \"Physical\" tab — books with a store; virtualOnly=true is the \"Virtual editions\" tab — books with an active virtual edition, ignoring store entirely. Public — no authentication required.",
+            description = "Searches and filters books by free-text query, category, publisher, and price range. virtualOnly=false (default) is the \"Physical\" tab — books with a store, optionally further scoped to storeId; virtualOnly=true is the \"Virtual editions\" tab — books with an active virtual edition, ignoring store (and storeId) entirely. Public — no authentication required.",
             tags = {"Books"}
     )
     @ApiResponses({
@@ -54,15 +54,31 @@ public class BookController {
             @RequestParam(required = false) String q,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) UUID publisherId,
-            @RequestParam(required = false) BookFormat format,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(defaultValue = "false") boolean virtualOnly,
+            @RequestParam(required = false) UUID storeId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(catalogService.search(q, categoryId, publisherId, format, minPrice, maxPrice, virtualOnly, pageable));
+        return ResponseEntity.ok(catalogService.search(q, categoryId, publisherId, minPrice, maxPrice, virtualOnly, storeId, pageable));
+    }
+
+    @Operation(
+            summary = "Typeahead suggestions for the search bar",
+            description = "Top title matches for a partial query, capped at 10. Public — no authentication required. Deliberately a plain substring match, not ai-service's semantic search — see CatalogService.suggest's javadoc for why.",
+            tags = {"Books"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Suggestions returned (possibly empty)")
+    })
+    @GetMapping("/suggest")
+    public ResponseEntity<List<BookSuggestionResponse>> suggest(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "8") int limit
+    ) {
+        return ResponseEntity.ok(catalogService.suggest(q, limit));
     }
 
     @Operation(
