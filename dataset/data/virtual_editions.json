@@ -1,0 +1,12 @@
+[
+  {
+    "isbn13": "9781234567904",
+    "title": "JavaScript Notes",
+    "fileUrl": "javaScript.pdf",
+    "fileFormat": "PDF",
+    "fileSizeBytes": 8243412,
+    "price": 199.0,
+    "currency": "INR",
+    "isActive": true
+  }
+]

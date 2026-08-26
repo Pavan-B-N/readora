@@ -1,0 +1,2 @@
+CREATE ROLE readora WITH LOGIN SUPERUSER PASSWORD 'readora';
+CREATE DATABASE readora OWNER readora;

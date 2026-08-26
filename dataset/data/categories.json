@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Science Fiction & Fantasy",
+    "slug": "sci-fi-fantasy",
+    "displayOrder": 2
+  },
+  {
+    "name": "Mystery & Thriller",
+    "slug": "mystery-thriller",
+    "displayOrder": 3
+  },
+  {
+    "name": "Romance",
+    "slug": "romance",
+    "displayOrder": 4
+  },
+  {
+    "name": "Technology",
+    "slug": "technology",
+    "displayOrder": 6
+  },
+  {
+    "name": "Business",
+    "slug": "business",
+    "displayOrder": 7
+  },
+  {
+    "name": "Science",
+    "slug": "science",
+    "displayOrder": 8
+  },
+  {
+    "name": "Biography & Memoir",
+    "slug": "biography-memoir",
+    "displayOrder": 9
+  },
+  {
+    "name": "Self-Help",
+    "slug": "self-help",
+    "displayOrder": 10
+  },
+  {
+    "name": "Health & Wellness",
+    "slug": "health-wellness",
+    "displayOrder": 11
+  },
+  {
+    "name": "History",
+    "slug": "history",
+    "displayOrder": 12
+  },
+  {
+    "name": "Children's",
+    "slug": "childrens",
+    "displayOrder": 13
+  },
+  {
+    "name": "Comics & Graphic Novels",
+    "slug": "comics-graphic-novels",
+    "displayOrder": 14
+  },
+  {
+    "name": "Poetry",
+    "slug": "poetry",
+    "displayOrder": 15
+  }
+]

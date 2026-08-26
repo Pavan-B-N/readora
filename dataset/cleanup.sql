@@ -1,0 +1,2 @@
+DROP DATABASE IF EXISTS readora;
+DROP ROLE IF EXISTS readora;
