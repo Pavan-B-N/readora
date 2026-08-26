@@ -4,6 +4,11 @@ import com.readora.user.dto.AddressResponse;
 import com.readora.user.dto.CreateAddressRequest;
 import com.readora.user.dto.CreateAddressResponse;
 import com.readora.user.dto.MeResponse;
+import com.readora.user.dto.RedeemCouponRequest;
+import com.readora.user.dto.RedeemCouponResponse;
+import com.readora.user.dto.TopUpRequest;
+import com.readora.user.dto.UpdateProfileRequest;
+import com.readora.user.dto.WalletBalanceResponse;
 import com.readora.user.dto.WalletResponse;
 import com.readora.user.security.CurrentUserContext;
 import com.readora.user.service.UserService;
@@ -20,6 +25,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,6 +58,21 @@ public class UserController {
         UUID userId = CurrentUserContext.require();
         String email = CurrentUserContext.getEmail().orElse(null);
         return ResponseEntity.ok(userService.getMe(userId, email));
+    }
+
+    @Operation(
+            summary = "Update the caller's profile",
+            description = "Updates display name, phone, preferred store, and favorite categories. Every field is applied — send the current value for anything you don't intend to change.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Profile updated")
+    })
+    @PutMapping
+    public ResponseEntity<MeResponse> updateProfile(@RequestBody UpdateProfileRequest request) {
+        UUID userId = CurrentUserContext.require();
+        String email = CurrentUserContext.getEmail().orElse(null);
+        return ResponseEntity.ok(userService.updateProfile(userId, email, request));
     }
 
     @Operation(
@@ -96,6 +117,49 @@ public class UserController {
     public ResponseEntity<Void> deleteAddress(@PathVariable UUID id) {
         userService.deleteAddress(CurrentUserContext.require(), id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Set an address as default",
+            description = "Marks one address default and clears the flag from any other address that held it.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Default address updated"),
+            @ApiResponse(responseCode = "404", description = "No such address belonging to the caller")
+    })
+    @PutMapping("/addresses/{id}/default")
+    public ResponseEntity<Void> setDefaultAddress(@PathVariable UUID id) {
+        userService.setDefaultAddress(CurrentUserContext.require(), id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Top up the caller's wallet",
+            description = "Dummy top-up — credits the wallet directly since there's no real payment gateway in this build. Exists so an insufficient-balance checkout has somewhere to send the user.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Wallet credited, new balance returned")
+    })
+    @PostMapping("/wallet/topup")
+    public ResponseEntity<WalletBalanceResponse> topUp(@Valid @RequestBody TopUpRequest request) {
+        return ResponseEntity.ok(userService.topUp(CurrentUserContext.require(), request.amount()));
+    }
+
+    @Operation(
+            summary = "Redeem a coupon code",
+            description = "Credits the wallet by the coupon's amount — once per user per coupon, Amazon-Pay-style.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Coupon redeemed, wallet credited"),
+            @ApiResponse(responseCode = "404", description = "No such coupon code"),
+            @ApiResponse(responseCode = "409", description = "The coupon is expired/inactive, or already redeemed by this caller")
+    })
+    @PostMapping("/wallet/redeem-coupon")
+    public ResponseEntity<RedeemCouponResponse> redeemCoupon(@Valid @RequestBody RedeemCouponRequest request) {
+        return ResponseEntity.ok(userService.redeemCoupon(CurrentUserContext.require(), request.code()));
     }
 
     @Operation(

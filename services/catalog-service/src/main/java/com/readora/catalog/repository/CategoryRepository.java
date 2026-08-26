@@ -8,7 +8,5 @@ import java.util.UUID;
 
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
-    List<Category> findAllByParentIsNullOrderByDisplayOrder();
-
-    List<Category> findAllByParentIdOrderByDisplayOrder(UUID parentId);
+    List<Category> findAllByOrderByDisplayOrder();
 }

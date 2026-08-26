@@ -1,4 +1,5 @@
 export type DeliveryType = 'PHYSICAL' | 'VIRTUAL';
+export type PaymentMethod = 'WALLET' | 'UPI';
 
 export interface ShippingAddressInput {
   recipientName: string;
@@ -12,10 +13,10 @@ export interface ShippingAddressInput {
 }
 
 export interface CheckoutRequest {
-  deliveryType: DeliveryType;
   shippingAddress: ShippingAddressInput | null;
-  paymentMethod: string;
-  items: { bookId: string; qty: number }[];
+  paymentMethod: PaymentMethod;
+  upiId?: string;
+  items: { bookId: string; qty: number; deliveryType: DeliveryType }[];
 }
 
 export interface CheckoutResponse {
@@ -25,8 +26,11 @@ export interface CheckoutResponse {
   deliveryType: DeliveryType;
   subtotal: string;
   shippingFee: string;
+  packagingFee: string;
   taxAmount: string;
   grandTotal: string;
+  walletAmountUsed: string;
+  paymentMethod: string;
   currency: string;
   placedAt: string;
 }
@@ -46,11 +50,26 @@ export interface OrderDetail {
   orderNumber: string;
   status: string;
   deliveryType: DeliveryType;
-  items: { bookId: string; title: string; isbn13: string; qty: number; unitPrice: string; lineTotal: string }[];
+  items: {
+    bookId: string;
+    title: string;
+    isbn13: string | null;
+    qty: number;
+    unitPrice: string;
+    lineTotal: string;
+    deliveryType: DeliveryType;
+  }[];
   shippingAddress: { recipientName: string; line1: string; city: string; postalCode: string; countryCode: string } | null;
   history: { toStatus: string; at: string }[];
   cancellable: boolean;
+  returnable: boolean;
+  subtotal: string;
+  shippingFee: string;
+  packagingFee: string;
+  taxAmount: string;
   grandTotal: string;
+  walletAmountUsed: string;
+  paymentMethod: string;
   currency: string;
   placedAt: string;
 }
@@ -59,4 +78,10 @@ export interface CancelOrderResponse {
   orderId: string;
   status: string;
   cancelledAt: string;
+}
+
+export interface ReturnOrderResponse {
+  orderId: string;
+  status: string;
+  returnedAt: string;
 }

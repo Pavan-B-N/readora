@@ -17,13 +17,14 @@ import java.util.UUID;
 /**
  * Direct service-to-service calls to catalog-service.
  *
- * Both methods are wrapped with a "catalog-service" circuit breaker (configured in
- * application.yml under resilience4j:). No retry here: listAllBooks is called in a loop inside a
- * Kafka consumer, and retrying inside the consumer would stall the partition — the Kafka
- * retry/DLQ mechanism handles that at a higher level instead. Resilience4j's @TimeLimiter only
- * applies to methods returning CompletableFuture, which would force this synchronous client
- * async — instead, the same configured duration bounds the underlying HTTP client's
- * connect/read timeout directly, so it stays a single config value either way.
+ * Every method is wrapped with a "catalog-service" circuit breaker (configured in
+ * application.yml under resilience4j:). No retry here: listBooksNeedingReembedding and
+ * markEmbedded run in a loop inside a Kafka consumer (the backfill job listener), and retrying
+ * inside the consumer would stall the partition — the Kafka retry/DLQ mechanism handles that at
+ * a higher level instead. Resilience4j's @TimeLimiter only applies to methods returning
+ * CompletableFuture, which would force this synchronous client async — instead, the same
+ * configured duration bounds the underlying HTTP client's connect/read timeout directly, so it
+ * stays a single config value either way.
  */
 @Component
 public class CatalogClient {
@@ -46,13 +47,35 @@ public class CatalogClient {
                 .build();
     }
 
-    /** Pulled in for the full backfill — title, authors, description, and table of contents for every active book. */
-    @CircuitBreaker(name = "catalog-service", fallbackMethod = "listAllBooksFallback")
-    public List<BookDoc> listAllBooks(int page, int size) {
+    /**
+     * Pulled in for the full backfill — title, authors, description, and table of contents, but
+     * scoped to books that have never been embedded or whose content changed since their last
+     * embedding. Always page 0: the backfill marks each returned batch embedded immediately
+     * after processing it, which shrinks this same filtered set out from under a page-by-page
+     * walk otherwise.
+     */
+    @CircuitBreaker(name = "catalog-service", fallbackMethod = "listBooksNeedingReembeddingFallback")
+    public List<BookDoc> listBooksNeedingReembedding(int size) {
+        return exportBooks(0, size, true);
+    }
+
+    /** Tells catalog-service these books were just successfully (re-)embedded, so a later backfill run skips them unless they change again. */
+    @CircuitBreaker(name = "catalog-service", fallbackMethod = "markEmbeddedFallback")
+    public void markEmbedded(List<UUID> bookIds) {
+        if (bookIds.isEmpty()) return;
+        restClient.post()
+                .uri("/internal/books/embedded")
+                .body(new MarkEmbeddedRequest(bookIds))
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    private List<BookDoc> exportBooks(int page, int size, boolean needsReembeddingOnly) {
         BookExportPageResponse response = restClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/internal/books/export")
                         .queryParam("page", page)
                         .queryParam("size", size)
+                        .queryParam("needsReembeddingOnly", needsReembeddingOnly)
                         .build())
                 .retrieve()
                 .body(BookExportPageResponse.class);
@@ -60,7 +83,7 @@ public class CatalogClient {
         return response != null ? response.items() : List.of();
     }
 
-    /** Pulled in for the incremental embedding consumer — same fields as listAllBooks, but for specific book ids only. */
+    /** Pulled in for the incremental embedding consumer — same fields as the backfill export, but for specific book ids only. */
     @CircuitBreaker(name = "catalog-service", fallbackMethod = "lookupBooksFallback")
     public List<BookDoc> lookupBooks(List<UUID> bookIds) {
         BookLookupResponse response = restClient.post()
@@ -72,7 +95,11 @@ public class CatalogClient {
         return response != null ? response.items() : List.of();
     }
 
-    private List<BookDoc> listAllBooksFallback(int page, int size, Throwable t) {
+    private List<BookDoc> listBooksNeedingReembeddingFallback(int size, Throwable t) {
+        throw translate(t);
+    }
+
+    private void markEmbeddedFallback(List<UUID> bookIds, Throwable t) {
         throw translate(t);
     }
 
@@ -101,6 +128,9 @@ public class CatalogClient {
     }
 
     private record BookExportPageResponse(List<BookDoc> items, int totalPages) {
+    }
+
+    private record MarkEmbeddedRequest(List<UUID> bookIds) {
     }
 
     private record BookLookupRequest(List<UUID> bookIds) {

@@ -39,6 +39,14 @@ public class UserProfile {
     @Column(name = "marketing_opt_in", nullable = false)
     private boolean marketingOptIn = false;
 
+    /** The store this customer shops from — quick-commerce delivers from one store at a time. */
+    @Column(name = "preferred_store_id")
+    private UUID preferredStoreId;
+
+    /** Comma-separated category UUIDs, collected at signup to personalize recommendations — not a queried relational structure, same reasoning as Book.tableOfContents. */
+    @Column(name = "favorite_category_ids", columnDefinition = "text")
+    private String favoriteCategoryIds;
+
     protected UserProfile() {
     }
 
@@ -96,6 +104,22 @@ public class UserProfile {
 
     public void setMarketingOptIn(boolean marketingOptIn) {
         this.marketingOptIn = marketingOptIn;
+    }
+
+    public UUID getPreferredStoreId() {
+        return preferredStoreId;
+    }
+
+    public void setPreferredStoreId(UUID preferredStoreId) {
+        this.preferredStoreId = preferredStoreId;
+    }
+
+    public String getFavoriteCategoryIds() {
+        return favoriteCategoryIds;
+    }
+
+    public void setFavoriteCategoryIds(String favoriteCategoryIds) {
+        this.favoriteCategoryIds = favoriteCategoryIds;
     }
 
     @Override

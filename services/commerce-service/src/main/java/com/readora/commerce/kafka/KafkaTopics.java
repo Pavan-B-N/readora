@@ -4,6 +4,8 @@ public final class KafkaTopics {
 
     public static final String ORDER_CREATED = "order.created";
     public static final String ORDER_CANCELLED = "order.cancelled";
+    public static final String ORDER_RETURNED = "order.returned";
+    public static final String ORDER_STATUS_CHANGED = "order.status_changed";
     public static final String PAYMENT_CAPTURED = "payment.captured";
     public static final String PAYMENT_FAILED = "payment.failed";
 

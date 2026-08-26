@@ -24,7 +24,7 @@ export function VirtualEditionSection({
   const [fileSizeBytes, setFileSizeBytes] = useState(
     virtualEdition?.fileSizeBytes != null ? String(virtualEdition.fileSizeBytes) : '',
   );
-  const [price, setPrice] = useState(virtualEdition?.price ?? '');
+  const [price, setPrice] = useState(virtualEdition?.price != null ? String(virtualEdition.price) : '');
   const [currency, setCurrency] = useState(virtualEdition?.currency ?? 'INR');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);

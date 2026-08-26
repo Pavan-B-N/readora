@@ -1,7 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
 import { login as loginRequest } from '@/api/authApi';
-import type { AccessTokenClaims, LoginRequest } from '@/types/auth';
+import { extractErrorMessage } from '@/api/client';
+import type { AccessTokenClaims, LoginRequest, LoginResponse } from '@/types/auth';
 
 const ACCESS_TOKEN_KEY = 'readora_admin_access_token';
 const REFRESH_TOKEN_KEY = 'readora_admin_refresh_token';
@@ -33,10 +34,16 @@ const initialState: AuthState = {
   error: null,
 };
 
-export const login = createAsyncThunk('auth/login', async (request: LoginRequest) => {
-  const response = await loginRequest(request);
-  return response;
-});
+export const login = createAsyncThunk<LoginResponse, LoginRequest, { rejectValue: string }>(
+  'auth/login',
+  async (request, { rejectWithValue }) => {
+    try {
+      return await loginRequest(request);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Login failed'));
+    }
+  },
+);
 
 const authSlice = createSlice({
   name: 'auth',
@@ -83,7 +90,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message ?? 'Login failed';
+        state.error = action.payload ?? action.error.message ?? 'Login failed';
       });
   },
 });

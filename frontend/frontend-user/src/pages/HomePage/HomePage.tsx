@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BookOpen, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { searchBooks, getCategoryTree } from '@/api/catalogApi';
+import { motion } from 'framer-motion';
+import { BookOpen, Download, Sparkles, Truck, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { searchBooks, getCategoryTree, getRecommendations } from '@/api/catalogApi';
 import type { BookSummary, CategoryNode } from '@/types/catalog';
 import { useDebounced } from '@/hooks/useDebounced';
+import { useAppSelector } from '@/redux/hooks';
 import { BookCard } from '@/components/BookCard';
 import { Button } from '@/components/Button';
 import { Select } from '@/components/Input';
@@ -11,6 +13,16 @@ import { EmptyState } from '@/components/EmptyState';
 import styles from './HomePage.module.css';
 
 const PAGE_SIZE = 18;
+
+const gridVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.03 } },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 14 },
+  show: { opacity: 1, y: 0 },
+};
 
 interface FlatCategory {
   id: string;
@@ -28,6 +40,7 @@ function flatten(nodes: CategoryNode[], depth = 0): FlatCategory[] {
 export function HomePage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
 
   const [books, setBooks] = useState<BookSummary[]>([]);
   const [page, setPage] = useState(0);
@@ -40,13 +53,26 @@ export function HomePage() {
   const [format, setFormat] = useState('');
   const [priceBand, setPriceBand] = useState('');
   const [sort, setSort] = useState('relevance');
+  const [edition, setEdition] = useState<'physical' | 'virtual'>('physical');
+  const [recommendations, setRecommendations] = useState<BookSummary[]>([]);
 
-  const filters = useMemo(() => ({ categoryId, format, priceBand }), [categoryId, format, priceBand]);
+  const filters = useMemo(
+    () => ({ categoryId, format, priceBand, edition }),
+    [categoryId, format, priceBand, edition],
+  );
   const debouncedFilters = useDebounced(filters, 150);
 
   useEffect(() => {
     getCategoryTree().then((tree) => setCategories(flatten(tree)));
   }, []);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setRecommendations([]);
+      return;
+    }
+    getRecommendations().then(setRecommendations);
+  }, [accessToken]);
 
   useEffect(() => {
     setPage(0);
@@ -66,6 +92,7 @@ export function HomePage() {
       format: debouncedFilters.format || undefined,
       minPrice: minPrice || undefined,
       maxPrice: maxPrice || undefined,
+      virtualOnly: debouncedFilters.edition === 'virtual',
       page,
       size: PAGE_SIZE,
     })
@@ -126,11 +153,50 @@ export function HomePage() {
       </aside>
 
       <div>
+        {!query && !categoryId && recommendations.length > 0 && (
+          <div className={styles.recommendations}>
+            <div className={styles.recommendationsHeading}>
+              <Sparkles size={15} />
+              <h2 className={styles.recommendationsTitle}>Recommended for you</h2>
+            </div>
+            <div className={styles.recommendationsRow}>
+              {recommendations.map((book) => (
+                <div className={styles.recommendationCard} key={book.id}>
+                  <BookCard book={book} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className={styles.heading}>
           <h1 className={styles.title}>
             {query ? `Results for “${query}”` : activeCategoryName ? activeCategoryName : 'Browse books'}
           </h1>
           <p className={styles.subtitle}>Physical and virtual editions, all in one place.</p>
+        </div>
+
+        <div className={styles.editionTabs} role="tablist" aria-label="Edition type">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={edition === 'physical'}
+            className={[styles.editionTab, edition === 'physical' && styles.editionTabActive].filter(Boolean).join(' ')}
+            onClick={() => setEdition('physical')}
+          >
+            <Truck size={14} />
+            Physical
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={edition === 'virtual'}
+            className={[styles.editionTab, edition === 'virtual' && styles.editionTabActive].filter(Boolean).join(' ')}
+            onClick={() => setEdition('virtual')}
+          >
+            <Download size={14} />
+            Virtual editions
+          </button>
         </div>
 
         <div className={styles.filterBar}>
@@ -208,7 +274,7 @@ export function HomePage() {
 
         {loading ? (
           <div className={styles.grid}>
-            {Array.from({ length: 12 }).map((_, i) => (
+            {Array.from({ length: PAGE_SIZE }).map((_, i) => (
               <div className={styles.skeletonCard} key={i}>
                 <div className={[styles.skeletonCover, styles.shimmer].join(' ')} />
                 <div className={[styles.skeletonLine, styles.shimmer].join(' ')} style={{ width: '85%' }} />
@@ -243,11 +309,19 @@ export function HomePage() {
           />
         ) : (
           <>
-            <div className={styles.grid}>
+            <motion.div
+              className={styles.grid}
+              key={`${page}-${edition}-${debouncedFilters.categoryId}-${debouncedFilters.format}-${debouncedFilters.priceBand}-${sort}-${query}`}
+              variants={gridVariants}
+              initial="hidden"
+              animate="show"
+            >
               {books.map((book) => (
-                <BookCard key={book.id} book={book} />
+                <motion.div variants={cardVariants} key={book.id}>
+                  <BookCard book={book} />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {totalPages > 1 && (
               <div className={styles.pagination}>

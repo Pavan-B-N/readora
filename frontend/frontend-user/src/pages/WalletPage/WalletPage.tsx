@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Wallet } from 'lucide-react';
-import { getWallet } from '@/api/userApi';
+import { useSearchParams } from 'react-router-dom';
+import { ArrowDownLeft, ArrowUpRight, Gift, Plus, Wallet } from 'lucide-react';
+import { getWallet, redeemCoupon, topUpWallet } from '@/api/userApi';
 import type { WalletResponse } from '@/types/user';
+import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
+import { Button } from '@/components/Button';
+import { Input } from '@/components/Input';
+import { Modal } from '@/components/Modal';
 import { EmptyState } from '@/components/EmptyState';
 import styles from './WalletPage.module.css';
+
+const QUICK_AMOUNTS = ['200', '500', '1000'];
 
 function prettyType(type: string) {
   return type
@@ -14,11 +21,70 @@ function prettyType(type: string) {
 }
 
 export function WalletPage() {
+  const { showToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [wallet, setWallet] = useState<WalletResponse | null>(null);
+  const [topUpOpen, setTopUpOpen] = useState(searchParams.get('topup') === '1');
+  const [amount, setAmount] = useState('500');
+  const [submitting, setSubmitting] = useState(false);
+  const [couponOpen, setCouponOpen] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [redeeming, setRedeeming] = useState(false);
+
+  const reload = () => getWallet(0, 20).then(setWallet);
 
   useEffect(() => {
-    getWallet(0, 20).then(setWallet);
+    reload();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('topup') === '1') {
+      setTopUpOpen(true);
+      searchParams.delete('topup');
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onTopUp = async () => {
+    const value = Number(amount);
+    if (!amount.trim() || Number.isNaN(value) || value <= 0) {
+      showToast('Enter a valid amount', 'error');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await topUpWallet(amount.trim());
+      showToast(`₹${amount} added to your wallet`);
+      setTopUpOpen(false);
+      setAmount('500');
+      reload();
+    } catch {
+      showToast('Top-up failed — please try again', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onRedeemCoupon = async () => {
+    if (!couponCode.trim()) {
+      showToast('Enter a coupon code', 'error');
+      return;
+    }
+    setRedeeming(true);
+    try {
+      const result = await redeemCoupon(couponCode.trim());
+      showToast(`₹${result.creditedAmount} credited to your wallet`);
+      setCouponOpen(false);
+      setCouponCode('');
+      reload();
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      showToast(message ?? 'Could not redeem that code', 'error');
+    } finally {
+      setRedeeming(false);
+    }
+  };
 
   if (!wallet) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
 
@@ -31,6 +97,16 @@ export function WalletPage() {
         <div className={styles.balance}>
           ₹{wallet.balance} <span className={styles.balanceCurrency}>{wallet.currency}</span>
         </div>
+        <div className={styles.balanceActions}>
+          <Button onClick={() => setTopUpOpen(true)}>
+            <Plus size={15} />
+            Top up
+          </Button>
+          <Button variant="secondary" onClick={() => setCouponOpen(true)}>
+            <Gift size={15} />
+            Redeem coupon
+          </Button>
+        </div>
       </Card>
 
       <Card>
@@ -40,7 +116,7 @@ export function WalletPage() {
           <EmptyState
             icon={Wallet}
             title="No transactions yet"
-            description="Signup bonuses, refunds, and wallet payments will appear here."
+            description="Signup bonuses, refunds, top-ups, and wallet payments will appear here."
           />
         ) : (
           wallet.items.map((item) => {
@@ -64,6 +140,49 @@ export function WalletPage() {
           })
         )}
       </Card>
+
+      <Modal open={topUpOpen} onClose={() => setTopUpOpen(false)} title="Top up your wallet" width={380}>
+        <div className={styles.topUpForm}>
+          <div className={styles.quickAmounts}>
+            {QUICK_AMOUNTS.map((value) => (
+              <button
+                type="button"
+                key={value}
+                className={[styles.quickAmount, amount === value && styles.quickAmountActive].filter(Boolean).join(' ')}
+                onClick={() => setAmount(value)}
+              >
+                ₹{value}
+              </button>
+            ))}
+          </div>
+          <Input
+            label="Amount"
+            hint="₹1 – ₹50,000"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ''))}
+          />
+          <Button onClick={onTopUp} disabled={submitting} block>
+            {submitting ? 'Adding…' : `Add ₹${amount || '0'} to wallet`}
+          </Button>
+          <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)', textAlign: 'center' }}>
+            Demo top-up — no real payment is taken.
+          </p>
+        </div>
+      </Modal>
+
+      <Modal open={couponOpen} onClose={() => setCouponOpen(false)} title="Redeem a coupon" width={380}>
+        <div className={styles.topUpForm}>
+          <Input
+            label="Coupon code"
+            placeholder="e.g. WELCOME50"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+          />
+          <Button onClick={onRedeemCoupon} disabled={redeeming} block>
+            {redeeming ? 'Redeeming…' : 'Redeem'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

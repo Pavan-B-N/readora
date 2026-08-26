@@ -68,7 +68,11 @@ export function EmbeddingsPage() {
         if (!stillActive) {
           const latest = result[0];
           if (latest?.status === 'COMPLETED') {
-            showToast(`Backfill complete — ${latest.totalBooks} books embedded`);
+            showToast(
+              latest.totalBooks > 0
+                ? `Backfill complete — ${latest.totalBooks} book${latest.totalBooks === 1 ? '' : 's'} embedded`
+                : 'Backfill complete — everything was already up to date',
+            );
           } else if (latest?.status === 'FAILED') {
             showToast('Backfill failed — see the history below', 'error');
           }
@@ -114,7 +118,7 @@ export function EmbeddingsPage() {
       <div className={styles.layout}>
         <Card>
           <CardHeader
-            title="Full catalogue re-embed"
+            title="Vector index backfill"
             actions={
               activeJob && (
                 <Badge variant="info" dot pulse>
@@ -128,17 +132,18 @@ export function EmbeddingsPage() {
             <Info size={16} className={styles.explainerIcon} />
             <span>
               Day-to-day changes re-embed automatically — saving a book publishes a{' '}
-              <code>book.upserted</code> event that re-indexes just that title. Use this only to
-              bootstrap a fresh vector store, recover from missed events, or after switching
-              embedding models. The job runs asynchronously on a Kafka consumer, so you can leave
-              this page.
+              <code>book.upserted</code> event that re-indexes just that title. Running a backfill
+              only re-embeds books that are new or changed since their last embedding — it won't
+              redo work that's already current. Use it to bootstrap a fresh vector store, recover
+              from missed events, or after switching embedding models. The job runs asynchronously
+              on a Kafka consumer, so you can leave this page.
             </span>
           </div>
 
           <div className={styles.runRow}>
             <Button onClick={onQueue} disabled={queueing || Boolean(activeJob)}>
               {activeJob ? <Loader2 size={15} className="spin" /> : <Sparkles size={15} />}
-              {activeJob ? 'Backfill in progress…' : queueing ? 'Queueing…' : 'Re-embed entire catalogue'}
+              {activeJob ? 'Backfill in progress…' : queueing ? 'Queueing…' : 'Run backfill'}
             </Button>
             {activeJob && (
               <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
@@ -218,7 +223,9 @@ export function EmbeddingsPage() {
                     <td className={styles.numeric}>
                       {job.status === 'RUNNING'
                         ? `${job.processedBooks} / ${job.totalBooks || '?'}`
-                        : job.totalBooks || '—'}
+                        : job.status === 'COMPLETED'
+                          ? job.totalBooks
+                          : job.totalBooks || '—'}
                     </td>
                     <td className={styles.numeric}>{formatDuration(job)}</td>
                     <td className={styles.mono}>{new Date(job.queuedAt).toLocaleString()}</td>

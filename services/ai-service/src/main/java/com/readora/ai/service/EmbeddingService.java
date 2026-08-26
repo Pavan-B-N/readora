@@ -31,27 +31,32 @@ public class EmbeddingService {
     }
 
     /**
-     * Re-embeds every book in the catalog, paginating through catalog-service's full export.
+     * Re-embeds every book that's never been embedded or has changed since its last embedding —
+     * skips books whose embedding is already current, so a repeat backfill run is cheap.
+     * <p>
+     * Always re-queries page 0: catalog-service marks each returned batch embedded right after
+     * it's processed here, which drops those books out of the "needs reembedding" set, so the
+     * next page-0 fetch naturally returns whatever wasn't covered yet. Walking page 1, 2, 3... on
+     * a set that shrinks under you would skip books.
      *
      * @param progressCallback invoked after each page with (booksProcessedSoFar, lastBookTitle),
      *                         so a caller can surface live progress. Pass null to skip reporting.
      * @return the total number of books embedded
      */
     public int backfillAll(BiConsumer<Integer, String> progressCallback) {
-        int page = 0;
         int processed = 0;
         List<BookDoc> books;
 
         do {
-            books = catalogClient.listAllBooks(page, PAGE_SIZE);
+            books = catalogClient.listBooksNeedingReembedding(PAGE_SIZE);
             if (!books.isEmpty()) {
                 embed(books);
+                catalogClient.markEmbedded(books.stream().map(b -> UUID.fromString(b.id())).toList());
                 processed += books.size();
                 if (progressCallback != null) {
                     progressCallback.accept(processed, books.get(books.size() - 1).title());
                 }
             }
-            page++;
         } while (books.size() == PAGE_SIZE);
 
         return processed;
@@ -62,6 +67,7 @@ public class EmbeddingService {
         List<BookDoc> books = catalogClient.lookupBooks(List.of(bookId));
         if (!books.isEmpty()) {
             embed(books);
+            catalogClient.markEmbedded(List.of(bookId));
         }
     }
 

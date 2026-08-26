@@ -38,6 +38,7 @@ app:
   gateway:
     secret: ${GATEWAY_SECRET}
   security:
-    public-routes: []
+    public-routes:
+      - /internal/**
   wallet:
-    signup-bonus: 100.00
+    signup-bonus: 500.00

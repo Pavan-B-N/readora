@@ -8,6 +8,17 @@ export interface CategoryNode {
   children: CategoryNode[];
 }
 
+export interface Store {
+  id: string;
+  name: string;
+  city: string;
+  line1: string;
+  line2: string | null;
+  state: string;
+  postalCode: string;
+  countryCode: string;
+}
+
 export interface Publisher {
   id: string;
   name: string;
@@ -45,7 +56,6 @@ export interface PageResponse<T> {
 export interface CreateCategoryRequest {
   name: string;
   slug: string;
-  parentId: string | null;
   displayOrder: number;
 }
 
@@ -68,6 +78,7 @@ export interface CreateBookRequest {
   tableOfContents: string | null;
   categoryId: string | null;
   publisherId: string | null;
+  storeId: string | null;
   authorIds: string[];
   language: string | null;
   format: BookFormat;
@@ -118,6 +129,7 @@ export interface AdminBookDetail {
   tableOfContents: string | null;
   categoryId: string | null;
   publisherId: string | null;
+  storeId: string | null;
   authorIds: string[];
   language: string | null;
   format: BookFormat;
@@ -127,6 +139,10 @@ export interface AdminBookDetail {
   currency: string;
   coverImageUrl: string | null;
   isActive: boolean;
+  createdByUserId: string | null;
+  createdAt: string;
+  embeddedAt: string | null;
+  needsReembedding: boolean;
   inventory: {
     qtyOnHand: number;
     qtyReserved: number;

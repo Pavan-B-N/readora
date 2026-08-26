@@ -12,13 +12,50 @@
   gap: var(--space-4);
 }
 
-.deliveryOptions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
+.summary {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-5));
 }
 
-.deliveryOption {
+.recipientTypeRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.recipientTypeButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.recipientTypeButton:hover {
+  border-color: var(--color-border-strong);
+}
+
+.recipientTypeActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-info);
+}
+
+.addressList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.addressOption {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
@@ -30,29 +67,29 @@
   transition: all var(--transition);
 }
 
-.deliveryOption:hover {
+.addressOption:hover {
   border-color: var(--color-border-strong);
 }
 
-.deliveryOptionActive {
+.addressOptionActive {
   border-color: var(--color-primary);
   background: var(--color-primary-soft);
 }
 
-.deliveryOption input {
+.addressOption input {
   accent-color: var(--color-primary);
   margin-top: 3px;
   flex-shrink: 0;
 }
 
-.deliveryText {
+.addressOptionText {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.deliveryLabel {
+.addressOptionLabel {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -60,9 +97,100 @@
   font-weight: 500;
 }
 
-.deliveryHint {
+.defaultTag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-info);
+  background: var(--color-info-bg);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+}
+
+.addressOptionDetail {
   font-size: var(--font-size-xs);
   color: var(--color-text-subtle);
+}
+
+.paymentTabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.paymentTab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.paymentTab:hover {
+  border-color: var(--color-border-strong);
+}
+
+.paymentTabActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-info);
+}
+
+.walletStatus {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  align-items: center;
+}
+
+.walletStatusShort {
+  border-color: rgba(var(--color-danger-rgb), 0.3);
+  background: var(--color-danger-bg);
+}
+
+.walletBalanceValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.walletShort {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-danger);
+  margin-top: 2px;
+}
+
+.summaryItemType {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.summaryDivider {
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-3) 0;
 }
 
 .row2 {
@@ -98,23 +226,13 @@
   margin-bottom: var(--space-4);
 }
 
-.virtualNote {
-  display: flex;
-  gap: var(--space-2);
-  align-items: flex-start;
-  background: var(--color-info-bg);
-  border: 1px solid rgba(var(--color-info-rgb), 0.25);
-  color: var(--color-info);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  font-size: var(--font-size-xs);
-  line-height: 1.6;
-}
-
 @media (max-width: 820px) {
   .layout,
-  .deliveryOptions,
   .row2 {
     grid-template-columns: 1fr;
+  }
+
+  .summary {
+    position: static;
   }
 }

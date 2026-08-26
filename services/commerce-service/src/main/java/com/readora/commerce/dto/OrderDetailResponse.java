@@ -14,11 +14,21 @@ public record OrderDetailResponse(
         ShippingAddress shippingAddress,
         List<HistoryEntry> history,
         boolean cancellable,
+        boolean returnable,
+        BigDecimal subtotal,
+        BigDecimal shippingFee,
+        BigDecimal packagingFee,
+        BigDecimal taxAmount,
         BigDecimal grandTotal,
+        BigDecimal walletAmountUsed,
+        String paymentMethod,
         String currency,
         Instant placedAt
 ) {
-    public record Item(UUID bookId, String title, String isbn13, int qty, BigDecimal unitPrice, BigDecimal lineTotal) {
+    public record Item(
+            UUID bookId, String title, String isbn13, int qty, BigDecimal unitPrice, BigDecimal lineTotal,
+            String deliveryType
+    ) {
     }
 
     public record ShippingAddress(String recipientName, String line1, String city, String postalCode, String countryCode) {

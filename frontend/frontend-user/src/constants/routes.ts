@@ -9,4 +9,5 @@ export const ROUTES = {
   orderDetail: (orderId: string) => `/orders/${orderId}`,
   wallet: '/wallet',
   profile: '/profile',
+  read: (bookId: string) => `/read/${bookId}`,
 } as const;

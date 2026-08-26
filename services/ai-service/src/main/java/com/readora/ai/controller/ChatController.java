@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,12 +33,14 @@ public class ChatController {
             tags = {"AI Chat"}
     )
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Token stream begins"),
+            @ApiResponse(responseCode = "200", description = "Token stream begins; X-Conversation-Id header carries the (possibly newly created) conversation id"),
             @ApiResponse(responseCode = "400", description = "Empty message, or message above the configured character limit"),
             @ApiResponse(responseCode = "404", description = "The conversationId does not exist or belongs to another user")
     })
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chat(@Valid @RequestBody ChatRequest request) {
-        return chatService.chat(CurrentUserContext.require(), request);
+    public Flux<String> chat(@Valid @RequestBody ChatRequest request, HttpServletResponse response) {
+        ChatService.ChatStream stream = chatService.chat(CurrentUserContext.require(), request);
+        response.setHeader("X-Conversation-Id", stream.conversationId().toString());
+        return stream.tokens();
     }
 }

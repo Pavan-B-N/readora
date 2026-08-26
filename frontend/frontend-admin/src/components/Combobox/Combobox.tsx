@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { X, ChevronDown } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X, ChevronDown, Plus } from 'lucide-react';
 import { FieldWrapper } from '@/components/Input';
 import styles from './Combobox.module.css';
 
@@ -9,7 +10,7 @@ export interface ComboboxOption {
   meta?: string;
 }
 
-const MAX_SUGGESTIONS = 5;
+const MAX_SUGGESTIONS = 20;
 
 interface BaseProps {
   options: ComboboxOption[];
@@ -19,6 +20,9 @@ interface BaseProps {
   required?: boolean;
   placeholder?: string;
   disabled?: boolean;
+  /** When provided, typing a name with no exact match offers "+ Create '<name>'" inline. */
+  onCreate?: (label: string) => void | Promise<void>;
+  creating?: boolean;
 }
 
 interface SingleProps extends BaseProps {
@@ -36,11 +40,12 @@ interface MultiProps extends BaseProps {
 type ComboboxProps = SingleProps | MultiProps;
 
 /**
- * Type-to-search select showing the top 5 matches. Replaces long native <select> lists —
- * with hundreds of authors, scrolling a dropdown isn't usable.
+ * Type-to-search select showing the top 20 matches (or the first 20 options, before the admin
+ * has typed anything). Replaces long native <select> lists — with hundreds of authors, scrolling
+ * a dropdown isn't usable.
  */
 export function Combobox(props: ComboboxProps) {
-  const { options, label, hint, error, required, placeholder, disabled } = props;
+  const { options, label, hint, error, required, placeholder, disabled, onCreate, creating } = props;
   const isMulti = props.multiple === true;
 
   const [open, setOpen] = useState(false);
@@ -66,6 +71,19 @@ export function Combobox(props: ComboboxProps) {
     const normalized = query.trim().toLowerCase();
     return normalized ? options.filter((o) => o.label.toLowerCase().includes(normalized)).length : options.length;
   }, [options, query]);
+
+  const trimmedQuery = query.trim();
+  const canCreate =
+    Boolean(onCreate) &&
+    trimmedQuery.length > 0 &&
+    !options.some((o) => o.label.toLowerCase() === trimmedQuery.toLowerCase());
+
+  const handleCreate = async () => {
+    if (!onCreate || !trimmedQuery) return;
+    await onCreate(trimmedQuery);
+    setQuery('');
+    if (!isMulti) setOpen(false);
+  };
 
   useEffect(() => {
     setActiveIndex(0);
@@ -197,43 +215,64 @@ export function Combobox(props: ComboboxProps) {
           )}
         </div>
 
-        {open && (
-          <div className={styles.menu}>
-            {suggestions.length === 0 ? (
-              <div className={styles.empty}>No matches for “{query}”</div>
-            ) : (
-              <>
-                {suggestions.map((option, index) => {
-                  const selected = selectedValues.includes(option.value);
-                  return (
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              className={styles.menu}
+              initial={{ opacity: 0, y: -4, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.98 }}
+              transition={{ duration: 0.12 }}
+            >
+              {suggestions.length === 0 && !canCreate ? (
+                <div className={styles.empty}>
+                  {query.trim() ? `No matches for “${query}”` : 'No options yet'}
+                </div>
+              ) : (
+                <>
+                  {suggestions.map((option, index) => {
+                    const selected = selectedValues.includes(option.value);
+                    return (
+                      <button
+                        type="button"
+                        key={option.value}
+                        className={[
+                          styles.option,
+                          index === activeIndex && styles.optionActive,
+                          selected && styles.optionSelected,
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => commit(option)}
+                      >
+                        <span>{option.label}</span>
+                        {option.meta && <span className={styles.optionMeta}>{option.meta}</span>}
+                        {selected && <span className={styles.optionMeta}>Selected</span>}
+                      </button>
+                    );
+                  })}
+                  {totalMatches > MAX_SUGGESTIONS && (
+                    <div className={styles.footer}>
+                      Showing top {MAX_SUGGESTIONS} of {totalMatches} — keep typing to narrow
+                    </div>
+                  )}
+                  {canCreate && (
                     <button
                       type="button"
-                      key={option.value}
-                      className={[
-                        styles.option,
-                        index === activeIndex && styles.optionActive,
-                        selected && styles.optionSelected,
-                      ]
-                        .filter(Boolean)
-                        .join(' ')}
-                      onMouseEnter={() => setActiveIndex(index)}
-                      onClick={() => commit(option)}
+                      className={styles.createOption}
+                      disabled={creating}
+                      onClick={handleCreate}
                     >
-                      <span>{option.label}</span>
-                      {option.meta && <span className={styles.optionMeta}>{option.meta}</span>}
-                      {selected && <span className={styles.optionMeta}>Selected</span>}
+                      <Plus size={13} />
+                      {creating ? 'Creating…' : `Create “${trimmedQuery}”`}
                     </button>
-                  );
-                })}
-                {totalMatches > MAX_SUGGESTIONS && (
-                  <div className={styles.footer}>
-                    Showing top {MAX_SUGGESTIONS} of {totalMatches} — keep typing to narrow
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
+                  )}
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </FieldWrapper>
   );

@@ -18,6 +18,7 @@ public record CreateBookRequest(
         String tableOfContents,
         UUID categoryId,
         UUID publisherId,
+        UUID storeId,
         @NotEmpty List<UUID> authorIds,
         String language,
         @NotNull BookFormat format,

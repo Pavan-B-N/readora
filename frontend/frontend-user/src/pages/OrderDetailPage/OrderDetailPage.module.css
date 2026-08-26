@@ -13,6 +13,12 @@
   gap: var(--space-2);
 }
 
+.headerActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
 .orderNumber {
   font-family: ui-monospace, monospace;
   font-size: var(--font-size-xl);
@@ -63,6 +69,14 @@
 .itemTotal {
   font-variant-numeric: tabular-nums;
   font-weight: 500;
+  flex-shrink: 0;
+}
+
+.itemTrailing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
   flex-shrink: 0;
 }
 
@@ -129,11 +143,27 @@
   line-height: 1.7;
 }
 
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
 .summaryTotal {
   display: flex;
   justify-content: space-between;
   font-weight: 700;
   font-size: var(--font-size-lg);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  margin-bottom: var(--space-3);
+}
+
+.paymentMethodRow {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
   margin-bottom: var(--space-3);
 }
 
@@ -141,6 +171,15 @@
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
+}
+
+.upiPending {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-info);
+  margin-top: var(--space-1);
 }
 
 @media (max-width: 820px) {

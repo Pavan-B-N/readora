@@ -10,6 +10,7 @@ import type {
   CreatePublisherRequest,
   PageResponse,
   Publisher,
+  Store,
   UpdateBookRequest,
   UpdateInventoryRequest,
   UpsertVirtualEditionRequest,
@@ -21,10 +22,7 @@ export interface BookSearchParams {
   size: number;
   q?: string;
   categoryId?: string;
-  publisherId?: string;
-  format?: string;
-  minPrice?: string;
-  maxPrice?: string;
+  virtualOnly?: boolean;
 }
 
 export async function listBooks(params: BookSearchParams): Promise<PageResponse<BookSummary>> {
@@ -44,6 +42,11 @@ export async function listPublishers(): Promise<Publisher[]> {
 
 export async function listAuthors(): Promise<Author[]> {
   const response = await apiClient.get<Author[]>('/api/v1/authors');
+  return response.data;
+}
+
+export async function listStores(): Promise<Store[]> {
+  const response = await apiClient.get<Store[]>('/api/v1/stores');
   return response.data;
 }
 

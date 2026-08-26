@@ -10,15 +10,17 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Deviates from the doc's request shape: takes the full shipping address inline instead of an
- * addressId that would need a lookup against user-service. See the build summary for why.
- * shippingAddress is required only when deliveryType is PHYSICAL — validated in OrderService,
- * not here, since it's a cross-field rule bean validation doesn't express well.
+ * Delivery type is chosen per item, not once for the whole order — a cart can mix physical and
+ * virtual items (quick-commerce model: everything physical ships from one store at once,
+ * virtual items are available instantly). shippingAddress is required only when at least one
+ * item is PHYSICAL — validated in OrderService, not here, since it's a cross-field rule bean
+ * validation doesn't express well. paymentMethod is "WALLET" or "UPI"; upiId is required only
+ * for UPI.
  */
 public record CheckoutRequest(
-        @NotNull DeliveryType deliveryType,
         @Valid ShippingAddress shippingAddress,
         @NotBlank String paymentMethod,
+        String upiId,
         @NotEmpty List<Item> items
 ) {
     public record ShippingAddress(
@@ -33,6 +35,6 @@ public record CheckoutRequest(
     ) {
     }
 
-    public record Item(@NotNull UUID bookId, int qty) {
+    public record Item(@NotNull UUID bookId, int qty, @NotNull DeliveryType deliveryType) {
     }
 }

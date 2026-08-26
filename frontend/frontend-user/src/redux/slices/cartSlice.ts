@@ -1,12 +1,13 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { addItem, getCart, setItemQty } from '@/api/cartApi';
-import type { AddCartItemRequest, CartResponse } from '@/types/cart';
+import type { AddCartItemRequest, CartResponse, DeliveryType } from '@/types/cart';
 
 interface CartState {
   items: CartResponse['items'];
   subtotal: string;
   currency: string;
   itemCount: number;
+  requiresShippingAddress: boolean;
   status: 'idle' | 'loading';
 }
 
@@ -15,6 +16,7 @@ const initialState: CartState = {
   subtotal: '0',
   currency: 'USD',
   itemCount: 0,
+  requiresShippingAddress: false,
   status: 'idle',
 };
 
@@ -25,10 +27,13 @@ export const addToCart = createAsyncThunk('cart/addItem', async (request: AddCar
   return getCart();
 });
 
-export const updateCartItemQty = createAsyncThunk('cart/setQty', async ({ bookId, qty }: { bookId: string; qty: number }) => {
-  await setItemQty(bookId, qty);
-  return getCart();
-});
+export const updateCartItemQty = createAsyncThunk(
+  'cart/setQty',
+  async ({ bookId, deliveryType, qty }: { bookId: string; deliveryType: DeliveryType; qty: number }) => {
+    await setItemQty(bookId, deliveryType, qty);
+    return getCart();
+  },
+);
 
 const cartSlice = createSlice({
   name: 'cart',
@@ -38,6 +43,7 @@ const cartSlice = createSlice({
       state.items = [];
       state.subtotal = '0';
       state.itemCount = 0;
+      state.requiresShippingAddress = false;
     },
   },
   extraReducers: (builder) => {
@@ -54,6 +60,7 @@ const cartSlice = createSlice({
           state.subtotal = action.payload.subtotal;
           state.currency = action.payload.currency;
           state.itemCount = action.payload.itemCount;
+          state.requiresShippingAddress = action.payload.requiresShippingAddress;
         },
       );
   },

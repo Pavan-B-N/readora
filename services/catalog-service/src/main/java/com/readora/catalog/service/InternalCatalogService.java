@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,10 +34,17 @@ public class InternalCatalogService {
         this.virtualEditionRepository = virtualEditionRepository;
     }
 
-    /** Full text export for ai-service's embedding backfill — title, authors, description, table of contents. */
+    /**
+     * Full text export for ai-service's embedding backfill — title, authors, description, table
+     * of contents. When {@code needsReembeddingOnly} is set, only books whose content changed
+     * since they were last embedded (or that have never been embedded) are returned, so a repeat
+     * backfill run doesn't re-embed the whole catalog every time.
+     */
     @Transactional(readOnly = true)
-    public BookExportPage exportBooks(Pageable pageable) {
-        Page<Book> page = bookRepository.findAll(pageable);
+    public BookExportPage exportBooks(Pageable pageable, boolean needsReembeddingOnly) {
+        Page<Book> page = needsReembeddingOnly
+                ? bookRepository.findNeedingReembedding(pageable)
+                : bookRepository.findAll(pageable);
 
         List<BookExportItem> items = page.getContent().stream()
                 .map(book -> new BookExportItem(
@@ -49,6 +57,13 @@ public class InternalCatalogService {
                 .toList();
 
         return new BookExportPage(items, page.getTotalPages());
+    }
+
+    /** Marks the given books as embedded as of now — called by ai-service after it successfully embeds them. */
+    @Transactional
+    public void markEmbedded(List<UUID> bookIds) {
+        if (bookIds.isEmpty()) return;
+        bookRepository.markEmbedded(bookIds, Instant.now());
     }
 
     /** Text export for the specific book ids requested — used by ai-service's incremental embedding consumer, so it doesn't have to paginate the whole catalog for one changed book. */

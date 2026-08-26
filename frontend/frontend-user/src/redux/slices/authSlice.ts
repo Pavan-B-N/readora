@@ -1,7 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
 import { login as loginRequest, register as registerRequest } from '@/api/authApi';
-import type { AccessTokenClaims, LoginRequest, RegisterRequest } from '@/types/auth';
+import { extractErrorMessage } from '@/api/client';
+import type { AccessTokenClaims, LoginRequest, LoginResponse, RegisterRequest } from '@/types/auth';
 
 const REFRESH_TOKEN_KEY = 'readora_refresh_token';
 
@@ -32,12 +33,28 @@ const initialState: AuthState = {
   error: null,
 };
 
-export const login = createAsyncThunk('auth/login', async (request: LoginRequest) => loginRequest(request));
+export const login = createAsyncThunk<LoginResponse, LoginRequest, { rejectValue: string }>(
+  'auth/login',
+  async (request, { rejectWithValue }) => {
+    try {
+      return await loginRequest(request);
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Login failed'));
+    }
+  },
+);
 
-export const register = createAsyncThunk('auth/register', async (request: RegisterRequest) => {
-  await registerRequest(request);
-  return loginRequest({ email: request.email, password: request.password });
-});
+export const register = createAsyncThunk<LoginResponse, RegisterRequest, { rejectValue: string }>(
+  'auth/register',
+  async (request, { rejectWithValue }) => {
+    try {
+      await registerRequest(request);
+      return await loginRequest({ email: request.email, password: request.password });
+    } catch (error) {
+      return rejectWithValue(extractErrorMessage(error, 'Registration failed'));
+    }
+  },
+);
 
 const authSlice = createSlice({
   name: 'auth',
@@ -83,7 +100,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message ?? 'Login failed';
+        state.error = action.payload ?? action.error.message ?? 'Login failed';
       })
       .addCase(register.pending, (state) => {
         state.status = 'loading';
@@ -103,7 +120,7 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message ?? 'Registration failed';
+        state.error = action.payload ?? action.error.message ?? 'Registration failed';
       });
   },
 });

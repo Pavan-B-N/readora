@@ -64,6 +64,16 @@ public class Book {
     @JoinColumn(name = "publisher_id")
     private Publisher publisher;
 
+    /**
+     * The store that stocks the physical copy — null means this book has no physical presence
+     * anywhere and exists only as a virtual edition, universally available regardless of which
+     * store the customer is shopping. A book with a store may still also carry a virtual
+     * edition; that edition stays store-independent either way (see CatalogService.search).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "book_authors",
@@ -104,13 +114,22 @@ public class Book {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    /** When ai-service last (re-)embedded this book. Null means never embedded. */
+    @Column(name = "embedded_at")
+    private Instant embeddedAt;
+
+    /** Admin user who created this listing — audit trail, not enforced/validated. */
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
     protected Book() {
     }
 
     public Book(
             String isbn13, String title, String subtitle, String description, Category category,
-            Publisher publisher, String language, BookFormat format, Integer pageCount,
-            LocalDate publishedOn, BigDecimal listPrice, String currency, String coverImageUrl
+            Publisher publisher, Store store, String language, BookFormat format, Integer pageCount,
+            LocalDate publishedOn, BigDecimal listPrice, String currency, String coverImageUrl,
+            UUID createdByUserId
     ) {
         this.isbn13 = isbn13;
         this.title = title;
@@ -118,6 +137,7 @@ public class Book {
         this.description = description;
         this.category = category;
         this.publisher = publisher;
+        this.store = store;
         this.language = language;
         this.format = format;
         this.pageCount = pageCount;
@@ -125,6 +145,7 @@ public class Book {
         this.listPrice = listPrice;
         this.currency = currency;
         this.coverImageUrl = coverImageUrl;
+        this.createdByUserId = createdByUserId;
     }
 
     @PrePersist
@@ -213,6 +234,10 @@ public class Book {
         return publisher;
     }
 
+    public Store getStore() {
+        return store;
+    }
+
     public Set<Author> getAuthors() {
         return authors;
     }
@@ -251,6 +276,27 @@ public class Book {
 
     public void deactivate() {
         this.isActive = false;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getEmbeddedAt() {
+        return embeddedAt;
+    }
+
+    public UUID getCreatedByUserId() {
+        return createdByUserId;
+    }
+
+    /** True when this book has never been embedded, or has changed since its last embedding. */
+    public boolean needsReembedding() {
+        return embeddedAt == null || updatedAt.isAfter(embeddedAt);
+    }
+
+    public void markEmbedded(Instant at) {
+        this.embeddedAt = at;
     }
 
     @Override

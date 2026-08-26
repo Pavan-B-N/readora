@@ -2,6 +2,8 @@ package com.readora.commerce.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -46,12 +48,16 @@ public class OrderItem {
     @Column(name = "line_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal lineTotal;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delivery_type", nullable = false)
+    private DeliveryType deliveryType;
+
     protected OrderItem() {
     }
 
     public OrderItem(
             Order order, UUID bookId, String titleSnapshot, String isbnSnapshot,
-            BigDecimal unitPriceSnapshot, int qty
+            BigDecimal unitPriceSnapshot, int qty, DeliveryType deliveryType
     ) {
         this.order = order;
         this.bookId = bookId;
@@ -60,6 +66,7 @@ public class OrderItem {
         this.unitPriceSnapshot = unitPriceSnapshot;
         this.qty = qty;
         this.lineTotal = unitPriceSnapshot.multiply(BigDecimal.valueOf(qty));
+        this.deliveryType = deliveryType;
     }
 
     public UUID getBookId() {
@@ -84,6 +91,10 @@ public class OrderItem {
 
     public BigDecimal getLineTotal() {
         return lineTotal;
+    }
+
+    public DeliveryType getDeliveryType() {
+        return deliveryType;
     }
 
     @Override

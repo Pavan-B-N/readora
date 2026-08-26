@@ -1,5 +1,12 @@
 import { apiClient } from './client';
-import type { CancelOrderResponse, CheckoutRequest, CheckoutResponse, OrderDetail, OrderSummary } from '@/types/order';
+import type {
+  CancelOrderResponse,
+  CheckoutRequest,
+  CheckoutResponse,
+  OrderDetail,
+  OrderSummary,
+  ReturnOrderResponse,
+} from '@/types/order';
 
 export async function checkout(request: CheckoutRequest): Promise<CheckoutResponse> {
   const response = await apiClient.post<CheckoutResponse>('/api/v1/orders/checkout', request, {
@@ -22,5 +29,10 @@ export async function getOrderDetail(orderId: string): Promise<OrderDetail> {
 
 export async function cancelOrder(orderId: string, reason?: string): Promise<CancelOrderResponse> {
   const response = await apiClient.post<CancelOrderResponse>(`/api/v1/orders/${orderId}/cancel`, { reason });
+  return response.data;
+}
+
+export async function returnOrder(orderId: string, reason?: string): Promise<ReturnOrderResponse> {
+  const response = await apiClient.post<ReturnOrderResponse>(`/api/v1/orders/${orderId}/return`, { reason });
   return response.data;
 }

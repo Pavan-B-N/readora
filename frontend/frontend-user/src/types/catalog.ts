@@ -31,6 +31,7 @@ export interface BookDetail {
   images: string[];
   availability: { status: 'IN_STOCK' | 'OUT_OF_STOCK'; quantityAvailable: number };
   estimatedDeliveryDays: number;
+  virtualEdition: { price: string; currency: string } | null;
 }
 
 export interface RelatedBook {
@@ -45,4 +46,15 @@ export interface CategoryNode {
   name: string;
   slug: string;
   children: CategoryNode[];
+}
+
+export interface Store {
+  id: string;
+  name: string;
+  city: string;
+  line1: string;
+  line2: string | null;
+  state: string;
+  postalCode: string;
+  countryCode: string;
 }

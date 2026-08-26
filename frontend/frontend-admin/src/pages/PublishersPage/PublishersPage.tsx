@@ -4,10 +4,11 @@ import { createPublisher, listPublishers } from '@/api/catalogApi';
 import type { Publisher } from '@/types/catalog';
 import { slugify } from '@/utils/slugify';
 import { useToast } from '@/components/Toast';
-import { Card, CardHeader } from '@/components/Card';
+import { Card } from '@/components/Card';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Tooltip } from '@/components/Tooltip';
+import { Modal } from '@/components/Modal';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import styles from './PublishersPage.module.css';
@@ -18,6 +19,7 @@ export function PublishersPage() {
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
 
+  const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
@@ -42,6 +44,14 @@ export function PublishersPage() {
     return q ? publishers.filter((p) => p.name.toLowerCase().includes(q)) : publishers;
   }, [publishers, query]);
 
+  const openDialog = () => {
+    setName('');
+    setSlug('');
+    setSlugTouched(false);
+    setErrors({});
+    setOpen(true);
+  };
+
   const onSubmit = async () => {
     const next: Record<string, string> = {};
     if (!name.trim()) next.name = 'Name is required';
@@ -53,9 +63,7 @@ export function PublishersPage() {
     try {
       await createPublisher({ name: name.trim(), slug: slug.trim() });
       showToast(`Publisher “${name.trim()}” created`);
-      setName('');
-      setSlug('');
-      setSlugTouched(false);
+      setOpen(false);
       reload();
     } catch {
       showToast('Failed to create publisher — the slug may already exist', 'error');
@@ -66,90 +74,104 @@ export function PublishersPage() {
 
   return (
     <div>
-      <PageHeader title="Publishers" subtitle={`${publishers.length} publisher${publishers.length === 1 ? '' : 's'} in the catalogue.`} />
+      <PageHeader
+        title="Publishers"
+        subtitle={`${publishers.length} publisher${publishers.length === 1 ? '' : 's'} in the catalogue.`}
+        actions={
+          <Button onClick={openDialog}>
+            <Plus size={15} />
+            Add publisher
+          </Button>
+        }
+      />
 
-      <div className={styles.layout}>
-        <Card>
-          <div className={styles.searchWrap}>
-            <Search size={15} className={styles.searchIcon} />
-            <input
-              className={styles.searchInput}
-              placeholder="Filter publishers…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
+      <Card>
+        <div className={styles.searchWrap}>
+          <Search size={15} className={styles.searchIcon} />
+          <input
+            className={styles.searchInput}
+            placeholder="Filter publishers…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
 
-          {loading ? (
-            <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
-          ) : filtered.length === 0 ? (
-            <EmptyState
-              icon={Building2}
-              title={query ? 'No matches' : 'No publishers yet'}
-              description={query ? `Nothing matches “${query}”.` : 'Add the first publisher using the form.'}
-            />
-          ) : (
-            <ul className={styles.list}>
-              {filtered.map((p) => (
-                <li className={styles.item} key={p.id}>
-                  <span className={styles.itemIcon}>
-                    <Building2 size={15} />
-                  </span>
-                  <span className={styles.itemText}>
-                    <span className={styles.itemName}>{p.name}</span>
-                    <span className={styles.itemSlug}>/{p.slug}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        <Card>
-          <CardHeader title="New publisher" />
-          <div className={styles.form}>
-            <Input
-              label="Name"
-              required
-              placeholder="e.g. Penguin Classics"
-              value={name}
-              error={errors.name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <div className={styles.slugRow}>
-              <Input
-                label="Slug"
-                required
-                hint="URL segment"
-                placeholder="penguin-classics"
-                value={slug}
-                error={errors.slug}
-                onChange={(e) => {
-                  setSlugTouched(true);
-                  setSlug(e.target.value);
-                }}
-              />
-              <Tooltip label="Regenerate from name">
-                <Button
-                  variant="secondary"
-                  iconOnly
-                  aria-label="Regenerate slug"
-                  onClick={() => {
-                    setSlugTouched(false);
-                    setSlug(slugify(name));
-                  }}
-                >
-                  <Wand2 size={15} />
+        {loading ? (
+          <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={Building2}
+            title={query ? 'No matches' : 'No publishers yet'}
+            description={query ? `Nothing matches “${query}”.` : 'Add the first publisher to get started.'}
+            action={
+              !query ? (
+                <Button size="sm" onClick={openDialog}>
+                  <Plus size={14} />
+                  Add publisher
                 </Button>
-              </Tooltip>
-            </div>
-            <Button onClick={onSubmit} disabled={saving} block>
-              <Plus size={15} />
-              {saving ? 'Creating…' : 'Create publisher'}
-            </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <ul className={styles.list}>
+            {filtered.map((p) => (
+              <li className={styles.item} key={p.id}>
+                <span className={styles.itemIcon}>
+                  <Building2 size={15} />
+                </span>
+                <span className={styles.itemText}>
+                  <span className={styles.itemName}>{p.name}</span>
+                  <span className={styles.itemSlug}>/{p.slug}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Modal open={open} onClose={() => setOpen(false)} title="New publisher">
+        <div className={styles.form}>
+          <Input
+            label="Name"
+            required
+            placeholder="e.g. Penguin Classics"
+            value={name}
+            error={errors.name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <div className={styles.slugRow}>
+            <Input
+              label="Slug"
+              required
+              hint="URL segment"
+              placeholder="penguin-classics"
+              value={slug}
+              error={errors.slug}
+              onChange={(e) => {
+                setSlugTouched(true);
+                setSlug(e.target.value);
+              }}
+            />
+            <Tooltip label="Regenerate from name">
+              <Button
+                variant="secondary"
+                iconOnly
+                aria-label="Regenerate slug"
+                onClick={() => {
+                  setSlugTouched(false);
+                  setSlug(slugify(name));
+                }}
+              >
+                <Wand2 size={15} />
+              </Button>
+            </Tooltip>
           </div>
-        </Card>
-      </div>
+          <Button onClick={onSubmit} disabled={saving} block>
+            <Plus size={15} />
+            {saving ? 'Creating…' : 'Create publisher'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

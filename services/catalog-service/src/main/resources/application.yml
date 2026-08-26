@@ -32,10 +32,20 @@ app:
     secret: ${JWT_SECRET}
   gateway:
     secret: ${GATEWAY_SECRET}
+  commerce-service:
+    base-url: http://localhost:8084
+  storage:
+    # Relative to this service's working directory when it starts (see run-all.sh).
+    path: local-storage
   security:
+    # Deliberately precise, not /api/v1/books/** — /api/v1/books/*/read (virtual-content
+    # streaming) must stay authenticated so VirtualContentService can check ownership.
     public-routes:
-      - /api/v1/books/**
+      - /api/v1/books
+      - /api/v1/books/*
+      - /api/v1/books/*/related
       - /api/v1/categories/**
       - /api/v1/publishers/**
       - /api/v1/authors/**
+      - /api/v1/stores/**
       - /internal/**

@@ -99,6 +99,11 @@ public class Payment {
         this.authorizedAt = Instant.now();
     }
 
+    /** Set once, at authorization time, from the checkout's verified wallet-funded amount. */
+    public void useWallet(BigDecimal amount) {
+        this.walletAmountUsed = amount;
+    }
+
     public void capture() {
         this.status = PaymentStatus.CAPTURED;
         this.capturedAt = Instant.now();

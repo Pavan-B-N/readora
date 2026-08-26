@@ -1,0 +1,147 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 900px;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.cover {
+  width: 56px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.coverPlaceholder {
+  width: 56px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-hover);
+  color: var(--color-text-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.heroBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.row3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.sectionActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.toggleRow input {
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.toggleText {
+  display: flex;
+  flex-direction: column;
+}
+
+.toggleLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+.toggleHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+}
+
+.reviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--space-4);
+}
+
+.reviewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reviewLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-subtle);
+  font-weight: 600;
+}
+
+.reviewValue {
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.reviewEmpty {
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.tocLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.tocLabelHint {
+  color: var(--color-text-subtle);
+  font-weight: 400;
+}
+
+@media (max-width: 760px) {
+  .row2,
+  .row3 {
+    grid-template-columns: 1fr;
+  }
+}

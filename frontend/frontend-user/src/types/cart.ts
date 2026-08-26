@@ -1,9 +1,12 @@
+export type DeliveryType = 'PHYSICAL' | 'VIRTUAL';
+
 export interface CartItem {
   bookId: string;
   title: string;
   qty: number;
   unitPrice: string;
   lineTotal: string;
+  deliveryType: DeliveryType;
 }
 
 export interface CartResponse {
@@ -11,6 +14,7 @@ export interface CartResponse {
   subtotal: string;
   currency: string;
   itemCount: number;
+  requiresShippingAddress: boolean;
 }
 
 export interface CartSummaryResponse {
@@ -22,4 +26,5 @@ export interface CartSummaryResponse {
 export interface AddCartItemRequest {
   bookId: string;
   qty: number;
+  deliveryType: DeliveryType;
 }

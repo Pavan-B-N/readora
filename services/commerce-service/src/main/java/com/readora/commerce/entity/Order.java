@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/** A placed order. No wallet fields yet — wallet-funded checkout is deferred. */
+/** A placed order. Wallet balance is verified synchronously at checkout, before this row exists. */
 @Entity
 @Table(name = "orders", schema = "commerce")
 public class Order {
@@ -43,11 +43,20 @@ public class Order {
     @Column(name = "shipping_fee", nullable = false, precision = 10, scale = 2)
     private BigDecimal shippingFee;
 
+    @Column(name = "packaging_fee", nullable = false, precision = 10, scale = 2)
+    private BigDecimal packagingFee;
+
     @Column(name = "tax_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal taxAmount;
 
     @Column(name = "grand_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal grandTotal;
+
+    @Column(name = "wallet_amount_used", nullable = false, precision = 10, scale = 2)
+    private BigDecimal walletAmountUsed;
+
+    @Column(name = "payment_method", nullable = false)
+    private String paymentMethod;
 
     @Column(name = "placed_at", nullable = false, updatable = false)
     private Instant placedAt;
@@ -70,16 +79,19 @@ public class Order {
 
     public Order(
             String orderNumber, UUID userId, String currency, BigDecimal subtotal,
-            BigDecimal shippingFee, BigDecimal taxAmount, BigDecimal grandTotal, String idempotencyKey,
-            DeliveryType deliveryType
+            BigDecimal shippingFee, BigDecimal packagingFee, BigDecimal taxAmount, BigDecimal grandTotal,
+            BigDecimal walletAmountUsed, String paymentMethod, String idempotencyKey, DeliveryType deliveryType
     ) {
         this.orderNumber = orderNumber;
         this.userId = userId;
         this.currency = currency;
         this.subtotal = subtotal;
         this.shippingFee = shippingFee;
+        this.packagingFee = packagingFee;
         this.taxAmount = taxAmount;
         this.grandTotal = grandTotal;
+        this.walletAmountUsed = walletAmountUsed;
+        this.paymentMethod = paymentMethod;
         this.idempotencyKey = idempotencyKey;
         this.deliveryType = deliveryType;
     }
@@ -105,6 +117,23 @@ public class Order {
                 && status != OrderStatus.DELIVERED
                 && status != OrderStatus.CANCELLED;
         return withinWindow && notShippedOrBeyond;
+    }
+
+    public void returnOrder(String reason) {
+        this.status = OrderStatus.RETURNED;
+        this.cancelledAt = Instant.now();
+        this.cancelReason = reason;
+    }
+
+    /**
+     * Approximated against placedAt rather than an actual delivery timestamp — this build
+     * doesn't track a separate deliveredAt (physical orders never reach DELIVERED at all, since
+     * there's no shipping integration; only virtual orders do, and they deliver instantly, so
+     * placedAt is delivery time for every order that can actually reach this state today).
+     */
+    public boolean isReturnable() {
+        boolean withinWindow = placedAt.isAfter(Instant.now().minus(java.time.Duration.ofDays(7)));
+        return status == OrderStatus.DELIVERED && withinWindow;
     }
 
     public UUID getId() {
@@ -135,12 +164,24 @@ public class Order {
         return shippingFee;
     }
 
+    public BigDecimal getPackagingFee() {
+        return packagingFee;
+    }
+
     public BigDecimal getTaxAmount() {
         return taxAmount;
     }
 
     public BigDecimal getGrandTotal() {
         return grandTotal;
+    }
+
+    public BigDecimal getWalletAmountUsed() {
+        return walletAmountUsed;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
     }
 
     public Instant getPlacedAt() {

@@ -4,5 +4,7 @@ public enum WalletTransactionType {
     SIGNUP_BONUS,
     REFERRAL_BONUS,
     REDEEMED,
-    REVERSED
+    REVERSED,
+    TOPUP,
+    COUPON_REDEEMED
 }

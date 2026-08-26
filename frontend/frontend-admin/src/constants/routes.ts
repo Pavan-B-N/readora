@@ -1,10 +1,12 @@
 export const ROUTES = {
   login: '/login',
   books: '/books',
-  newBook: '/books/new',
+  newPhysicalBook: '/books/new/physical',
+  newVirtualBook: '/books/new/virtual',
   editBook: (bookId: string) => `/books/${bookId}/edit`,
   categories: '/categories',
   publishers: '/publishers',
   authors: '/authors',
   embeddings: '/embeddings',
+  profile: '/profile',
 } as const;

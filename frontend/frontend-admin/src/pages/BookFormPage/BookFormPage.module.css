@@ -147,7 +147,7 @@
   align-items: flex-start;
   gap: var(--space-2);
   background: var(--color-info-bg);
-  border: 1px solid rgba(88, 166, 255, 0.25);
+  border: 1px solid rgba(var(--color-info-rgb), 0.25);
   color: var(--color-info);
   border-radius: var(--radius-md);
   padding: var(--space-3);

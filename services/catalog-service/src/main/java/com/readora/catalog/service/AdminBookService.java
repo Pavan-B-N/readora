@@ -15,11 +15,13 @@ import com.readora.catalog.entity.Category;
 import com.readora.catalog.entity.Inventory;
 import com.readora.catalog.entity.OutboxEvent;
 import com.readora.catalog.entity.Publisher;
+import com.readora.catalog.entity.Store;
 import com.readora.catalog.entity.VirtualEdition;
 import com.readora.catalog.exception.AuthorNotFoundException;
 import com.readora.catalog.exception.BookNotFoundException;
 import com.readora.catalog.exception.CategoryNotFoundException;
 import com.readora.catalog.exception.PublisherNotFoundException;
+import com.readora.catalog.exception.StoreNotFoundException;
 import com.readora.catalog.kafka.KafkaTopics;
 import com.readora.catalog.repository.AuthorRepository;
 import com.readora.catalog.repository.BookRepository;
@@ -27,7 +29,9 @@ import com.readora.catalog.repository.CategoryRepository;
 import com.readora.catalog.repository.InventoryRepository;
 import com.readora.catalog.repository.OutboxEventRepository;
 import com.readora.catalog.repository.PublisherRepository;
+import com.readora.catalog.repository.StoreRepository;
 import com.readora.catalog.repository.VirtualEditionRepository;
+import com.readora.catalog.security.CurrentUserContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +48,7 @@ public class AdminBookService {
     private final CategoryRepository categoryRepository;
     private final PublisherRepository publisherRepository;
     private final AuthorRepository authorRepository;
+    private final StoreRepository storeRepository;
     private final InventoryRepository inventoryRepository;
     private final VirtualEditionRepository virtualEditionRepository;
     private final OutboxEventRepository outboxEventRepository;
@@ -54,6 +59,7 @@ public class AdminBookService {
             CategoryRepository categoryRepository,
             PublisherRepository publisherRepository,
             AuthorRepository authorRepository,
+            StoreRepository storeRepository,
             InventoryRepository inventoryRepository,
             VirtualEditionRepository virtualEditionRepository,
             OutboxEventRepository outboxEventRepository,
@@ -63,6 +69,7 @@ public class AdminBookService {
         this.categoryRepository = categoryRepository;
         this.publisherRepository = publisherRepository;
         this.authorRepository = authorRepository;
+        this.storeRepository = storeRepository;
         this.inventoryRepository = inventoryRepository;
         this.virtualEditionRepository = virtualEditionRepository;
         this.outboxEventRepository = outboxEventRepository;
@@ -82,7 +89,8 @@ public class AdminBookService {
         AdminBookDetailResponse.VirtualEdition virtualEditionDto = virtualEdition != null
                 ? new AdminBookDetailResponse.VirtualEdition(
                         virtualEdition.getFileUrl(), virtualEdition.getFileFormat(), virtualEdition.getFileSizeBytes(),
-                        virtualEdition.getPrice(), virtualEdition.getCurrency(), virtualEdition.isActive()
+                        virtualEdition.getPrice(), virtualEdition.getCurrency(), virtualEdition.isActive(),
+                        virtualEdition.getCreatedByUserId()
                 )
                 : null;
 
@@ -91,9 +99,11 @@ public class AdminBookService {
                 book.getTableOfContents(),
                 book.getCategory() != null ? book.getCategory().getId() : null,
                 book.getPublisher() != null ? book.getPublisher().getId() : null,
+                book.getStore() != null ? book.getStore().getId() : null,
                 book.getAuthors().stream().map(Author::getId).toList(),
                 book.getLanguage(), book.getFormat(), book.getPageCount(), book.getPublishedOn(),
                 book.getListPrice(), book.getCurrency(), book.getCoverImageUrl(), book.isActive(),
+                book.getCreatedByUserId(), book.getCreatedAt(), book.getEmbeddedAt(), book.needsReembedding(),
                 inventoryDto, virtualEditionDto
         );
     }
@@ -106,11 +116,15 @@ public class AdminBookService {
         Publisher publisher = request.publisherId() != null
                 ? publisherRepository.findById(request.publisherId()).orElseThrow(PublisherNotFoundException::new)
                 : null;
+        Store store = request.storeId() != null
+                ? storeRepository.findById(request.storeId()).orElseThrow(StoreNotFoundException::new)
+                : null;
+        UUID createdByUserId = CurrentUserContext.get().orElse(null);
 
         Book book = new Book(
                 request.isbn13(), request.title(), request.subtitle(), request.description(), category,
-                publisher, request.language(), request.format(), request.pageCount(), request.publishedOn(),
-                request.listPrice(), request.currency(), request.coverImageUrl()
+                publisher, store, request.language(), request.format(), request.pageCount(), request.publishedOn(),
+                request.listPrice(), request.currency(), request.coverImageUrl(), createdByUserId
         );
         book.setTableOfContents(request.tableOfContents());
 
@@ -184,7 +198,7 @@ public class AdminBookService {
             Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
             edition = new VirtualEdition(
                     book, request.fileUrl(), request.fileFormat(), request.fileSizeBytes(),
-                    request.price(), request.currency()
+                    request.price(), request.currency(), CurrentUserContext.get().orElse(null)
             );
         }
 

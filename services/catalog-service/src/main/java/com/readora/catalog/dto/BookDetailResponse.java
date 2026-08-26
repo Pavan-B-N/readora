@@ -22,7 +22,8 @@ public record BookDetailResponse(
         String currency,
         List<String> images,
         Availability availability,
-        int estimatedDeliveryDays
+        int estimatedDeliveryDays,
+        VirtualEditionRef virtualEdition
 ) {
     public record AuthorRef(UUID id, String name) {
     }
@@ -34,5 +35,9 @@ public record BookDetailResponse(
     }
 
     public record Availability(String status, int quantityAvailable) {
+    }
+
+    /** Null when no active virtual edition exists — deliberately no fileUrl (never handed out directly). */
+    public record VirtualEditionRef(BigDecimal price, String currency) {
     }
 }

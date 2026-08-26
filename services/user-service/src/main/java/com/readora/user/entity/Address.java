@@ -29,6 +29,10 @@ public class Address {
     @Column(name = "label", nullable = false)
     private AddressLabel label;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recipient_type", nullable = false)
+    private AddressRecipientType recipientType;
+
     @Column(name = "recipient_name", nullable = false)
     private String recipientName;
 
@@ -50,6 +54,10 @@ public class Address {
     @Column(name = "country_code", nullable = false)
     private String countryCode;
 
+    /** The store whose service area this address falls in — quick-commerce delivers from one store. */
+    @Column(name = "store_id")
+    private UUID storeId;
+
     @Column(name = "phone")
     private String phone;
 
@@ -63,11 +71,13 @@ public class Address {
     }
 
     public Address(
-            UUID userId, AddressLabel label, String recipientName, String line1, String line2,
-            String city, String state, String postalCode, String countryCode, String phone, boolean isDefault
+            UUID userId, AddressLabel label, AddressRecipientType recipientType, String recipientName,
+            String line1, String line2, String city, String state, String postalCode, String countryCode,
+            UUID storeId, String phone, boolean isDefault
     ) {
         this.userId = userId;
         this.label = label;
+        this.recipientType = recipientType;
         this.recipientName = recipientName;
         this.line1 = line1;
         this.line2 = line2;
@@ -75,6 +85,7 @@ public class Address {
         this.state = state;
         this.postalCode = postalCode;
         this.countryCode = countryCode;
+        this.storeId = storeId;
         this.phone = phone;
         this.isDefault = isDefault;
     }
@@ -87,6 +98,10 @@ public class Address {
         this.isDefault = false;
     }
 
+    public void markDefault() {
+        this.isDefault = true;
+    }
+
     public UUID getId() {
         return id;
     }
@@ -97,6 +112,10 @@ public class Address {
 
     public AddressLabel getLabel() {
         return label;
+    }
+
+    public AddressRecipientType getRecipientType() {
+        return recipientType;
     }
 
     public String getRecipientName() {
@@ -125,6 +144,10 @@ public class Address {
 
     public String getCountryCode() {
         return countryCode;
+    }
+
+    public UUID getStoreId() {
+        return storeId;
     }
 
     public String getPhone() {

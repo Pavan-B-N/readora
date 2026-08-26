@@ -1,16 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Info } from 'lucide-react';
-import {
-  createBook,
-  getBookForEdit,
-  getCategoryTree,
-  listAuthors,
-  listPublishers,
-  updateBook,
-} from '@/api/catalogApi';
-import type { AdminBookDetail, Author, BookFormat, Publisher } from '@/types/catalog';
+import { createAuthor, createBook, getCategoryTree, listAuthors, listPublishers, listStores } from '@/api/catalogApi';
+import type { Author, BookFormat, Publisher, Store } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
+import { slugify } from '@/utils/slugify';
+import { getMe } from '@/api/userApi';
 import { useToast } from '@/components/Toast';
 import { Card } from '@/components/Card';
 import { Input, Select, Textarea } from '@/components/Input';
@@ -18,9 +13,7 @@ import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
 import { Stepper, type Step } from '@/components/Stepper';
 import { PageHeader } from '@/components/PageHeader';
-import { TocBuilder, tocSectionsToJson, jsonToTocSections, type TocSection } from '@/components/TocBuilder';
-import { InventorySection } from './InventorySection';
-import { VirtualEditionSection } from './VirtualEditionSection';
+import { TocBuilder, tocSectionsToJson, type TocSection } from '@/components/TocBuilder';
 import { ROUTES } from '@/constants/routes';
 import styles from './BookFormPage.module.css';
 
@@ -37,6 +30,7 @@ interface FormState {
   description: string;
   categoryId: string | null;
   publisherId: string | null;
+  storeId: string;
   authorIds: string[];
   language: string;
   format: BookFormat;
@@ -45,7 +39,6 @@ interface FormState {
   listPrice: string;
   currency: string;
   coverImageUrl: string;
-  isActive: boolean;
 }
 
 const EMPTY_FORM: FormState = {
@@ -55,6 +48,7 @@ const EMPTY_FORM: FormState = {
   description: '',
   categoryId: null,
   publisherId: null,
+  storeId: '',
   authorIds: [],
   language: 'en',
   format: 'PAPERBACK',
@@ -63,67 +57,55 @@ const EMPTY_FORM: FormState = {
   listPrice: '',
   currency: 'INR',
   coverImageUrl: '',
-  isActive: true,
 };
 
-function detailToForm(detail: AdminBookDetail): FormState {
-  return {
-    isbn13: detail.isbn13,
-    title: detail.title,
-    subtitle: detail.subtitle ?? '',
-    description: detail.description ?? '',
-    categoryId: detail.categoryId,
-    publisherId: detail.publisherId,
-    authorIds: detail.authorIds,
-    language: detail.language ?? '',
-    format: detail.format,
-    pageCount: detail.pageCount != null ? String(detail.pageCount) : '',
-    publishedOn: detail.publishedOn ?? '',
-    listPrice: detail.listPrice,
-    currency: detail.currency,
-    coverImageUrl: detail.coverImageUrl ?? '',
-    isActive: detail.isActive,
-  };
+/** Clamps whatever's in the URL's ?step= to a valid step index, defaulting to 0. */
+function readStepParam(searchParams: URLSearchParams): number {
+  const raw = Number(searchParams.get('step'));
+  return Number.isInteger(raw) && raw >= 0 && raw < STEPS.length ? raw : 0;
 }
 
 export function BookFormPage() {
-  const { bookId } = useParams<{ bookId: string }>();
-  const isEditMode = Boolean(bookId);
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [step, setStep] = useState(0);
-  const [furthest, setFurthest] = useState(0);
+  const [step, setStepState] = useState(() => readStepParam(searchParams));
+  const [furthest, setFurthest] = useState(step);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [toc, setToc] = useState<TocSection[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [loading, setLoading] = useState(isEditMode);
 
   const [categories, setCategories] = useState<FlatCategory[]>([]);
   const [publishers, setPublishers] = useState<Publisher[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
-  const [detail, setDetail] = useState<AdminBookDetail | null>(null);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [creatingAuthor, setCreatingAuthor] = useState(false);
+
+  const setStep = (next: number) => {
+    setStepState(next);
+    setSearchParams((prev) => {
+      const merged = new URLSearchParams(prev);
+      merged.set('step', String(next));
+      return merged;
+    }, { replace: true });
+  };
 
   useEffect(() => {
-    Promise.all([getCategoryTree(), listPublishers(), listAuthors()]).then(([tree, pubs, auths]) => {
-      setCategories(flattenCategoryTree(tree));
-      setPublishers(pubs);
-      setAuthors(auths);
-    });
+    Promise.all([getCategoryTree(), listPublishers(), listAuthors(), listStores(), getMe()]).then(
+      ([tree, pubs, auths, storeList, me]) => {
+        setCategories(flattenCategoryTree(tree));
+        setPublishers(pubs);
+        setAuthors(auths);
+        setStores(storeList);
+        // Admins are locked to their assigned store — they can't list a book under another one.
+        const assignedStoreId = me.preferredStoreId ?? storeList[0]?.id;
+        if (assignedStoreId) set({ storeId: assignedStoreId });
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (!bookId) return;
-    getBookForEdit(bookId)
-      .then((result) => {
-        setDetail(result);
-        setForm(detailToForm(result));
-        setToc(jsonToTocSections(result.tableOfContents));
-        setFurthest(STEPS.length - 1);
-      })
-      .finally(() => setLoading(false));
-  }, [bookId]);
 
   const set = (patch: Partial<FormState>) => {
     setForm((f) => ({ ...f, ...patch }));
@@ -132,6 +114,21 @@ export function BookFormPage() {
       for (const key of Object.keys(patch)) delete next[key as keyof FormState];
       return next;
     });
+  };
+
+  const handleCreateAuthor = async (name: string) => {
+    setCreatingAuthor(true);
+    try {
+      const result = await createAuthor({ name, slug: slugify(name), bio: null });
+      const newAuthor: Author = { id: result.id, name, slug: slugify(name), bio: null };
+      setAuthors((prev) => [...prev, newAuthor]);
+      set({ authorIds: [...form.authorIds, result.id] });
+      showToast(`Author “${name}” added`);
+    } catch {
+      showToast('Failed to create author — the name may already exist', 'error');
+    } finally {
+      setCreatingAuthor(false);
+    }
   };
 
   const categoryOptions = useMemo(
@@ -145,7 +142,7 @@ export function BookFormPage() {
     const next: Partial<Record<keyof FormState, string>> = {};
 
     if (index === 0) {
-      if (!isEditMode && form.isbn13.trim().length !== 13) next.isbn13 = 'ISBN-13 must be exactly 13 characters';
+      if (form.isbn13.trim().length !== 13) next.isbn13 = 'ISBN-13 must be exactly 13 characters';
       if (!form.title.trim()) next.title = 'Title is required';
       if (!form.listPrice.trim()) next.listPrice = 'Price is required';
       else if (Number.isNaN(Number(form.listPrice))) next.listPrice = 'Price must be a number';
@@ -153,6 +150,7 @@ export function BookFormPage() {
     }
 
     if (index === 1) {
+      if (!form.storeId) next.storeId = 'Select a store';
       if (form.authorIds.length === 0) next.authorIds = 'Select at least one author';
     }
 
@@ -179,32 +177,28 @@ export function BookFormPage() {
       }
     }
 
-    const shared = {
-      title: form.title.trim(),
-      subtitle: form.subtitle.trim() || null,
-      description: form.description.trim() || null,
-      tableOfContents: tocSectionsToJson(toc),
-      categoryId: form.categoryId,
-      publisherId: form.publisherId,
-      language: form.language.trim() || null,
-      format: form.format,
-      pageCount: form.pageCount ? Number(form.pageCount) : null,
-      publishedOn: form.publishedOn || null,
-      listPrice: form.listPrice.trim(),
-      currency: form.currency.trim().toUpperCase(),
-      coverImageUrl: form.coverImageUrl.trim() || null,
-    };
-
     setSubmitting(true);
     try {
-      if (isEditMode && bookId) {
-        await updateBook(bookId, { ...shared, authorIds: form.authorIds, isActive: form.isActive });
-        showToast('Book updated');
-      } else {
-        const result = await createBook({ ...shared, isbn13: form.isbn13.trim(), authorIds: form.authorIds });
-        showToast('Book created — now set stock and virtual edition');
-        navigate(ROUTES.editBook(result.id), { replace: true });
-      }
+      const result = await createBook({
+        isbn13: form.isbn13.trim(),
+        title: form.title.trim(),
+        subtitle: form.subtitle.trim() || null,
+        description: form.description.trim() || null,
+        tableOfContents: tocSectionsToJson(toc),
+        categoryId: form.categoryId,
+        publisherId: form.publisherId,
+        storeId: form.storeId,
+        authorIds: form.authorIds,
+        language: form.language.trim() || null,
+        format: form.format,
+        pageCount: form.pageCount ? Number(form.pageCount) : null,
+        publishedOn: form.publishedOn || null,
+        listPrice: form.listPrice.trim(),
+        currency: form.currency.trim().toUpperCase(),
+        coverImageUrl: form.coverImageUrl.trim() || null,
+      });
+      showToast('Book created — now set stock and virtual edition');
+      navigate(ROUTES.editBook(result.id), { replace: true });
     } catch {
       showToast('Failed to save book', 'error');
     } finally {
@@ -212,20 +206,18 @@ export function BookFormPage() {
     }
   };
 
-  if (loading) return <p>Loading…</p>;
-
   const labelFor = (list: { value: string; label: string }[], id: string | null) =>
     id ? (list.find((o) => o.value === id)?.label ?? '—') : null;
 
   return (
     <div className={styles.page}>
       <PageHeader
-        title={isEditMode ? form.title || 'Edit book' : 'New book'}
-        subtitle={isEditMode ? `ISBN ${form.isbn13}` : 'Add a title to the catalogue in three steps.'}
+        title="New physical book"
+        subtitle="Add a physical title to the catalogue in three steps."
         actions={
           <Button variant="secondary" onClick={() => navigate(ROUTES.books)}>
             <ArrowLeft size={15} />
-            Back to books
+            Back to catalog
           </Button>
         }
       />
@@ -242,9 +234,8 @@ export function BookFormPage() {
               <div className={styles.row2}>
                 <Input
                   label="ISBN-13"
-                  required={!isEditMode}
-                  disabled={isEditMode}
-                  hint={isEditMode ? 'Cannot be changed' : '13 digits'}
+                  required
+                  hint="13 digits"
                   placeholder="9780451524935"
                   value={form.isbn13}
                   error={errors.isbn13}
@@ -307,8 +298,20 @@ export function BookFormPage() {
             <div className={styles.form}>
               <h3 className={styles.sectionTitle}>Classification</h3>
               <p className={styles.sectionSubtitle}>
-                Where this book sits in the catalogue. Start typing to search — the top 5 matches appear.
+                Where this book sits in the catalogue. Start typing to search — the top 20 matches appear.
               </p>
+
+              <Input
+                label="Store"
+                hint="You can only list books under your own assigned store"
+                disabled
+                value={
+                  stores.length === 0
+                    ? 'Loading…'
+                    : (stores.find((s) => s.id === form.storeId)?.name ?? 'None')
+                }
+                onChange={() => {}}
+              />
 
               <div className={styles.row2}>
                 <Combobox
@@ -331,12 +334,14 @@ export function BookFormPage() {
                 multiple
                 label="Authors"
                 required
-                hint="One or more"
+                hint="One or more — type a new name to add an author that isn't in the catalogue yet"
                 placeholder="Search authors…"
                 options={authorOptions}
                 value={form.authorIds}
                 error={errors.authorIds}
                 onChange={(v) => set({ authorIds: v })}
+                onCreate={handleCreateAuthor}
+                creating={creatingAuthor}
               />
 
               <Input
@@ -345,22 +350,6 @@ export function BookFormPage() {
                 value={form.coverImageUrl}
                 onChange={(e) => set({ coverImageUrl: e.target.value })}
               />
-
-              {isEditMode && (
-                <label className={styles.toggleRow}>
-                  <input
-                    type="checkbox"
-                    checked={form.isActive}
-                    onChange={(e) => set({ isActive: e.target.checked })}
-                  />
-                  <span className={styles.toggleText}>
-                    <span className={styles.toggleLabel}>Active</span>
-                    <span className={styles.toggleHint}>
-                      Inactive books are hidden from customers and can't be purchased.
-                    </span>
-                  </span>
-                </label>
-              )}
             </div>
           )}
 
@@ -431,15 +420,13 @@ export function BookFormPage() {
                 <ReviewItem label="Sections" value={toc.length ? `${toc.length}` : null} />
               </div>
 
-              {!isEditMode && (
-                <div className={styles.postCreateNote}>
-                  <Info size={15} style={{ flexShrink: 0, marginTop: 2 }} />
-                  <span>
-                    Stock levels and the virtual edition are set after the book exists — you'll land on the edit
-                    page for that next.
-                  </span>
-                </div>
-              )}
+              <div className={styles.postCreateNote}>
+                <Info size={15} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span>
+                  Stock levels and the virtual edition are set after the book exists — you'll land on its detail
+                  page for that next.
+                </span>
+              </div>
             </div>
           )}
         </div>
@@ -452,11 +439,6 @@ export function BookFormPage() {
             </Button>
           )}
           <div className={styles.footerRight}>
-            {isEditMode && (
-              <Button variant="ghost" onClick={() => navigate(ROUTES.books)}>
-                Cancel
-              </Button>
-            )}
             {step < STEPS.length - 1 ? (
               <Button onClick={goNext}>
                 Continue
@@ -465,23 +447,12 @@ export function BookFormPage() {
             ) : (
               <Button onClick={submit} disabled={submitting}>
                 <Check size={15} />
-                {submitting ? 'Saving…' : isEditMode ? 'Save changes' : 'Create book'}
+                {submitting ? 'Saving…' : 'Create book'}
               </Button>
             )}
           </div>
         </div>
       </Card>
-
-      {isEditMode && bookId && detail && (
-        <>
-          <InventorySection bookId={bookId} inventory={detail.inventory} />
-          <VirtualEditionSection
-            bookId={bookId}
-            virtualEdition={detail.virtualEdition}
-            onChanged={() => getBookForEdit(bookId).then(setDetail)}
-          />
-        </>
-      )}
     </div>
   );
 }

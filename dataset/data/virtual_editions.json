@@ -138,5 +138,15 @@
     "price": 329.4,
     "currency": "INR",
     "isActive": true
+  },
+  {
+    "isbn13": "9781234567897",
+    "title": "Java & Spring",
+    "fileUrl": "java-and-spring.pdf",
+    "fileFormat": "PDF",
+    "fileSizeBytes": 5104,
+    "price": 199.0,
+    "currency": "INR",
+    "isActive": true
   }
 ]

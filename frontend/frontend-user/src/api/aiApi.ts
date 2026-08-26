@@ -20,6 +20,32 @@ export async function semanticSearch(query: string, limit = 8): Promise<AiSearch
   return response.data;
 }
 
+export interface ConversationSummary {
+  conversationId: string;
+  title: string | null;
+  messageCount: number;
+  updatedAt: string;
+}
+
+export interface StoredMessage {
+  role: 'USER' | 'ASSISTANT';
+  content: string;
+  createdAt: string;
+}
+
+/** Most recent conversation first — used to find the one to resume on chat reopen. */
+export async function listConversations(size = 1): Promise<ConversationSummary[]> {
+  const response = await apiClient.get<{ content: ConversationSummary[] }>('/api/v1/ai/conversations', {
+    params: { page: 0, size },
+  });
+  return response.data.content;
+}
+
+export async function getConversationMessages(conversationId: string): Promise<StoredMessage[]> {
+  const response = await apiClient.get<StoredMessage[]>(`/api/v1/ai/conversations/${conversationId}/messages`);
+  return response.data;
+}
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
 
 /**
@@ -30,13 +56,14 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
  *
  * @param onToken called for each chunk of text as it arrives
  * @param signal  lets the caller abort a stream in flight (e.g. the user closes the widget)
+ * @returns the conversation id — the one passed in, or a newly created one when conversationId was null
  */
 export async function streamChat(
   message: string,
   conversationId: string | null,
   onToken: (chunk: string) => void,
   signal?: AbortSignal,
-): Promise<void> {
+): Promise<string | null> {
   const { accessToken } = store.getState().auth;
 
   const response = await fetch(`${BASE_URL}/api/v1/ai/chat`, {
@@ -54,6 +81,8 @@ export async function streamChat(
   if (!response.ok || !response.body) {
     throw new Error(`Chat failed with status ${response.status}`);
   }
+
+  const resolvedConversationId = response.headers.get('X-Conversation-Id') ?? conversationId;
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -80,4 +109,6 @@ export async function streamChat(
       }
     }
   }
+
+  return resolvedConversationId;
 }

@@ -3,6 +3,7 @@ package com.readora.catalog.controller;
 import com.readora.catalog.dto.BookExportPage;
 import com.readora.catalog.dto.BookLookupRequest;
 import com.readora.catalog.dto.BookLookupResponse;
+import com.readora.catalog.dto.MarkEmbeddedRequest;
 import com.readora.catalog.dto.VirtualEditionLookupRequest;
 import com.readora.catalog.dto.VirtualEditionLookupResponse;
 import com.readora.catalog.service.InternalCatalogService;
@@ -42,10 +43,25 @@ public class InternalCatalogController {
     @GetMapping("/books/export")
     public ResponseEntity<BookExportPage> exportBooks(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(defaultValue = "false") boolean needsReembeddingOnly
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(internalCatalogService.exportBooks(pageable));
+        return ResponseEntity.ok(internalCatalogService.exportBooks(pageable, needsReembeddingOnly));
+    }
+
+    @Operation(
+            summary = "Mark books as embedded",
+            description = "Internal, service-to-service only. Called by ai-service after it successfully embeds a batch of books, so a later backfill run skips them unless they change again.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Books marked embedded as of now")
+    })
+    @PostMapping("/books/embedded")
+    public ResponseEntity<Void> markEmbedded(@RequestBody MarkEmbeddedRequest request) {
+        internalCatalogService.markEmbedded(request.bookIds());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(

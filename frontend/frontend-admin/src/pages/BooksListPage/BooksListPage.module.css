@@ -1,6 +1,41 @@
+.editionTabs {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  margin-bottom: var(--space-4);
+}
+
+.editionTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.editionTab:hover {
+  color: var(--color-text);
+}
+
+.editionTabActive {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
 .filters {
   display: grid;
-  grid-template-columns: minmax(200px, 1.6fr) repeat(3, minmax(130px, 1fr)) auto;
+  grid-template-columns: minmax(240px, 1fr) 240px;
   gap: var(--space-3);
   align-items: end;
   margin-bottom: var(--space-4);
@@ -39,30 +74,6 @@
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px var(--color-primary-soft);
-}
-
-.priceRange {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.priceInput {
-  width: 100%;
-  min-width: 0;
-  height: 38px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
-  color: var(--color-text);
-  font-family: inherit;
-  font-size: var(--font-size-sm);
-  padding: 0 var(--space-2);
-}
-
-.priceInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
 }
 
 .activeFilters {

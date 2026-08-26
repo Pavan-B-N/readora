@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Search, BookOpen, X, ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
-import { listBooks, getCategoryTree, listPublishers } from '@/api/catalogApi';
-import type { BookSummary, Publisher } from '@/types/catalog';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus, Search, BookOpen, Truck, Download, X, ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
+import { listBooks, getCategoryTree } from '@/api/catalogApi';
+import type { BookSummary } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { useDebounced } from '@/hooks/useDebounced';
 import { Card } from '@/components/Card';
@@ -19,23 +19,16 @@ const PAGE_SIZE = 15;
 interface Filters {
   q: string;
   categoryId: string;
-  publisherId: string;
-  format: string;
-  minPrice: string;
-  maxPrice: string;
 }
 
 const EMPTY_FILTERS: Filters = {
   q: '',
   categoryId: '',
-  publisherId: '',
-  format: '',
-  minPrice: '',
-  maxPrice: '',
 };
 
 export function BooksListPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [books, setBooks] = useState<BookSummary[]>([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -43,19 +36,33 @@ export function BooksListPage() {
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const edition: 'physical' | 'virtual' = searchParams.get('tab') === 'virtual' ? 'virtual' : 'physical';
+  const setEdition = (next: 'physical' | 'virtual') =>
+    setSearchParams(
+      (prev) => {
+        const merged = new URLSearchParams(prev);
+        merged.set('tab', next);
+        return merged;
+      },
+      { replace: true },
+    );
   const debouncedFilters = useDebounced(filters);
 
   const [categories, setCategories] = useState<FlatCategory[]>([]);
-  const [publishers, setPublishers] = useState<Publisher[]>([]);
 
   useEffect(() => {
     getCategoryTree().then((tree) => setCategories(flattenCategoryTree(tree)));
-    listPublishers().then(setPublishers);
+  }, []);
+
+  // Keep the tab reflected in the URL even on a bare /books visit, so it's always shareable/refreshable.
+  useEffect(() => {
+    if (!searchParams.get('tab')) setEdition('physical');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setPage(0);
-  }, [debouncedFilters]);
+  }, [debouncedFilters, edition]);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,10 +73,7 @@ export function BooksListPage() {
       size: PAGE_SIZE,
       q: debouncedFilters.q || undefined,
       categoryId: debouncedFilters.categoryId || undefined,
-      publisherId: debouncedFilters.publisherId || undefined,
-      format: debouncedFilters.format || undefined,
-      minPrice: debouncedFilters.minPrice || undefined,
-      maxPrice: debouncedFilters.maxPrice || undefined,
+      virtualOnly: edition === 'virtual',
     })
       .then((result) => {
         if (cancelled) return;
@@ -84,7 +88,7 @@ export function BooksListPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, debouncedFilters]);
+  }, [page, debouncedFilters, edition]);
 
   const set = (patch: Partial<Filters>) => setFilters((f) => ({ ...f, ...patch }));
 
@@ -97,30 +101,51 @@ export function BooksListPage() {
         label: categories.find((c) => c.id === filters.categoryId)?.label.replace(/^—\s*/, '') ?? 'Category',
       });
     }
-    if (filters.publisherId) {
-      chips.push({
-        key: 'publisherId',
-        label: publishers.find((p) => p.id === filters.publisherId)?.name ?? 'Publisher',
-      });
-    }
-    if (filters.format) chips.push({ key: 'format', label: filters.format });
-    if (filters.minPrice) chips.push({ key: 'minPrice', label: `min ₹${filters.minPrice}` });
-    if (filters.maxPrice) chips.push({ key: 'maxPrice', label: `max ₹${filters.maxPrice}` });
     return chips;
-  }, [filters, categories, publishers]);
+  }, [filters, categories]);
 
   return (
     <div>
       <PageHeader
-        title="Books"
+        title="Catalog"
         subtitle="Manage the catalogue — stock levels, pricing, and virtual editions."
         actions={
-          <Button onClick={() => navigate(ROUTES.newBook)}>
-            <Plus size={15} />
-            New book
-          </Button>
+          edition === 'physical' ? (
+            <Button onClick={() => navigate(ROUTES.newPhysicalBook)}>
+              <Plus size={15} />
+              New physical book
+            </Button>
+          ) : (
+            <Button onClick={() => navigate(ROUTES.newVirtualBook)}>
+              <Plus size={15} />
+              New virtual edition
+            </Button>
+          )
         }
       />
+
+      <div className={styles.editionTabs} role="tablist" aria-label="Edition type">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={edition === 'physical'}
+          className={[styles.editionTab, edition === 'physical' && styles.editionTabActive].filter(Boolean).join(' ')}
+          onClick={() => setEdition('physical')}
+        >
+          <Truck size={14} />
+          Physical
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={edition === 'virtual'}
+          className={[styles.editionTab, edition === 'virtual' && styles.editionTabActive].filter(Boolean).join(' ')}
+          onClick={() => setEdition('virtual')}
+        >
+          <Download size={14} />
+          Virtual editions
+        </button>
+      </div>
 
       <div className={styles.filters}>
         <FieldWrapper label="Search">
@@ -143,42 +168,6 @@ export function BooksListPage() {
             </option>
           ))}
         </Select>
-
-        <Select label="Publisher" value={filters.publisherId} onChange={(e) => set({ publisherId: e.target.value })}>
-          <option value="">All publishers</option>
-          {publishers.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </Select>
-
-        <Select label="Format" value={filters.format} onChange={(e) => set({ format: e.target.value })}>
-          <option value="">All formats</option>
-          <option value="HARDCOVER">Hardcover</option>
-          <option value="PAPERBACK">Paperback</option>
-          <option value="EBOOK">Ebook</option>
-        </Select>
-
-        <FieldWrapper label="Price range">
-          <div className={styles.priceRange}>
-            <input
-              className={styles.priceInput}
-              type="number"
-              placeholder="Min"
-              value={filters.minPrice}
-              onChange={(e) => set({ minPrice: e.target.value })}
-            />
-            <span style={{ color: 'var(--color-text-subtle)' }}>–</span>
-            <input
-              className={styles.priceInput}
-              type="number"
-              placeholder="Max"
-              value={filters.maxPrice}
-              onChange={(e) => set({ maxPrice: e.target.value })}
-            />
-          </div>
-        </FieldWrapper>
       </div>
 
       {(activeChips.length > 0 || !loading) && (
@@ -264,16 +253,19 @@ export function BooksListPage() {
           <EmptyState
             icon={BookOpen}
             title="No books match these filters"
-            description="Try widening the price range or clearing a filter."
+            description="Try a different search, or clear the category filter."
             action={
               activeChips.length > 0 ? (
                 <Button variant="secondary" size="sm" onClick={() => setFilters(EMPTY_FILTERS)}>
                   Clear filters
                 </Button>
               ) : (
-                <Button size="sm" onClick={() => navigate(ROUTES.newBook)}>
+                <Button
+                  size="sm"
+                  onClick={() => navigate(edition === 'physical' ? ROUTES.newPhysicalBook : ROUTES.newVirtualBook)}
+                >
                   <Plus size={14} />
-                  Add the first book
+                  {edition === 'physical' ? 'Add the first physical book' : 'Add the first virtual edition'}
                 </Button>
               )
             }

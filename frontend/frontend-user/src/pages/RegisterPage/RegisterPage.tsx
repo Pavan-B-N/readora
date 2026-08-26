@@ -42,7 +42,7 @@ export function RegisterPage() {
       <Card className={styles.card}>
         <div>
           <h1 className={styles.title}>Create your account</h1>
-          <p className={styles.subtitle}>Get ₹100 in your wallet when you sign up</p>
+          <p className={styles.subtitle}>Get ₹500 in your wallet when you sign up</p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>

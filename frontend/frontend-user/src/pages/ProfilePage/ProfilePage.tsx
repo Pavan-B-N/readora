@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { MapPin, Plus, Trash2 } from 'lucide-react';
-import { addAddress, deleteAddress, getMe, listAddresses } from '@/api/userApi';
-import type { Address, AddressLabel, MeResponse } from '@/types/user';
+import { Check, MapPin, Plus, Star, Trash2, X } from 'lucide-react';
+import { addAddress, deleteAddress, getMe, listAddresses, setDefaultAddress } from '@/api/userApi';
+import { listStores } from '@/api/catalogApi';
+import type { Address, AddressLabel, AddressRecipientType, MeResponse } from '@/types/user';
+import type { Store } from '@/types/catalog';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
 import { Input, Select } from '@/components/Input';
@@ -13,35 +15,33 @@ import styles from './ProfilePage.module.css';
 
 interface AddressForm {
   label: AddressLabel;
+  recipientType: AddressRecipientType;
   recipientName: string;
+  recipientPhone: string;
   line1: string;
   line2: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  countryCode: string;
-  phone: string;
   isDefault: boolean;
 }
 
-const EMPTY_ADDRESS: AddressForm = {
-  label: 'HOME',
-  recipientName: '',
-  line1: '',
-  line2: '',
-  city: '',
-  state: '',
-  postalCode: '',
-  countryCode: '',
-  phone: '',
-  isDefault: false,
-};
+function emptyForm(recipientName: string, recipientPhone: string): AddressForm {
+  return {
+    label: 'HOME',
+    recipientType: 'OWNER',
+    recipientName,
+    recipientPhone,
+    line1: '',
+    line2: '',
+    isDefault: false,
+  };
+}
 
 export function ProfilePage() {
   const { showToast } = useToast();
   const [me, setMe] = useState<MeResponse | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [form, setForm] = useState<AddressForm>(EMPTY_ADDRESS);
+  const [store, setStore] = useState<Store | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [form, setForm] = useState<AddressForm>(emptyForm('', ''));
   const [errors, setErrors] = useState<Partial<Record<keyof AddressForm, string>>>({});
   const [saving, setSaving] = useState(false);
 
@@ -50,6 +50,7 @@ export function ProfilePage() {
   useEffect(() => {
     getMe().then(setMe);
     reloadAddresses();
+    listStores().then((stores) => setStore(stores[0] ?? null));
   }, []);
 
   const set = (patch: Partial<AddressForm>) => {
@@ -61,27 +62,49 @@ export function ProfilePage() {
     });
   };
 
+  const openForm = () => {
+    setForm(emptyForm(me?.displayName ?? '', me?.phone ?? ''));
+    setFormOpen(true);
+  };
+
+  const onRecipientTypeChange = (recipientType: AddressRecipientType) => {
+    if (recipientType === 'OWNER') {
+      set({ recipientType, recipientName: me?.displayName ?? '', recipientPhone: me?.phone ?? '' });
+    } else {
+      set({ recipientType, recipientName: '', recipientPhone: '' });
+    }
+  };
+
   const onSubmit = async () => {
     const next: Partial<Record<keyof AddressForm, string>> = {};
     if (!form.recipientName.trim()) next.recipientName = 'Required';
+    if (!form.recipientPhone.trim()) next.recipientPhone = 'Required';
     if (!form.line1.trim()) next.line1 = 'Required';
-    if (!form.city.trim()) next.city = 'Required';
-    if (!form.state.trim()) next.state = 'Required';
-    if (!form.postalCode.trim()) next.postalCode = 'Required';
-    if (form.countryCode.trim().length !== 2) next.countryCode = '2 letters';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
+    if (!store) {
+      showToast('No store available yet — try again shortly', 'error');
+      return;
+    }
 
     setSaving(true);
     try {
       await addAddress({
-        ...form,
+        label: form.label,
+        recipientType: form.recipientType,
+        recipientName: form.recipientName.trim(),
+        recipientPhone: form.recipientPhone.trim(),
+        line1: form.line1.trim(),
         line2: form.line2.trim() || undefined,
-        phone: form.phone.trim() || undefined,
-        countryCode: form.countryCode.trim().toUpperCase(),
+        city: store.city,
+        state: store.state,
+        postalCode: store.postalCode,
+        countryCode: store.countryCode,
+        storeId: store.id,
+        isDefault: form.isDefault,
       });
       showToast('Address added');
-      setForm(EMPTY_ADDRESS);
+      setFormOpen(false);
       reloadAddresses();
     } catch {
       showToast('Failed to add address', 'error');
@@ -97,6 +120,15 @@ export function ProfilePage() {
       reloadAddresses();
     } catch {
       showToast('Failed to remove address', 'error');
+    }
+  };
+
+  const onSetDefault = async (id: string) => {
+    try {
+      await setDefaultAddress(id);
+      reloadAddresses();
+    } catch {
+      showToast('Failed to set default address', 'error');
     }
   };
 
@@ -126,6 +158,12 @@ export function ProfilePage() {
                     ₹{me.wallet.balance} {me.wallet.currency}
                   </span>
                 </div>
+                {store && (
+                  <div className={styles.profileRow}>
+                    <span className={styles.profileLabel}>Shopping from</span>
+                    <span>{store.name}</span>
+                  </div>
+                )}
                 {me.locale && (
                   <div className={styles.profileRow}>
                     <span className={styles.profileLabel}>Locale</span>
@@ -137,12 +175,29 @@ export function ProfilePage() {
           </Card>
 
           <Card>
-            <CardHeader title="Addresses" subtitle={`${addresses.length} saved`} />
-            {addresses.length === 0 ? (
+            <CardHeader
+              title="Addresses"
+              subtitle={`${addresses.length} saved`}
+              actions={
+                !formOpen && (
+                  <Button variant="secondary" size="sm" onClick={openForm}>
+                    <Plus size={14} />
+                    Add new
+                  </Button>
+                )
+              }
+            />
+            {addresses.length === 0 && !formOpen ? (
               <EmptyState
                 icon={MapPin}
                 title="No saved addresses"
-                description="Add one here so checkout is quicker next time."
+                description="Add one so checkout only ever asks for it once."
+                action={
+                  <Button size="sm" onClick={openForm}>
+                    <Plus size={14} />
+                    Add address
+                  </Button>
+                }
               />
             ) : (
               addresses.map((address) => (
@@ -153,17 +208,31 @@ export function ProfilePage() {
                   <span className={styles.addressBody}>
                     <span className={styles.addressLabel}>
                       {address.label.charAt(0) + address.label.slice(1).toLowerCase()}
+                      <Badge variant="neutral">{address.recipientType === 'OWNER' ? 'You' : 'Guest'}</Badge>
                       {address.isDefault && <Badge variant="info">Default</Badge>}
                     </span>
                     <span className={styles.addressText}>
                       {address.recipientName}
+                      {address.recipientPhone ? ` · ${address.recipientPhone}` : ''}
                       <br />
                       {address.line1}
                       {address.line2 ? `, ${address.line2}` : ''}
                       <br />
-                      {address.city}, {address.state} {address.postalCode}, {address.countryCode}
+                      {address.city}, {address.state} {address.postalCode}
                     </span>
                   </span>
+                  {!address.isDefault && (
+                    <Tooltip label="Set as default">
+                      <button
+                        type="button"
+                        className={styles.defaultButton}
+                        onClick={() => onSetDefault(address.id)}
+                        aria-label={`Set ${address.label} address as default`}
+                      >
+                        <Star size={15} />
+                      </button>
+                    </Tooltip>
+                  )}
                   <Tooltip label="Remove address">
                     <button
                       type="button"
@@ -180,77 +249,101 @@ export function ProfilePage() {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader title="Add address" />
-          <div className={styles.form}>
-            <Select label="Label" value={form.label} onChange={(e) => set({ label: e.target.value as AddressLabel })}>
-              <option value="HOME">Home</option>
-              <option value="WORK">Work</option>
-              <option value="OTHER">Other</option>
-            </Select>
-            <Input
-              label="Recipient name"
-              required
-              value={form.recipientName}
-              error={errors.recipientName}
-              onChange={(e) => set({ recipientName: e.target.value })}
+        {formOpen && (
+          <Card>
+            <CardHeader
+              title="Add address"
+              actions={
+                <Button variant="ghost" size="sm" iconOnly aria-label="Cancel" onClick={() => setFormOpen(false)}>
+                  <X size={15} />
+                </Button>
+              }
             />
-            <Input
-              label="Address line 1"
-              required
-              value={form.line1}
-              error={errors.line1}
-              onChange={(e) => set({ line1: e.target.value })}
-            />
-            <Input label="Address line 2" value={form.line2} onChange={(e) => set({ line2: e.target.value })} />
-            <div className={styles.row2}>
+            <div className={styles.form}>
+              {store && (
+                <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
+                  Delivering from {store.name}, {store.city}. Just add the street-level details below.
+                </p>
+              )}
+
+              <Select label="Label" value={form.label} onChange={(e) => set({ label: e.target.value as AddressLabel })}>
+                <option value="HOME">Home</option>
+                <option value="WORK">Work</option>
+                <option value="OTHER">Other</option>
+              </Select>
+
+              <div className={styles.recipientTypeRow}>
+                <button
+                  type="button"
+                  className={[styles.recipientTypeButton, form.recipientType === 'OWNER' && styles.recipientTypeActive]
+                    .filter(Boolean)
+                    .join(' ')}
+                  onClick={() => onRecipientTypeChange('OWNER')}
+                >
+                  {form.recipientType === 'OWNER' && <Check size={13} />}
+                  For me
+                </button>
+                <button
+                  type="button"
+                  className={[styles.recipientTypeButton, form.recipientType === 'GUEST' && styles.recipientTypeActive]
+                    .filter(Boolean)
+                    .join(' ')}
+                  onClick={() => onRecipientTypeChange('GUEST')}
+                >
+                  {form.recipientType === 'GUEST' && <Check size={13} />}
+                  For someone else
+                </button>
+              </div>
+
+              <div className={styles.row2}>
+                <Input
+                  label="Recipient name"
+                  required
+                  disabled={form.recipientType === 'OWNER'}
+                  value={form.recipientName}
+                  error={errors.recipientName}
+                  onChange={(e) => set({ recipientName: e.target.value })}
+                />
+                <Input
+                  label="Recipient phone"
+                  required
+                  disabled={form.recipientType === 'OWNER'}
+                  value={form.recipientPhone}
+                  error={errors.recipientPhone}
+                  onChange={(e) => set({ recipientPhone: e.target.value })}
+                />
+              </div>
+
               <Input
-                label="City"
+                label="Street / door no."
                 required
-                value={form.city}
-                error={errors.city}
-                onChange={(e) => set({ city: e.target.value })}
+                placeholder="e.g. Flat 4B, 221 Residency Road"
+                value={form.line1}
+                error={errors.line1}
+                onChange={(e) => set({ line1: e.target.value })}
               />
               <Input
-                label="State"
-                required
-                value={form.state}
-                error={errors.state}
-                onChange={(e) => set({ state: e.target.value })}
+                label="Landmark"
+                placeholder="Optional"
+                value={form.line2}
+                onChange={(e) => set({ line2: e.target.value })}
               />
+
+              <label className={styles.checkboxRow}>
+                <input
+                  type="checkbox"
+                  checked={form.isDefault}
+                  onChange={(e) => set({ isDefault: e.target.checked })}
+                />
+                Set as default
+              </label>
+              <Button onClick={onSubmit} disabled={saving} block>
+                <Plus size={15} />
+                {saving ? 'Adding…' : 'Add address'}
+              </Button>
             </div>
-            <div className={styles.row2}>
-              <Input
-                label="Postal code"
-                required
-                value={form.postalCode}
-                error={errors.postalCode}
-                onChange={(e) => set({ postalCode: e.target.value })}
-              />
-              <Input
-                label="Country"
-                required
-                hint="e.g. IN"
-                value={form.countryCode}
-                error={errors.countryCode}
-                onChange={(e) => set({ countryCode: e.target.value })}
-              />
-            </div>
-            <Input label="Phone" value={form.phone} onChange={(e) => set({ phone: e.target.value })} />
-            <label className={styles.checkboxRow}>
-              <input
-                type="checkbox"
-                checked={form.isDefault}
-                onChange={(e) => set({ isDefault: e.target.checked })}
-              />
-              Set as default
-            </label>
-            <Button onClick={onSubmit} disabled={saving} block>
-              <Plus size={15} />
-              {saving ? 'Adding…' : 'Add address'}
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import styles from './Toast.module.css';
 
@@ -33,14 +34,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <div className={styles.container}>
-        {toasts.map((toast) => (
-          <div key={toast.id} className={[styles.toast, styles[toast.variant]].join(' ')} role="status">
-            <span className={styles.icon}>
-              {toast.variant === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-            </span>
-            {toast.message}
-          </div>
-        ))}
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              className={[styles.toast, styles[toast.variant]].join(' ')}
+              role="status"
+              initial={{ opacity: 0, y: 12, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 40, transition: { duration: 0.15 } }}
+              transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+            >
+              <span className={styles.icon}>
+                {toast.variant === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+              </span>
+              {toast.message}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   );

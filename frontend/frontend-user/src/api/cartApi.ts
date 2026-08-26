@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { AddCartItemRequest, CartResponse, CartSummaryResponse } from '@/types/cart';
+import type { AddCartItemRequest, CartResponse, CartSummaryResponse, DeliveryType } from '@/types/cart';
 
 export async function getCart(): Promise<CartResponse> {
   const response = await apiClient.get<CartResponse>('/api/v1/cart');
@@ -11,7 +11,7 @@ export async function addItem(request: AddCartItemRequest): Promise<CartSummaryR
   return response.data;
 }
 
-export async function setItemQty(bookId: string, qty: number): Promise<CartSummaryResponse> {
-  const response = await apiClient.put<CartSummaryResponse>(`/api/v1/cart/items/${bookId}`, { qty });
+export async function setItemQty(bookId: string, deliveryType: DeliveryType, qty: number): Promise<CartSummaryResponse> {
+  const response = await apiClient.put<CartSummaryResponse>(`/api/v1/cart/items/${bookId}/${deliveryType}`, { qty });
   return response.data;
 }

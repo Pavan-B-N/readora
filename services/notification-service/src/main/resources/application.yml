@@ -8,6 +8,19 @@ spring:
   application:
     name: notification-service
 
+  datasource:
+    url: ${POSTGRES_DB_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: notifications
+    show-sql: true
+
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -21,3 +34,5 @@ app:
     secret: ${JWT_SECRET}
   gateway:
     secret: ${GATEWAY_SECRET}
+  security:
+    public-routes: []

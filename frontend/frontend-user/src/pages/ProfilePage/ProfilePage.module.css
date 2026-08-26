@@ -114,6 +114,54 @@
   background: var(--color-danger-bg);
 }
 
+.defaultButton {
+  background: none;
+  border: none;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.defaultButton:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.recipientTypeRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.recipientTypeButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.recipientTypeButton:hover {
+  border-color: var(--color-border-strong);
+}
+
+.recipientTypeActive {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-info);
+}
+
 .form {
   display: flex;
   flex-direction: column;

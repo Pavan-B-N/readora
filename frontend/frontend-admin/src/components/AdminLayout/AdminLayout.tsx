@@ -1,8 +1,10 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { BookOpen, FolderTree, Building2, Users, Sparkles, LogOut, Library } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { loggedOut } from '@/redux/slices/authSlice';
-import { Tooltip } from '@/components/Tooltip';
+import { useEffect, useState } from 'react';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store } from 'lucide-react';
+import { useAppSelector } from '@/redux/hooks';
+import { getMe } from '@/api/userApi';
+import { listStores } from '@/api/catalogApi';
 import { ROUTES } from '@/constants/routes';
 import styles from './AdminLayout.module.css';
 
@@ -10,7 +12,7 @@ const NAV_GROUPS = [
   {
     label: 'Catalogue',
     items: [
-      { to: ROUTES.books, label: 'Books', icon: BookOpen },
+      { to: ROUTES.books, label: 'Catalog', icon: BookOpen },
       { to: ROUTES.categories, label: 'Categories', icon: FolderTree },
       { to: ROUTES.publishers, label: 'Publishers', icon: Building2 },
       { to: ROUTES.authors, label: 'Authors', icon: Users },
@@ -23,9 +25,17 @@ const NAV_GROUPS = [
 ];
 
 export function AdminLayout() {
-  const dispatch = useAppDispatch();
+  const location = useLocation();
   const email = useAppSelector((state) => state.auth.email);
   const initials = email ? email.slice(0, 2).toUpperCase() : '?';
+  const [storeName, setStoreName] = useState<string | null>(null);
+
+  useEffect(() => {
+    Promise.all([getMe(), listStores()]).then(([me, stores]) => {
+      const assigned = stores.find((s) => s.id === me.preferredStoreId);
+      setStoreName(assigned?.name ?? null);
+    });
+  }, []);
 
   return (
     <div className={styles.shell}>
@@ -39,6 +49,13 @@ export function AdminLayout() {
             <span className={styles.brandRole}>Admin</span>
           </span>
         </div>
+
+        {storeName && (
+          <div className={styles.storeBadge}>
+            <Store size={13} />
+            {storeName}
+          </div>
+        )}
 
         {NAV_GROUPS.map((group) => (
           <nav className={styles.navGroup} key={group.label}>
@@ -58,26 +75,29 @@ export function AdminLayout() {
           </nav>
         ))}
 
-        <div className={styles.footer}>
+        <NavLink
+          to={ROUTES.profile}
+          className={({ isActive }) => [styles.footer, isActive && styles.footerActive].filter(Boolean).join(' ')}
+        >
           <span className={styles.avatar}>{initials}</span>
           <span className={styles.identity}>
             <span className={styles.email}>{email}</span>
           </span>
-          <Tooltip label="Log out" placement="top">
-            <button
-              type="button"
-              className={styles.navLink}
-              onClick={() => dispatch(loggedOut())}
-              aria-label="Log out"
-            >
-              <LogOut size={16} />
-            </button>
-          </Tooltip>
-        </div>
+        </NavLink>
       </aside>
 
       <main className={styles.main}>
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.14, ease: 'easeOut' }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

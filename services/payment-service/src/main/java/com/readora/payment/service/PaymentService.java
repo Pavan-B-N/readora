@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.payment.dto.OrderCancelledEvent;
 import com.readora.payment.dto.OrderCreatedEvent;
+import com.readora.payment.dto.OrderReturnedEvent;
 import com.readora.payment.dto.PaymentCapturedEvent;
 import com.readora.payment.dto.PaymentResponse;
 import com.readora.payment.dto.RefundCompletedEvent;
@@ -21,6 +22,7 @@ import com.readora.payment.repository.RefundRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
@@ -51,6 +53,13 @@ public class PaymentService {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * WALLET checkout already had its balance verified synchronously by commerce-service before
+     * the order was created, so it's safe to capture immediately here. UPI has no real gateway —
+     * it's simulated: authorize now, and {@link UpiSettlementJob} captures it a few seconds
+     * later, entirely server-side over Kafka, so the frontend sees a genuine "pending, then
+     * confirmed" flow rather than a fake client-side timer.
+     */
     @Transactional
     public void handleOrderCreated(OrderCreatedEvent event) {
         String idempotencyKey = "order:" + event.orderId();
@@ -62,13 +71,29 @@ public class PaymentService {
         PaymentMethod method = PaymentMethod.valueOf(event.paymentMethod());
         Payment payment = new Payment(event.orderId(), event.userId(), method, event.grandTotal(), idempotencyKey);
         payment.authorize();
+
+        if (method == PaymentMethod.WALLET) {
+            payment.useWallet(event.walletAmountToUse());
+            payment.capture();
+            paymentRepository.save(payment);
+            paymentAttemptRepository.save(new PaymentAttempt(payment, 1, payment.getStatus(), "dummy provider: auto-approved"));
+            publishCaptured(payment);
+        } else {
+            paymentRepository.save(payment);
+            paymentAttemptRepository.save(new PaymentAttempt(payment, 1, payment.getStatus(), "dummy UPI provider: awaiting settlement"));
+        }
+    }
+
+    /** Called by {@link UpiSettlementJob} once a simulated UPI payment's settlement delay has elapsed. */
+    @Transactional
+    public void captureUpiPayment(Payment payment) {
         payment.capture();
         paymentRepository.save(payment);
+        paymentAttemptRepository.save(new PaymentAttempt(payment, 2, payment.getStatus(), "dummy UPI provider: settled"));
+        publishCaptured(payment);
+    }
 
-        paymentAttemptRepository.save(
-                new PaymentAttempt(payment, 1, payment.getStatus(), "dummy provider: auto-approved")
-        );
-
+    private void publishCaptured(Payment payment) {
         publish(
                 "Payment",
                 payment.getId(),
@@ -82,12 +107,22 @@ public class PaymentService {
 
     @Transactional
     public void handleOrderCancelled(OrderCancelledEvent event) {
-        Payment payment = paymentRepository.findByOrderId(event.orderId()).orElse(null);
+        refund(event.orderId(), event.userId(), event.reason(), event.refundAmount());
+    }
+
+    /** Same refund mechanics as cancellation — a return is just a later-stage cancellation, financially. */
+    @Transactional
+    public void handleOrderReturned(OrderReturnedEvent event) {
+        refund(event.orderId(), event.userId(), event.reason(), event.refundAmount());
+    }
+
+    private void refund(UUID orderId, UUID userId, String reason, BigDecimal refundAmount) {
+        Payment payment = paymentRepository.findByOrderId(orderId).orElse(null);
         if (payment == null) {
             return;
         }
 
-        Refund refund = new Refund(payment, event.refundAmount(), event.reason());
+        Refund refund = new Refund(payment, refundAmount, reason);
         refund.complete();
         refundRepository.save(refund);
 
@@ -98,7 +133,7 @@ public class PaymentService {
                 "Refund",
                 refund.getId(),
                 KafkaTopics.REFUND_COMPLETED,
-                new RefundCompletedEvent(event.orderId(), refund.getId(), event.userId(), refund.getAmount(), refund.getAmount())
+                new RefundCompletedEvent(orderId, refund.getId(), userId, refund.getAmount(), refund.getAmount())
         );
     }
 

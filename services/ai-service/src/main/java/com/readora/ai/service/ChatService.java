@@ -47,7 +47,11 @@ public class ChatService {
         this.objectMapper = objectMapper;
     }
 
-    public Flux<String> chat(UUID userId, ChatRequest request) {
+    /** conversationId is resolved synchronously, before streaming starts, so the controller can hand it back as a response header. */
+    public record ChatStream(UUID conversationId, Flux<String> tokens) {
+    }
+
+    public ChatStream chat(UUID userId, ChatRequest request) {
         Conversation conversation = resolveConversation(userId, request);
 
         messageRepository.save(new Message(conversation, MessageRole.USER, request.message()));
@@ -59,7 +63,7 @@ public class ChatService {
                 .map(ToolCallback.class::cast)
                 .toList();
 
-        return chatClient.prompt()
+        Flux<String> tokens = chatClient.prompt()
                 .user(request.message())
                 .toolCallbacks(scopedCallbacks)
                 .stream()
@@ -68,6 +72,8 @@ public class ChatService {
                 .doOnComplete(() ->
                         messageRepository.save(new Message(conversation, MessageRole.ASSISTANT, assistantReply.toString()))
                 );
+
+        return new ChatStream(conversation.getId(), tokens);
     }
 
     private Conversation resolveConversation(UUID userId, ChatRequest request) {

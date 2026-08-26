@@ -4,17 +4,22 @@ import {
   BookOpen,
   Check,
   ChevronRight,
+  Download,
   Minus,
   Plus,
   ShoppingCart,
+  Truck,
+  Zap,
 } from 'lucide-react';
 import { getBookDetail, getRelatedBooks } from '@/api/catalogApi';
 import type { BookDetail, RelatedBook } from '@/types/catalog';
+import type { DeliveryType } from '@/types/cart';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { addToCart, fetchCart, updateCartItemQty } from '@/redux/slices/cartSlice';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
+import { Modal } from '@/components/Modal';
 import { ROUTES } from '@/constants/routes';
 import styles from './BookDetailPage.module.css';
 
@@ -30,15 +35,11 @@ export function BookDetailPage() {
 
   const [book, setBook] = useState<BookDetail | null>(null);
   const [related, setRelated] = useState<RelatedBook[]>([]);
-  const [qty, setQty] = useState(1);
   const [busy, setBusy] = useState(false);
-
-  const cartLine = cartItems.find((item) => item.bookId === bookId);
-  const inCartQty = cartLine?.qty ?? 0;
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     if (!bookId) return;
-    setQty(1);
     getBookDetail(bookId).then(setBook);
     getRelatedBooks(bookId).then(setRelated);
   }, [bookId]);
@@ -50,21 +51,22 @@ export function BookDetailPage() {
   if (!book) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
 
   const inStock = book.availability.status === 'IN_STOCK';
-  const stockCap = Math.min(MAX_PER_TITLE, book.availability.quantityAvailable || 0);
-  const remainingAllowance = Math.max(0, stockCap - inCartQty);
-  const atLimit = inCartQty >= stockCap;
+  const hasVirtual = book.virtualEdition !== null;
 
-  const onAddToCart = async () => {
+  const physicalLine = cartItems.find((i) => i.bookId === book.id && i.deliveryType === 'PHYSICAL');
+  const virtualLine = cartItems.find((i) => i.bookId === book.id && i.deliveryType === 'VIRTUAL');
+  const physicalStockCap = Math.min(MAX_PER_TITLE, book.availability.quantityAvailable || 0);
+
+  const addOne = async (deliveryType: DeliveryType) => {
     if (!accessToken) {
       navigate(ROUTES.login, { state: { from: { pathname: ROUTES.bookDetail(book.id) } } });
       return;
     }
-
     setBusy(true);
     try {
-      await dispatch(addToCart({ bookId: book.id, qty })).unwrap();
-      showToast(`Added ${qty} × ${book.title} to cart`);
-      setQty(1);
+      await dispatch(addToCart({ bookId: book.id, qty: 1, deliveryType })).unwrap();
+      showToast(`Added ${deliveryType === 'VIRTUAL' ? 'the virtual edition' : 'a physical copy'} to cart`);
+      setPickerOpen(false);
     } catch {
       showToast('Could not add to cart', 'error');
     } finally {
@@ -72,10 +74,18 @@ export function BookDetailPage() {
     }
   };
 
-  const changeCartQty = async (nextQty: number) => {
+  const onAddToCartClick = () => {
+    if (hasVirtual) {
+      setPickerOpen(true);
+    } else {
+      addOne('PHYSICAL');
+    }
+  };
+
+  const changeQty = async (deliveryType: DeliveryType, nextQty: number) => {
     setBusy(true);
     try {
-      await dispatch(updateCartItemQty({ bookId: book.id, qty: nextQty })).unwrap();
+      await dispatch(updateCartItemQty({ bookId: book.id, deliveryType, qty: nextQty })).unwrap();
       showToast(nextQty === 0 ? 'Removed from cart' : 'Cart updated');
     } catch {
       showToast('Could not update the cart', 'error');
@@ -124,6 +134,12 @@ export function BookDetailPage() {
             {book.pageCount && <Badge>{book.pageCount} pages</Badge>}
             {book.language && <Badge>{book.language.toUpperCase()}</Badge>}
             {book.publisher && <Badge>{book.publisher.name}</Badge>}
+            {hasVirtual && (
+              <Badge variant="info">
+                <Zap size={11} />
+                Virtual edition available
+              </Badge>
+            )}
           </div>
 
           <div className={styles.purchaseBox}>
@@ -143,81 +159,79 @@ export function BookDetailPage() {
               )}
             </div>
 
-            {inCartQty > 0 ? (
-              <>
-                <div className={styles.purchaseRow}>
-                  <div className={styles.qtyStepper}>
-                    <button
-                      type="button"
-                      className={styles.qtyButton}
-                      onClick={() => changeCartQty(inCartQty - 1)}
-                      disabled={busy}
-                      aria-label={inCartQty === 1 ? 'Remove from cart' : 'Decrease quantity'}
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className={styles.qtyValue}>{inCartQty}</span>
-                    <button
-                      type="button"
-                      className={styles.qtyButton}
-                      onClick={() => changeCartQty(inCartQty + 1)}
-                      disabled={busy || atLimit}
-                      aria-label="Increase quantity"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <Button onClick={() => navigate(ROUTES.cart)}>
-                    <ShoppingCart size={15} />
-                    Go to cart
-                  </Button>
-                </div>
+            <div className={styles.purchaseRow}>
+              <Button onClick={onAddToCartClick} disabled={(!inStock && !hasVirtual) || busy}>
+                <ShoppingCart size={15} />
+                {busy ? 'Adding…' : 'Add to cart'}
+              </Button>
+              {(physicalLine || virtualLine) && (
+                <Button variant="secondary" onClick={() => navigate(ROUTES.cart)}>
+                  Go to cart
+                </Button>
+              )}
+            </div>
 
-                <div className={styles.inCartNote}>
-                  <Check size={13} />
-                  {inCartQty} in your cart
+            {physicalLine && (
+              <div className={styles.inCartRow}>
+                <span className={styles.inCartLabel}>
+                  <Truck size={13} />
+                  Physical
+                </span>
+                <div className={styles.qtyStepper}>
+                  <button
+                    type="button"
+                    className={styles.qtyButton}
+                    onClick={() => changeQty('PHYSICAL', physicalLine.qty - 1)}
+                    disabled={busy}
+                    aria-label={physicalLine.qty === 1 ? 'Remove physical copy' : 'Decrease physical quantity'}
+                  >
+                    <Minus size={13} />
+                  </button>
+                  <span className={styles.qtyValue}>{physicalLine.qty}</span>
+                  <button
+                    type="button"
+                    className={styles.qtyButton}
+                    onClick={() => changeQty('PHYSICAL', physicalLine.qty + 1)}
+                    disabled={busy || physicalLine.qty >= physicalStockCap}
+                    aria-label="Increase physical quantity"
+                  >
+                    <Plus size={13} />
+                  </button>
                 </div>
-
-                {atLimit && (
-                  <p className={styles.limitNote}>
-                    {inCartQty >= MAX_PER_TITLE
-                      ? `Maximum ${MAX_PER_TITLE} per title.`
-                      : 'No more stock available.'}
-                  </p>
-                )}
-              </>
-            ) : (
-              <>
-                <div className={styles.purchaseRow}>
-                  <div className={styles.qtyStepper}>
-                    <button
-                      type="button"
-                      className={styles.qtyButton}
-                      onClick={() => setQty((q) => Math.max(1, q - 1))}
-                      disabled={!inStock || qty <= 1}
-                      aria-label="Decrease quantity"
-                    >
-                      <Minus size={14} />
-                    </button>
-                    <span className={styles.qtyValue}>{qty}</span>
-                    <button
-                      type="button"
-                      className={styles.qtyButton}
-                      onClick={() => setQty((q) => Math.min(remainingAllowance || 1, q + 1))}
-                      disabled={!inStock || qty >= remainingAllowance}
-                      aria-label="Increase quantity"
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
-                  <Button onClick={onAddToCart} disabled={!inStock || busy}>
-                    <ShoppingCart size={15} />
-                    {busy ? 'Adding…' : 'Add to cart'}
-                  </Button>
-                </div>
-                {inStock && <p className={styles.limitNote}>Up to {MAX_PER_TITLE} copies per title.</p>}
-              </>
+              </div>
             )}
+
+            {virtualLine && (
+              <div className={styles.inCartRow}>
+                <span className={styles.inCartLabel}>
+                  <Download size={13} />
+                  Virtual
+                </span>
+                <div className={styles.qtyStepper}>
+                  <button
+                    type="button"
+                    className={styles.qtyButton}
+                    onClick={() => changeQty('VIRTUAL', virtualLine.qty - 1)}
+                    disabled={busy}
+                    aria-label={virtualLine.qty === 1 ? 'Remove virtual edition' : 'Decrease virtual quantity'}
+                  >
+                    <Minus size={13} />
+                  </button>
+                  <span className={styles.qtyValue}>{virtualLine.qty}</span>
+                  <button
+                    type="button"
+                    className={styles.qtyButton}
+                    onClick={() => changeQty('VIRTUAL', virtualLine.qty + 1)}
+                    disabled={busy || virtualLine.qty >= MAX_PER_TITLE}
+                    aria-label="Increase virtual quantity"
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {inStock && <p className={styles.limitNote}>Up to {MAX_PER_TITLE} copies per title.</p>}
           </div>
 
           {book.description && (
@@ -244,7 +258,7 @@ export function BookDetailPage() {
             )}
             <div className={styles.spec}>
               <span className={styles.specLabel}>Delivery</span>
-              <span className={styles.specValue}>~{book.estimatedDeliveryDays} days</span>
+              <span className={styles.specValue}>~30 min from your store</span>
             </div>
           </div>
 
@@ -266,6 +280,39 @@ export function BookDetailPage() {
           )}
         </div>
       </div>
+
+      <Modal open={pickerOpen} onClose={() => setPickerOpen(false)} title="Choose an edition" width={480}>
+        <div className={styles.editionChoices}>
+          {inStock && (
+            <button type="button" className={styles.editionCard} onClick={() => addOne('PHYSICAL')} disabled={busy}>
+              <span className={styles.editionIcon}>
+                <Truck size={18} />
+              </span>
+              <span className={styles.editionText}>
+                <span className={styles.editionName}>Physical copy</span>
+                <span className={styles.editionHint}>Delivered in ~30 min from your store</span>
+              </span>
+              <span className={styles.editionPrice}>
+                ₹{book.listPrice} <span>{book.currency}</span>
+              </span>
+            </button>
+          )}
+          {book.virtualEdition && (
+            <button type="button" className={styles.editionCard} onClick={() => addOne('VIRTUAL')} disabled={busy}>
+              <span className={styles.editionIcon}>
+                <Download size={18} />
+              </span>
+              <span className={styles.editionText}>
+                <span className={styles.editionName}>Virtual edition</span>
+                <span className={styles.editionHint}>Available instantly, read in-app</span>
+              </span>
+              <span className={styles.editionPrice}>
+                ₹{book.virtualEdition.price} <span>{book.virtualEdition.currency}</span>
+              </span>
+            </button>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

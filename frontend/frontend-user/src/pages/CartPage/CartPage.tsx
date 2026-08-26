@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import { BookOpen, Download, Minus, Plus, ShoppingCart, Trash2, Truck } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchCart, updateCartItemQty } from '@/redux/slices/cartSlice';
 import { Card } from '@/components/Card';
+import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Tooltip } from '@/components/Tooltip';
 import { EmptyState } from '@/components/EmptyState';
@@ -52,7 +53,7 @@ export function CartPage() {
       <div className={styles.layout}>
         <Card>
           {items.map((item) => (
-            <div className={styles.item} key={item.bookId}>
+            <div className={styles.item} key={`${item.bookId}:${item.deliveryType}`}>
               <Link to={ROUTES.bookDetail(item.bookId)} className={styles.cover}>
                 <BookOpen size={17} />
               </Link>
@@ -64,13 +65,19 @@ export function CartPage() {
                 <div className={styles.itemPrice}>
                   ₹{item.unitPrice} {currency} each
                 </div>
+                <Badge variant="neutral">
+                  {item.deliveryType === 'VIRTUAL' ? <Download size={11} /> : <Truck size={11} />}
+                  {item.deliveryType === 'VIRTUAL' ? 'Virtual' : 'Physical'}
+                </Badge>
               </div>
 
               <div className={styles.qtyStepper}>
                 <button
                   type="button"
                   className={styles.qtyButton}
-                  onClick={() => dispatch(updateCartItemQty({ bookId: item.bookId, qty: item.qty - 1 }))}
+                  onClick={() =>
+                    dispatch(updateCartItemQty({ bookId: item.bookId, deliveryType: item.deliveryType, qty: item.qty - 1 }))
+                  }
                   disabled={item.qty <= 1}
                   aria-label="Decrease quantity"
                 >
@@ -80,7 +87,9 @@ export function CartPage() {
                 <button
                   type="button"
                   className={styles.qtyButton}
-                  onClick={() => dispatch(updateCartItemQty({ bookId: item.bookId, qty: item.qty + 1 }))}
+                  onClick={() =>
+                    dispatch(updateCartItemQty({ bookId: item.bookId, deliveryType: item.deliveryType, qty: item.qty + 1 }))
+                  }
                   disabled={item.qty >= MAX_PER_TITLE}
                   aria-label="Increase quantity"
                 >
@@ -94,7 +103,7 @@ export function CartPage() {
                 <button
                   type="button"
                   className={styles.removeButton}
-                  onClick={() => dispatch(updateCartItemQty({ bookId: item.bookId, qty: 0 }))}
+                  onClick={() => dispatch(updateCartItemQty({ bookId: item.bookId, deliveryType: item.deliveryType, qty: 0 }))}
                   aria-label={`Remove ${item.title} from cart`}
                 >
                   <Trash2 size={15} />
@@ -104,17 +113,13 @@ export function CartPage() {
           ))}
         </Card>
 
-        <Card>
+        <Card className={styles.summary}>
           <div className={styles.summaryRow}>
             <span>
               Subtotal ({items.reduce((sum, i) => sum + i.qty, 0)} item
               {items.reduce((sum, i) => sum + i.qty, 0) === 1 ? '' : 's'})
             </span>
             <span>₹{subtotal}</span>
-          </div>
-          <div className={styles.summaryRow}>
-            <span>Shipping</span>
-            <span>Free</span>
           </div>
           <div className={styles.summaryTotal}>
             <span>Subtotal</span>
@@ -125,7 +130,7 @@ export function CartPage() {
           <Button onClick={() => navigate(ROUTES.checkout)} block>
             Proceed to checkout
           </Button>
-          <p className={styles.taxNote}>Tax is calculated at checkout.</p>
+          <p className={styles.taxNote}>Shipping, packaging & GST are calculated at checkout.</p>
         </Card>
       </div>
     </div>

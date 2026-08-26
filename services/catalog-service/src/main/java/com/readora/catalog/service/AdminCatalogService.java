@@ -7,7 +7,6 @@ import com.readora.catalog.dto.IdResponse;
 import com.readora.catalog.entity.Author;
 import com.readora.catalog.entity.Category;
 import com.readora.catalog.entity.Publisher;
-import com.readora.catalog.exception.CategoryNotFoundException;
 import com.readora.catalog.repository.AuthorRepository;
 import com.readora.catalog.repository.CategoryRepository;
 import com.readora.catalog.repository.PublisherRepository;
@@ -34,12 +33,7 @@ public class AdminCatalogService {
 
     @Transactional
     public IdResponse createCategory(CreateCategoryRequest request) {
-        Category parent = null;
-        if (request.parentId() != null) {
-            parent = categoryRepository.findById(request.parentId()).orElseThrow(CategoryNotFoundException::new);
-        }
-
-        Category category = new Category(request.name(), request.slug(), parent, request.displayOrder());
+        Category category = new Category(request.name(), request.slug(), request.displayOrder());
         categoryRepository.save(category);
         return new IdResponse(category.getId());
     }

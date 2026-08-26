@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Library, LogIn } from 'lucide-react';
+import { AlertCircle, LogIn } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { login } from '@/redux/slices/authSlice';
 import { Card } from '@/components/Card';
@@ -39,14 +39,9 @@ export function LoginPage() {
   return (
     <div className={styles.page}>
       <Card className={styles.card}>
-        <div className={styles.brand}>
-          <span className={styles.brandMark}>
-            <Library size={20} />
-          </span>
-          <div>
-            <h1 className={styles.title}>Readora Admin</h1>
-            <p className={styles.subtitle}>Sign in to manage the catalogue</p>
-          </div>
+        <div>
+          <h1 className={styles.title}>Readora Admin</h1>
+          <p className={styles.subtitle}>Sign in to manage the catalogue</p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
@@ -79,11 +74,6 @@ export function LoginPage() {
             {status === 'loading' ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
-
-        <div className={styles.hintBox}>
-          Admin access requires the <code>ADMIN</code> role. Seeded account:{' '}
-          <code>admin@readora.dev</code>
-        </div>
       </Card>
     </div>
   );

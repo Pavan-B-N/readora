@@ -11,8 +11,11 @@ public record CheckoutResponse(
         String deliveryType,
         BigDecimal subtotal,
         BigDecimal shippingFee,
+        BigDecimal packagingFee,
         BigDecimal taxAmount,
         BigDecimal grandTotal,
+        BigDecimal walletAmountUsed,
+        String paymentMethod,
         String currency,
         Instant placedAt
 ) {

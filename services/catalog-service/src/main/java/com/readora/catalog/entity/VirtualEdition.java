@@ -53,16 +53,24 @@ public class VirtualEdition {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    /** Which admin added this edition — any admin from any store may, but it's tracked. Never overwritten by later updates. */
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
     protected VirtualEdition() {
     }
 
-    public VirtualEdition(Book book, String fileUrl, VirtualFileFormat fileFormat, Long fileSizeBytes, BigDecimal price, String currency) {
+    public VirtualEdition(
+            Book book, String fileUrl, VirtualFileFormat fileFormat, Long fileSizeBytes, BigDecimal price,
+            String currency, UUID createdByUserId
+    ) {
         this.book = book;
         this.fileUrl = fileUrl;
         this.fileFormat = fileFormat;
         this.fileSizeBytes = fileSizeBytes;
         this.price = price;
         this.currency = currency;
+        this.createdByUserId = createdByUserId;
     }
 
     public UUID getBookId() {
@@ -95,6 +103,10 @@ public class VirtualEdition {
 
     public void deactivate() {
         this.isActive = false;
+    }
+
+    public UUID getCreatedByUserId() {
+        return createdByUserId;
     }
 
     /** Applies an admin update to an existing edition, and reactivates it if it was deactivated. */

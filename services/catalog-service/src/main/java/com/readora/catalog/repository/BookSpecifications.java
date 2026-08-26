@@ -2,7 +2,10 @@ package com.readora.catalog.repository;
 
 import com.readora.catalog.entity.Book;
 import com.readora.catalog.entity.BookFormat;
+import com.readora.catalog.entity.VirtualEdition;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -21,11 +24,20 @@ public final class BookSpecifications {
 
     public static Specification<Book> withFilters(
             String query, UUID categoryId, UUID publisherId, BookFormat format,
-            BigDecimal minPrice, BigDecimal maxPrice
+            BigDecimal minPrice, BigDecimal maxPrice, boolean virtualOnly
     ) {
         return (root, criteriaQuery, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.isTrue(root.get("isActive")));
+
+            if (virtualOnly) {
+                Subquery<UUID> hasActiveVirtualEdition = criteriaQuery.subquery(UUID.class);
+                Root<VirtualEdition> veRoot = hasActiveVirtualEdition.from(VirtualEdition.class);
+                hasActiveVirtualEdition.select(veRoot.get("bookId")).where(cb.isTrue(veRoot.get("isActive")));
+                predicates.add(root.get("id").in(hasActiveVirtualEdition));
+            } else {
+                predicates.add(cb.isNotNull(root.get("store")));
+            }
 
             if (query != null && !query.isBlank()) {
                 predicates.add(cb.like(cb.lower(root.get("title")), "%" + query.toLowerCase() + "%"));

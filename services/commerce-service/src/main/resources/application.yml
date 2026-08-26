@@ -43,14 +43,19 @@ app:
   gateway:
     secret: ${GATEWAY_SECRET}
   security:
-    public-routes: []
+    public-routes:
+      - /internal/**
   catalog-service:
     base-url: http://localhost:8083
+  user-service:
+    base-url: http://localhost:8082
 
 resilience4j:
   timelimiter:
     instances:
       catalog-service:
+        timeout-duration: 3s
+      user-service:
         timeout-duration: 3s
   retry:
     instances:
@@ -60,6 +65,9 @@ resilience4j:
         ignore-exceptions:
           - com.readora.commerce.exception.BookNotFoundException
           - com.readora.commerce.exception.InsufficientStockException
+      user-service:
+        max-attempts: 3
+        wait-duration: 500ms
   circuitbreaker:
     instances:
       catalog-service:
@@ -73,3 +81,11 @@ resilience4j:
         ignore-exceptions:
           - com.readora.commerce.exception.BookNotFoundException
           - com.readora.commerce.exception.InsufficientStockException
+      user-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true

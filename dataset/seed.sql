@@ -88,6 +88,7 @@ CREATE SCHEMA IF NOT EXISTS users;
 CREATE SCHEMA IF NOT EXISTS catalog;
 CREATE SCHEMA IF NOT EXISTS commerce;
 CREATE SCHEMA IF NOT EXISTS payments;
+CREATE SCHEMA IF NOT EXISTS notifications;
 CREATE SCHEMA IF NOT EXISTS ai;
 
 
@@ -174,13 +175,15 @@ CREATE TABLE IF NOT EXISTS auth.refresh_tokens (
 
 -- Stores profile information owned by user-service.
 CREATE TABLE IF NOT EXISTS users.user_profiles (
-    user_id          uuid PRIMARY KEY,
-    display_name     text,
-    avatar_url       text,
-    phone            text,
-    date_of_birth    date,
-    locale           text,
-    marketing_opt_in boolean NOT NULL DEFAULT false
+    user_id               uuid PRIMARY KEY,
+    display_name          text,
+    avatar_url            text,
+    phone                 text,
+    date_of_birth         date,
+    locale                text,
+    marketing_opt_in      boolean NOT NULL DEFAULT false,
+    preferred_store_id    uuid,
+    favorite_category_ids text
 );
 
 
@@ -210,10 +213,47 @@ CREATE TABLE IF NOT EXISTS users.wallet_transactions (
                 'SIGNUP_BONUS',
                 'REFERRAL_BONUS',
                 'REDEEMED',
-                'REVERSED'
+                'REVERSED',
+                'TOPUP',
+                'COUPON_REDEEMED'
             )
         )
 );
+
+
+-- Stores wallet-credit coupon codes, Amazon-Pay-style.
+CREATE TABLE IF NOT EXISTS users.coupons (
+    id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    code       text NOT NULL UNIQUE,
+    amount     numeric(10, 2) NOT NULL,
+    is_active  boolean NOT NULL DEFAULT true,
+    expires_at timestamptz
+);
+
+
+-- Tracks that a user already redeemed a given coupon — one redemption per user per coupon.
+CREATE TABLE IF NOT EXISTS users.coupon_redemptions (
+    id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    coupon_id    uuid NOT NULL,
+    user_id      uuid NOT NULL,
+    redeemed_at  timestamptz NOT NULL DEFAULT now(),
+
+    CONSTRAINT fk_coupon_redemptions_coupon
+        FOREIGN KEY (coupon_id)
+        REFERENCES users.coupons(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT uq_coupon_redemptions_coupon_user
+        UNIQUE (coupon_id, user_id)
+);
+
+
+-- Demo coupon codes.
+INSERT INTO users.coupons (code, amount) VALUES
+    ('WELCOME50', 50.00),
+    ('READORA100', 100.00),
+    ('QUICKCOMM200', 200.00)
+ON CONFLICT (code) DO NOTHING;
 
 
 -- Stores the user's address book.
@@ -221,6 +261,7 @@ CREATE TABLE IF NOT EXISTS users.addresses (
     id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id        uuid NOT NULL,
     label          varchar NOT NULL,
+    recipient_type varchar NOT NULL DEFAULT 'OWNER',
     recipient_name text NOT NULL,
     line1          text NOT NULL,
     line2          text,
@@ -228,12 +269,16 @@ CREATE TABLE IF NOT EXISTS users.addresses (
     state          text NOT NULL,
     postal_code    text NOT NULL,
     country_code   text NOT NULL,
+    store_id       uuid,
     phone          text,
     is_default     boolean NOT NULL DEFAULT false,
     deleted_at     timestamptz,
 
     CONSTRAINT chk_address_label
-        CHECK (label IN ('HOME', 'WORK', 'OTHER'))
+        CHECK (label IN ('HOME', 'WORK', 'OTHER')),
+
+    CONSTRAINT chk_address_recipient_type
+        CHECK (recipient_type IN ('OWNER', 'GUEST'))
 );
 
 
@@ -242,17 +287,26 @@ CREATE TABLE IF NOT EXISTS users.addresses (
 -- ============================================================================
 
 
--- Stores the hierarchical category tree.
+-- Stores categories. Deliberately flat (1D) — no nesting.
 CREATE TABLE IF NOT EXISTS catalog.categories (
     id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name          text NOT NULL,
     slug          text NOT NULL UNIQUE,
-    parent_id     uuid,
-    display_order int NOT NULL DEFAULT 0,
+    display_order int NOT NULL DEFAULT 0
+);
 
-    CONSTRAINT fk_categories_parent
-        FOREIGN KEY (parent_id)
-        REFERENCES catalog.categories(id)
+
+-- A fulfilment location. Every book belongs to exactly one store.
+CREATE TABLE IF NOT EXISTS catalog.stores (
+    id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name         text NOT NULL,
+    city         text NOT NULL,
+    line1        text NOT NULL,
+    line2        text,
+    state        text NOT NULL,
+    postal_code  text NOT NULL,
+    country_code varchar(2) NOT NULL,
+    is_active    boolean NOT NULL DEFAULT true
 );
 
 
@@ -281,8 +335,9 @@ CREATE TABLE IF NOT EXISTS catalog.books (
     subtitle          text,
     description       text,
     table_of_contents text,
-    category_id       uuid NOT NULL,
+    category_id       uuid,
     publisher_id      uuid NOT NULL,
+    store_id          uuid,
     language          text NOT NULL,
     format            varchar NOT NULL,
     page_count        int,
@@ -291,6 +346,8 @@ CREATE TABLE IF NOT EXISTS catalog.books (
     currency          varchar(3) NOT NULL,
     cover_image_url   text,
     is_active         boolean NOT NULL DEFAULT true,
+    created_by_user_id uuid,
+    embedded_at       timestamptz,
     created_at        timestamptz NOT NULL DEFAULT now(),
     updated_at        timestamptz NOT NULL DEFAULT now(),
 
@@ -301,6 +358,10 @@ CREATE TABLE IF NOT EXISTS catalog.books (
     CONSTRAINT fk_books_publisher
         FOREIGN KEY (publisher_id)
         REFERENCES catalog.publishers(id),
+
+    CONSTRAINT fk_books_store
+        FOREIGN KEY (store_id)
+        REFERENCES catalog.stores(id),
 
     CONSTRAINT chk_books_format
         CHECK (format IN ('HARDCOVER', 'PAPERBACK', 'EBOOK'))
@@ -350,6 +411,7 @@ CREATE TABLE IF NOT EXISTS catalog.virtual_editions (
     price           numeric(10, 2) NOT NULL,
     currency        varchar(3) NOT NULL,
     is_active       boolean NOT NULL DEFAULT true,
+    created_by_user_id uuid,
 
     CONSTRAINT fk_virtual_editions_book
         FOREIGN KEY (book_id)
@@ -426,8 +488,11 @@ CREATE TABLE IF NOT EXISTS commerce.orders (
     currency        varchar(3) NOT NULL,
     subtotal        numeric(10, 2) NOT NULL,
     shipping_fee    numeric(10, 2) NOT NULL,
+    packaging_fee   numeric(10, 2) NOT NULL DEFAULT 0,
     tax_amount      numeric(10, 2) NOT NULL,
     grand_total     numeric(10, 2) NOT NULL,
+    wallet_amount_used numeric(10, 2) NOT NULL DEFAULT 0,
+    payment_method  varchar NOT NULL DEFAULT 'WALLET',
     placed_at       timestamptz,
     cancelled_at    timestamptz,
     cancel_reason   text,
@@ -443,7 +508,8 @@ CREATE TABLE IF NOT EXISTS commerce.orders (
                 'SHIPPED',
                 'DELIVERED',
                 'PAYMENT_FAILED',
-                'CANCELLED'
+                'CANCELLED',
+                'RETURNED'
             )
         ),
 
@@ -458,15 +524,19 @@ CREATE TABLE IF NOT EXISTS commerce.order_items (
     order_id            uuid NOT NULL,
     book_id             uuid NOT NULL,
     title_snapshot      text NOT NULL,
-    isbn_snapshot       varchar(13) NOT NULL,
+    isbn_snapshot       varchar(13),
     unit_price_snapshot numeric(10, 2) NOT NULL,
     qty                 int NOT NULL,
     line_total          numeric(10, 2) NOT NULL,
+    delivery_type       varchar NOT NULL DEFAULT 'PHYSICAL',
 
     CONSTRAINT fk_order_items_order
         FOREIGN KEY (order_id)
         REFERENCES commerce.orders(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    CONSTRAINT chk_order_items_delivery_type
+        CHECK (delivery_type IN ('PHYSICAL', 'VIRTUAL'))
 );
 
 
@@ -513,7 +583,8 @@ CREATE TABLE IF NOT EXISTS commerce.order_status_history (
                 'SHIPPED',
                 'DELIVERED',
                 'PAYMENT_FAILED',
-                'CANCELLED'
+                'CANCELLED',
+                'RETURNED'
             )
         ),
 
@@ -526,7 +597,8 @@ CREATE TABLE IF NOT EXISTS commerce.order_status_history (
                 'SHIPPED',
                 'DELIVERED',
                 'PAYMENT_FAILED',
-                'CANCELLED'
+                'CANCELLED',
+                'RETURNED'
             )
         )
 );
@@ -644,6 +716,26 @@ CREATE TABLE IF NOT EXISTS payments.outbox_events (
 
 
 -- ============================================================================
+-- NOTIFICATION SERVICE
+-- ============================================================================
+
+-- Stores persisted notifications — pushed live over WebSocket when created, listable/markable-read after.
+CREATE TABLE IF NOT EXISTS notifications.notifications (
+    id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    uuid NOT NULL,
+    type       text NOT NULL,
+    title      text NOT NULL,
+    message    text NOT NULL,
+    order_id   uuid,
+    read       boolean NOT NULL DEFAULT false,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id
+    ON notifications.notifications(user_id, created_at DESC);
+
+
+-- ============================================================================
 -- AI SERVICE
 -- ============================================================================
 
@@ -719,10 +811,6 @@ CREATE TABLE IF NOT EXISTS ai.embedding_jobs (
 -- 6. INDEXES
 -- ============================================================================
 
--- Speeds up category tree traversal.
-CREATE INDEX IF NOT EXISTS idx_categories_parent_id
-    ON catalog.categories(parent_id);
-
 -- Speeds up category-based book searches.
 CREATE INDEX IF NOT EXISTS idx_books_category_id
     ON catalog.books(category_id);
@@ -730,6 +818,10 @@ CREATE INDEX IF NOT EXISTS idx_books_category_id
 -- Speeds up publisher-based book searches.
 CREATE INDEX IF NOT EXISTS idx_books_publisher_id
     ON catalog.books(publisher_id);
+
+-- Speeds up store-based book browsing (quick-commerce: browse one store at a time).
+CREATE INDEX IF NOT EXISTS idx_books_store_id
+    ON catalog.books(store_id);
 
 -- Speeds up author-based book searches.
 CREATE INDEX IF NOT EXISTS idx_book_authors_author_id
@@ -825,27 +917,39 @@ FROM jsonb_to_recordset(
 ) AS c(
     name text,
     slug text,
-    parent text,
     "displayOrder" int
 )
 ON CONFLICT (slug) DO NOTHING;
 
 
--- Resolve category parents after all categories exist.
-UPDATE catalog.categories AS child
-SET parent_id = parent.id
-FROM jsonb_to_recordset(
-    :'categories_json'::jsonb
-) AS c(
-    name text,
-    slug text,
-    parent text,
-    "displayOrder" int
+-- ============================================================================
+-- 8b. STORES
+-- ============================================================================
+--
+-- Quick-commerce model: every book belongs to exactly one store, and a customer shops one
+-- store at a time. Only Bangalore is seeded today; more stores can be added later.
+
+INSERT INTO catalog.stores (
+    id,
+    name,
+    city,
+    line1,
+    line2,
+    state,
+    postal_code,
+    country_code
 )
-JOIN catalog.categories AS parent
-    ON parent.name = c.parent
-WHERE child.slug = c.slug
-  AND c.parent IS NOT NULL;
+VALUES (
+    '00000000-0000-0000-0000-0000000000b1',
+    'Readora Bangalore',
+    'Bangalore',
+    '100 Indiranagar 100ft Road',
+    'Near CMH Road',
+    'Karnataka',
+    '560038',
+    'IN'
+)
+ON CONFLICT (id) DO NOTHING;
 
 
 -- ============================================================================
@@ -923,6 +1027,7 @@ INSERT INTO catalog.books (
     table_of_contents,
     category_id,
     publisher_id,
+    store_id,
     language,
     format,
     page_count,
@@ -943,6 +1048,9 @@ SELECT
     b->>'tableOfContents',
     c.id,
     p.id,
+    -- Books are physically stocked at Bangalore by default; a book explicitly marked
+    -- "virtualOnly" in the seed JSON gets no store — it's a universal virtual-only title.
+    CASE WHEN (b->>'virtualOnly')::boolean IS TRUE THEN NULL::uuid ELSE '00000000-0000-0000-0000-0000000000b1'::uuid END,
     b->>'language',
     b->>'format',
     (b->>'pageCount')::int,
@@ -956,7 +1064,10 @@ SELECT
 FROM jsonb_array_elements(
     :'books_json'::jsonb
 ) AS b
-JOIN catalog.categories AS c
+-- LEFT JOIN: a book with no clean-fitting category (e.g. general literary classics that don't
+-- belong under any of the flat, specific topics) ships with category_id NULL rather than being
+-- forced into an inaccurate bucket, or silently dropped from the seed like an INNER JOIN would.
+LEFT JOIN catalog.categories AS c
     ON c.name = b->>'category'
 JOIN catalog.publishers AS p
     ON p.name = b->>'publisher'
@@ -1109,13 +1220,15 @@ INSERT INTO users.user_profiles (
     user_id,
     display_name,
     phone,
-    marketing_opt_in
+    marketing_opt_in,
+    preferred_store_id
 )
 SELECT
     au.id,
     u->>'displayName',
     u->>'phone',
-    (u->>'marketingOptIn')::boolean
+    (u->>'marketingOptIn')::boolean,
+    '00000000-0000-0000-0000-0000000000b1'
 FROM jsonb_array_elements(
     (:'users_json'::jsonb)->'users'
 ) AS u
@@ -1149,6 +1262,7 @@ INSERT INTO users.addresses (
     id,
     user_id,
     label,
+    recipient_type,
     recipient_name,
     line1,
     line2,
@@ -1156,6 +1270,7 @@ INSERT INTO users.addresses (
     state,
     postal_code,
     country_code,
+    store_id,
     phone,
     is_default
 )
@@ -1163,6 +1278,7 @@ SELECT
     gen_random_uuid(),
     au.id,
     address->>'label',
+    'OWNER',
     address->>'recipientName',
     address->>'line1',
     address->>'line2',
@@ -1170,6 +1286,7 @@ SELECT
     address->>'state',
     address->>'postalCode',
     address->>'countryCode',
+    '00000000-0000-0000-0000-0000000000b1',
     address->>'phone',
     (address->>'isDefault')::boolean
 FROM jsonb_array_elements(
@@ -1232,6 +1349,11 @@ UNION ALL
 
 SELECT 'catalog.categories', COUNT(*)
 FROM catalog.categories
+
+UNION ALL
+
+SELECT 'catalog.stores', COUNT(*)
+FROM catalog.stores
 
 UNION ALL
 

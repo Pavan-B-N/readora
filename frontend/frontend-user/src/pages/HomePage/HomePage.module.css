@@ -64,6 +64,72 @@
   margin-bottom: var(--space-5);
 }
 
+.editionTabs {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  margin-bottom: var(--space-4);
+}
+
+.editionTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.editionTab:hover {
+  color: var(--color-text);
+}
+
+.editionTabActive {
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+}
+
+.recommendations {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.recommendationsHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-info);
+  margin-bottom: var(--space-3);
+}
+
+.recommendationsTitle {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.recommendationsRow {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+}
+
+.recommendationCard {
+  flex: 0 0 150px;
+}
+
 .heading {
   margin-bottom: var(--space-4);
 }

@@ -4,6 +4,7 @@ import com.readora.catalog.entity.BookFormat;
 import com.readora.catalog.entity.VirtualFileFormat;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +19,7 @@ public record AdminBookDetailResponse(
         String tableOfContents,
         UUID categoryId,
         UUID publisherId,
+        UUID storeId,
         List<UUID> authorIds,
         String language,
         BookFormat format,
@@ -27,6 +29,10 @@ public record AdminBookDetailResponse(
         String currency,
         String coverImageUrl,
         boolean isActive,
+        UUID createdByUserId,
+        Instant createdAt,
+        Instant embeddedAt,
+        boolean needsReembedding,
         Inventory inventory,
         VirtualEdition virtualEdition
 ) {
@@ -39,7 +45,8 @@ public record AdminBookDetailResponse(
             Long fileSizeBytes,
             BigDecimal price,
             String currency,
-            boolean isActive
+            boolean isActive,
+            UUID createdByUserId
     ) {
     }
 }

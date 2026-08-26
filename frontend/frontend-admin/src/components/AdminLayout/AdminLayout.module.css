@@ -54,6 +54,18 @@
   letter-spacing: 0.08em;
 }
 
+.storeBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-info);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
 .navGroup {
   display: flex;
   flex-direction: column;
@@ -99,6 +111,17 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.footer:hover {
+  background: var(--color-surface-hover);
+}
+
+.footerActive {
+  background: var(--color-primary-soft);
 }
 
 .avatar {
@@ -132,7 +155,8 @@
   flex: 1;
   min-width: 0;
   padding: var(--space-6) var(--space-8);
-  max-width: 1240px;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
 }
 
 @media (max-width: 900px) {

@@ -1,16 +1,20 @@
 import { useState, type FormEvent } from 'react';
-import { Link, NavLink, Outlet, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ShoppingCart, User, Package, Wallet, LogOut, Search, BookOpen } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { loggedOut } from '@/redux/slices/authSlice';
 import { cartCleared } from '@/redux/slices/cartSlice';
 import { Tooltip } from '@/components/Tooltip';
 import { ChatWidget } from '@/components/ChatWidget';
+import { NotificationBell } from '@/components/NotificationBell';
+import { StoreSwitcher } from '@/components/StoreSwitcher';
 import { ROUTES } from '@/constants/routes';
 import styles from './SiteLayout.module.css';
 
 export function SiteLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
@@ -42,6 +46,8 @@ export function SiteLayout() {
             <span className={styles.brandName}>Readora</span>
           </Link>
 
+          <StoreSwitcher />
+
           <form className={styles.searchForm} onSubmit={onSearch} role="search">
             <Search size={15} className={styles.searchIcon} />
             <input
@@ -63,6 +69,7 @@ export function SiteLayout() {
 
             {accessToken ? (
               <>
+                <NotificationBell />
                 <Tooltip label="Orders" placement="bottom">
                   <NavLink to={ROUTES.orders} className={navClass} aria-label="Orders">
                     <Package size={18} />
@@ -94,7 +101,17 @@ export function SiteLayout() {
       </header>
 
       <main className={styles.main}>
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.14, ease: 'easeOut' }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       <footer className={styles.footer}>Readora — books, physical and virtual.</footer>

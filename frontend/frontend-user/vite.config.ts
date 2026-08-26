@@ -13,4 +13,9 @@ export default defineConfig({
   server: {
     port: 5173,
   },
+  // sockjs-client (notification WebSocket) references the Node global `global`, which Vite
+  // doesn't polyfill for the browser like Webpack does — without this the app fails to boot.
+  define: {
+    global: 'globalThis',
+  },
 })

@@ -1,17 +1,22 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Download, Truck, XCircle } from 'lucide-react';
-import { cancelOrder, getOrderDetail } from '@/api/orderApi';
+import { useEffect, useRef, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { BookOpen, Download, Loader2, RotateCcw, Truck, XCircle } from 'lucide-react';
+import { cancelOrder, getOrderDetail, returnOrder } from '@/api/orderApi';
 import type { OrderDetail } from '@/types/order';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
+import { ROUTES } from '@/constants/routes';
 import styles from './OrderDetailPage.module.css';
+
+const READABLE_STATUSES = new Set(['PAID', 'CONFIRMED', 'SHIPPED', 'DELIVERED']);
+
+const POLL_INTERVAL_MS = 2000;
 
 function statusVariant(status: string) {
   if (status === 'DELIVERED' || status === 'CONFIRMED' || status === 'PAID') return 'success' as const;
-  if (status === 'CANCELLED' || status === 'PAYMENT_FAILED') return 'danger' as const;
+  if (status === 'CANCELLED' || status === 'PAYMENT_FAILED' || status === 'RETURNED') return 'danger' as const;
   if (status === 'SHIPPED') return 'info' as const;
   return 'warning' as const;
 }
@@ -25,9 +30,12 @@ function prettyStatus(status: string) {
 
 export function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [returning, setReturning] = useState(false);
+  const pollRef = useRef<number | null>(null);
 
   const reload = () => {
     if (!orderId) return;
@@ -35,6 +43,23 @@ export function OrderDetailPage() {
   };
 
   useEffect(reload, [orderId]);
+
+  // While a UPI payment is settling server-side, poll so the status flips without a manual refresh.
+  useEffect(() => {
+    if (order?.status !== 'PENDING_PAYMENT') {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+      return;
+    }
+
+    pollRef.current = window.setInterval(reload, POLL_INTERVAL_MS);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order?.status]);
 
   const onCancel = async () => {
     if (!orderId) return;
@@ -50,7 +75,23 @@ export function OrderDetailPage() {
     }
   };
 
+  const onReturn = async () => {
+    if (!orderId) return;
+    setReturning(true);
+    try {
+      await returnOrder(orderId);
+      showToast('Return started — a refund is on its way');
+      reload();
+    } catch {
+      showToast('Could not return this order', 'error');
+    } finally {
+      setReturning(false);
+    }
+  };
+
   if (!order) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+
+  const isSettlingUpi = order.status === 'PENDING_PAYMENT' && order.paymentMethod === 'UPI';
 
   return (
     <div>
@@ -61,7 +102,7 @@ export function OrderDetailPage() {
             Placed {new Date(order.placedAt).toLocaleString()}
           </span>
           <div className={styles.deliveryBadgeRow}>
-            <Badge variant={statusVariant(order.status)} dot>
+            <Badge variant={statusVariant(order.status)} dot pulse={isSettlingUpi}>
               {prettyStatus(order.status)}
             </Badge>
             <Badge variant="neutral">
@@ -69,13 +110,27 @@ export function OrderDetailPage() {
               {order.deliveryType === 'VIRTUAL' ? 'Virtual' : 'Physical'}
             </Badge>
           </div>
+          {isSettlingUpi && (
+            <span className={styles.upiPending}>
+              <Loader2 size={13} className="spin" />
+              Waiting for your UPI approval — this confirms automatically.
+            </span>
+          )}
         </div>
-        {order.cancellable && (
-          <Button variant="danger" onClick={onCancel} disabled={cancelling}>
-            <XCircle size={15} />
-            {cancelling ? 'Cancelling…' : 'Cancel order'}
-          </Button>
-        )}
+        <div className={styles.headerActions}>
+          {order.returnable && (
+            <Button variant="secondary" onClick={onReturn} disabled={returning}>
+              <RotateCcw size={15} />
+              {returning ? 'Starting return…' : 'Return order'}
+            </Button>
+          )}
+          {order.cancellable && (
+            <Button variant="danger" onClick={onCancel} disabled={cancelling}>
+              <XCircle size={15} />
+              {cancelling ? 'Cancelling…' : 'Cancel order'}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className={styles.layout}>
@@ -83,15 +138,23 @@ export function OrderDetailPage() {
           <Card>
             <CardHeader title="Items" />
             {order.items.map((item) => (
-              <div className={styles.item} key={item.bookId}>
+              <div className={styles.item} key={`${item.bookId}:${item.deliveryType}`}>
                 <span className={styles.itemName}>
                   {item.title}
                   <div className={styles.itemMeta}>
                     ₹{item.unitPrice} × {item.qty}
-                    {item.isbn13 ? ` · ${item.isbn13}` : ''}
+                    {item.isbn13 ? ` · ${item.isbn13}` : ''} · {item.deliveryType === 'VIRTUAL' ? 'Virtual' : 'Physical'}
                   </div>
                 </span>
-                <span className={styles.itemTotal}>₹{item.lineTotal}</span>
+                <span className={styles.itemTrailing}>
+                  <span className={styles.itemTotal}>₹{item.lineTotal}</span>
+                  {item.deliveryType === 'VIRTUAL' && READABLE_STATUSES.has(order.status) && (
+                    <Button variant="secondary" size="sm" onClick={() => navigate(ROUTES.read(item.bookId))}>
+                      <BookOpen size={14} />
+                      Read now
+                    </Button>
+                  )}
+                </span>
               </div>
             ))}
           </Card>
@@ -132,9 +195,32 @@ export function OrderDetailPage() {
         </div>
 
         <Card>
+          <CardHeader title="Payment" />
+          <div className={styles.summaryRow}>
+            <span>Subtotal</span>
+            <span>₹{order.subtotal}</span>
+          </div>
+          <div className={styles.summaryRow}>
+            <span>Shipping</span>
+            <span>{Number(order.shippingFee) === 0 ? 'Free' : `₹${order.shippingFee}`}</span>
+          </div>
+          {Number(order.packagingFee) > 0 && (
+            <div className={styles.summaryRow}>
+              <span>Packaging</span>
+              <span>₹{order.packagingFee}</span>
+            </div>
+          )}
+          <div className={styles.summaryRow}>
+            <span>GST</span>
+            <span>₹{order.taxAmount}</span>
+          </div>
           <div className={styles.summaryTotal}>
             <span>Total</span>
             <span>₹{order.grandTotal}</span>
+          </div>
+          <div className={styles.paymentMethodRow}>
+            Paid via {order.paymentMethod === 'UPI' ? 'UPI' : 'Wallet'}
+            {Number(order.walletAmountUsed) > 0 && ` · ₹${order.walletAmountUsed} from wallet`}
           </div>
           <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
             {order.deliveryType === 'VIRTUAL'

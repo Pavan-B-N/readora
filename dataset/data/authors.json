@@ -210,6 +210,11 @@
     "bio": null
   },
   {
+    "name": "Readora Editorial",
+    "slug": "readora-editorial",
+    "bio": "In-house Readora content, used for demo virtual editions."
+  },
+  {
     "name": "Richard Dawkins",
     "slug": "richard-dawkins",
     "bio": null

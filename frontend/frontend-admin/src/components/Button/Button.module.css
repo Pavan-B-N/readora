@@ -65,11 +65,11 @@
 .danger {
   background: var(--color-danger-bg);
   color: var(--color-danger);
-  border-color: rgba(248, 81, 73, 0.3);
+  border-color: rgba(var(--color-danger-rgb), 0.3);
 }
 
 .danger:not(:disabled):hover {
-  background: rgba(248, 81, 73, 0.2);
+  background: rgba(var(--color-danger-rgb), 0.16);
 }
 
 .iconOnly {

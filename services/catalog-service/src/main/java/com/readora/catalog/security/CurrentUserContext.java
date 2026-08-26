@@ -21,6 +21,10 @@ public final class CurrentUserContext {
         return Optional.ofNullable(CURRENT_USER.get());
     }
 
+    public static UUID require() {
+        return get().orElseThrow(() -> new IllegalStateException("No authenticated user in request context"));
+    }
+
     public static boolean hasRole(String role) {
         List<String> roles = CURRENT_ROLES.get();
         return roles != null && roles.contains(role);

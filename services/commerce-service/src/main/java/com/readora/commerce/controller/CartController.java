@@ -4,6 +4,7 @@ import com.readora.commerce.dto.AddCartItemRequest;
 import com.readora.commerce.dto.CartResponse;
 import com.readora.commerce.dto.CartSummaryResponse;
 import com.readora.commerce.dto.SetCartItemRequest;
+import com.readora.commerce.entity.DeliveryType;
 import com.readora.commerce.security.CurrentUserContext;
 import com.readora.commerce.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,8 +73,10 @@ public class CartController {
             @ApiResponse(responseCode = "404", description = "That book is not in the cart"),
             @ApiResponse(responseCode = "409", description = "Requested quantity exceeds available inventory")
     })
-    @PutMapping("/items/{bookId}")
-    public ResponseEntity<CartSummaryResponse> setItemQty(@PathVariable UUID bookId, @Valid @RequestBody SetCartItemRequest request) {
-        return ResponseEntity.ok(cartService.setItemQty(CurrentUserContext.require(), bookId, request.qty()));
+    @PutMapping("/items/{bookId}/{deliveryType}")
+    public ResponseEntity<CartSummaryResponse> setItemQty(
+            @PathVariable UUID bookId, @PathVariable DeliveryType deliveryType, @Valid @RequestBody SetCartItemRequest request
+    ) {
+        return ResponseEntity.ok(cartService.setItemQty(CurrentUserContext.require(), bookId, deliveryType, request.qty()));
     }
 }

@@ -2,17 +2,15 @@ package com.readora.catalog.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.util.Objects;
 import java.util.UUID;
 
+/** Flat — deliberately 1D, no nesting (e.g. Technology, Science, Business, Biology). */
 @Entity
 @Table(name = "categories", schema = "catalog")
 public class Category {
@@ -28,20 +26,15 @@ public class Category {
     @Column(name = "slug", nullable = false, unique = true)
     private String slug;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Category parent;
-
     @Column(name = "display_order", nullable = false)
     private int displayOrder = 0;
 
     protected Category() {
     }
 
-    public Category(String name, String slug, Category parent, int displayOrder) {
+    public Category(String name, String slug, int displayOrder) {
         this.name = name;
         this.slug = slug;
-        this.parent = parent;
         this.displayOrder = displayOrder;
     }
 
@@ -55,10 +48,6 @@ public class Category {
 
     public String getSlug() {
         return slug;
-    }
-
-    public Category getParent() {
-        return parent;
     }
 
     public int getDisplayOrder() {

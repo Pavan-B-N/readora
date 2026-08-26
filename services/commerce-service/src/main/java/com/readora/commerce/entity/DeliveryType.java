@@ -1,6 +1,10 @@
 package com.readora.commerce.entity;
 
-/** Whether an entire order is fulfilled physically (shipped) or virtually (instant digital delivery). Chosen once per order — an order can't mix both. */
+/**
+ * Whether a book is fulfilled physically (shipped from the store) or virtually (instant digital
+ * delivery). Chosen per cart item / order item — a cart (and the order it becomes) can mix both;
+ * a shipping address is only required when at least one item is PHYSICAL.
+ */
 public enum DeliveryType {
     PHYSICAL,
     VIRTUAL

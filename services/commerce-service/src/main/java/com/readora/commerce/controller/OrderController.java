@@ -6,6 +6,8 @@ import com.readora.commerce.dto.CheckoutRequest;
 import com.readora.commerce.dto.CheckoutResponse;
 import com.readora.commerce.dto.OrderDetailResponse;
 import com.readora.commerce.dto.OrderSummaryResponse;
+import com.readora.commerce.dto.ReturnOrderRequest;
+import com.readora.commerce.dto.ReturnOrderResponse;
 import com.readora.commerce.security.CurrentUserContext;
 import com.readora.commerce.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +44,7 @@ public class OrderController {
 
     @Operation(
             summary = "Check out",
-            description = "Reserves stock (PHYSICAL) or confirms virtual-edition availability (VIRTUAL), prices the order, and creates it in PENDING_PAYMENT. Returns as soon as the order is durably recorded — payment settles asynchronously off Kafka. Send an Idempotency-Key header; a replay returns the original order rather than creating a duplicate. An order is entirely PHYSICAL or entirely VIRTUAL — items can't be mixed in one checkout.",
+            description = "Reserves stock for PHYSICAL items and confirms virtual-edition availability for VIRTUAL items — a checkout can mix both. Prices the order and creates it in PENDING_PAYMENT. Returns as soon as the order is durably recorded — payment settles asynchronously off Kafka. Send an Idempotency-Key header; a replay returns the original order rather than creating a duplicate.",
             tags = {"Orders"}
     )
     @ApiResponses({
@@ -104,5 +106,20 @@ public class OrderController {
     @PostMapping("/{id}/cancel")
     public ResponseEntity<CancelOrderResponse> cancel(@PathVariable UUID id, @RequestBody CancelOrderRequest request) {
         return ResponseEntity.ok(orderService.cancel(CurrentUserContext.require(), id, request));
+    }
+
+    @Operation(
+            summary = "Return a delivered order",
+            description = "Returns an order. Permitted only once it's DELIVERED and within 7 days of placement. Triggers an asynchronous refund off Kafka, same as cancellation.",
+            tags = {"Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Order returned, refund pending"),
+            @ApiResponse(responseCode = "404", description = "No such order, or it belongs to another user"),
+            @ApiResponse(responseCode = "409", description = "The order isn't delivered yet, or the return window has expired")
+    })
+    @PostMapping("/{id}/return")
+    public ResponseEntity<ReturnOrderResponse> returnOrder(@PathVariable UUID id, @RequestBody ReturnOrderRequest request) {
+        return ResponseEntity.ok(orderService.returnOrder(CurrentUserContext.require(), id, request));
     }
 }
