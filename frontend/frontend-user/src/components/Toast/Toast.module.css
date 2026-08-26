@@ -35,7 +35,7 @@
 
 .success {
   background: var(--color-surface-raised);
-  border-color: rgba(63, 185, 80, 0.35);
+  border-color: rgba(var(--color-success-rgb), 0.35);
   color: var(--color-text);
 }
 
@@ -45,7 +45,7 @@
 
 .error {
   background: var(--color-surface-raised);
-  border-color: rgba(248, 81, 73, 0.35);
+  border-color: rgba(var(--color-danger-rgb), 0.35);
   color: var(--color-text);
 }
 

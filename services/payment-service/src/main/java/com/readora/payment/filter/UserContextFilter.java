@@ -17,13 +17,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.UUID;
 
 /**
- * Deny-by-default, same shape as api-gateway's JwtAuthenticationGlobalFilter: routes not in
- * app.security.public-routes require X-User-Id to be present. Trusts the header rather than
- * validating a JWT itself, since GatewaySecretFilter already proved the request came from
- * inside the trusted network (gateway or another internal service).
+ * Deny-by-default: routes not in app.security.public-routes require an authenticated caller.
+ * Identity comes from CurrentUserContext, populated by JwtAuthenticationFilter after validating
+ * the caller's JWT — this filter itself no longer reads or trusts any headers.
  */
 @Component
 public class UserContextFilter extends OncePerRequestFilter implements Ordered {
@@ -50,18 +48,12 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
             return;
         }
 
-        String userIdHeader = request.getHeader("X-User-Id");
-        if (userIdHeader == null || userIdHeader.isBlank()) {
+        if (CurrentUserContext.get().isEmpty()) {
             reject(request, response);
             return;
         }
 
-        try {
-            CurrentUserContext.set(UUID.fromString(userIdHeader));
-            filterChain.doFilter(request, response);
-        } finally {
-            CurrentUserContext.clear();
-        }
+        filterChain.doFilter(request, response);
     }
 
     private boolean isPublicRoute(String path) {

@@ -1,0 +1,267 @@
+[
+  {
+    "name": "Abraham Silberschatz",
+    "slug": "abraham-silberschatz",
+    "bio": null
+  },
+  {
+    "name": "Agatha Christie",
+    "slug": "agatha-christie",
+    "bio": "English writer known for detective novels."
+  },
+  {
+    "name": "Aldous Huxley",
+    "slug": "aldous-huxley",
+    "bio": null
+  },
+  {
+    "name": "Andrew Hunt",
+    "slug": "andrew-hunt",
+    "bio": null
+  },
+  {
+    "name": "Arthur Conan Doyle",
+    "slug": "arthur-conan-doyle",
+    "bio": null
+  },
+  {
+    "name": "Blake Masters",
+    "slug": "blake-masters",
+    "bio": null
+  },
+  {
+    "name": "Brian W. Kernighan",
+    "slug": "brian-w-kernighan",
+    "bio": null
+  },
+  {
+    "name": "Charles Duhigg",
+    "slug": "charles-duhigg",
+    "bio": null
+  },
+  {
+    "name": "Charles E. Leiserson",
+    "slug": "charles-e-leiserson",
+    "bio": null
+  },
+  {
+    "name": "Clifford Stein",
+    "slug": "clifford-stein",
+    "bio": null
+  },
+  {
+    "name": "Daniel Kahneman",
+    "slug": "daniel-kahneman",
+    "bio": null
+  },
+  {
+    "name": "David Thomas",
+    "slug": "david-thomas",
+    "bio": null
+  },
+  {
+    "name": "Dennis M. Ritchie",
+    "slug": "dennis-m-ritchie",
+    "bio": null
+  },
+  {
+    "name": "Douglas Adams",
+    "slug": "douglas-adams",
+    "bio": null
+  },
+  {
+    "name": "Elisabeth Robson",
+    "slug": "elisabeth-robson",
+    "bio": null
+  },
+  {
+    "name": "Eric Freeman",
+    "slug": "eric-freeman",
+    "bio": null
+  },
+  {
+    "name": "Eric Ries",
+    "slug": "eric-ries",
+    "bio": null
+  },
+  {
+    "name": "Erich Gamma",
+    "slug": "erich-gamma",
+    "bio": null
+  },
+  {
+    "name": "F. Scott Fitzgerald",
+    "slug": "f-scott-fitzgerald",
+    "bio": null
+  },
+  {
+    "name": "Fyodor Dostoevsky",
+    "slug": "fyodor-dostoevsky",
+    "bio": null
+  },
+  {
+    "name": "Gabriel Garc\u00eda M\u00e1rquez",
+    "slug": "gabriel-garcia-marquez",
+    "bio": null
+  },
+  {
+    "name": "Gerald Jay Sussman",
+    "slug": "gerald-jay-sussman",
+    "bio": null
+  },
+  {
+    "name": "Gillian Flynn",
+    "slug": "gillian-flynn",
+    "bio": null
+  },
+  {
+    "name": "Harold Abelson",
+    "slug": "harold-abelson",
+    "bio": null
+  },
+  {
+    "name": "Harper Lee",
+    "slug": "harper-lee",
+    "bio": null
+  },
+  {
+    "name": "Henry Korth",
+    "slug": "henry-korth",
+    "bio": null
+  },
+  {
+    "name": "J.D. Salinger",
+    "slug": "j-d-salinger",
+    "bio": null
+  },
+  {
+    "name": "James Clear",
+    "slug": "james-clear",
+    "bio": null
+  },
+  {
+    "name": "Jane Austen",
+    "slug": "jane-austen",
+    "bio": null
+  },
+  {
+    "name": "Jerry I. Porras",
+    "slug": "jerry-i-porras",
+    "bio": null
+  },
+  {
+    "name": "Jim Collins",
+    "slug": "jim-collins",
+    "bio": null
+  },
+  {
+    "name": "John Vlissides",
+    "slug": "john-vlissides",
+    "bio": null
+  },
+  {
+    "name": "Joshua Bloch",
+    "slug": "joshua-bloch",
+    "bio": null
+  },
+  {
+    "name": "Kyle Simpson",
+    "slug": "kyle-simpson",
+    "bio": null
+  },
+  {
+    "name": "Malcolm Gladwell",
+    "slug": "malcolm-gladwell",
+    "bio": null
+  },
+  {
+    "name": "Margaret Atwood",
+    "slug": "margaret-atwood",
+    "bio": null
+  },
+  {
+    "name": "Neal Stephenson",
+    "slug": "neal-stephenson",
+    "bio": null
+  },
+  {
+    "name": "Neil deGrasse Tyson",
+    "slug": "neil-degrasse-tyson",
+    "bio": null
+  },
+  {
+    "name": "Orson Scott Card",
+    "slug": "orson-scott-card",
+    "bio": null
+  },
+  {
+    "name": "Peter Thiel",
+    "slug": "peter-thiel",
+    "bio": null
+  },
+  {
+    "name": "Ralph Johnson",
+    "slug": "ralph-johnson",
+    "bio": null
+  },
+  {
+    "name": "Ray Bradbury",
+    "slug": "ray-bradbury",
+    "bio": null
+  },
+  {
+    "name": "Richard Dawkins",
+    "slug": "richard-dawkins",
+    "bio": null
+  },
+  {
+    "name": "Richard Helm",
+    "slug": "richard-helm",
+    "bio": null
+  },
+  {
+    "name": "Ronald L. Rivest",
+    "slug": "ronald-l-rivest",
+    "bio": null
+  },
+  {
+    "name": "S. Sudarshan",
+    "slug": "s-sudarshan",
+    "bio": null
+  },
+  {
+    "name": "Stephen Hawking",
+    "slug": "stephen-hawking",
+    "bio": null
+  },
+  {
+    "name": "Stieg Larsson",
+    "slug": "stieg-larsson",
+    "bio": null
+  },
+  {
+    "name": "Tara Westover",
+    "slug": "tara-westover",
+    "bio": null
+  },
+  {
+    "name": "Thomas H. Cormen",
+    "slug": "thomas-h-cormen",
+    "bio": null
+  },
+  {
+    "name": "Thomas Harris",
+    "slug": "thomas-harris",
+    "bio": null
+  },
+  {
+    "name": "Viktor E. Frankl",
+    "slug": "viktor-e-frankl",
+    "bio": null
+  },
+  {
+    "name": "William Gibson",
+    "slug": "william-gibson",
+    "bio": null
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Fiction",
+    "slug": "fiction",
+    "parent": null,
+    "displayOrder": 1
+  },
+  {
+    "name": "Science Fiction & Fantasy",
+    "slug": "sci-fi-fantasy",
+    "parent": "Fiction",
+    "displayOrder": 1
+  },
+  {
+    "name": "Mystery & Thriller",
+    "slug": "mystery-thriller",
+    "parent": "Fiction",
+    "displayOrder": 2
+  },
+  {
+    "name": "Non-Fiction",
+    "slug": "non-fiction",
+    "parent": null,
+    "displayOrder": 2
+  },
+  {
+    "name": "Technology",
+    "slug": "technology",
+    "parent": "Non-Fiction",
+    "displayOrder": 1
+  },
+  {
+    "name": "Business",
+    "slug": "business",
+    "parent": "Non-Fiction",
+    "displayOrder": 2
+  },
+  {
+    "name": "Science",
+    "slug": "science",
+    "parent": "Non-Fiction",
+    "displayOrder": 3
+  }
+]

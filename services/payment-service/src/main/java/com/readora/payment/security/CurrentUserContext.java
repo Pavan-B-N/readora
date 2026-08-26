@@ -4,9 +4,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Holds the caller's user id for the life of one request. Populated by UserContextFilter from
- * X-User-Id (set by api-gateway after validating the caller's JWT). This service trusts that
- * header rather than re-validating the JWT itself — see the batch build summary for why.
+ * Holds the caller's user id for the life of one request. Populated by JwtAuthenticationFilter
+ * after validating the caller's JWT.
  */
 public final class CurrentUserContext {
 

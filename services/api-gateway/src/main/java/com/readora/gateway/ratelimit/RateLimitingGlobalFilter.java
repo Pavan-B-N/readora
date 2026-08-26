@@ -5,6 +5,7 @@ import com.readora.gateway.config.RateLimitProperties;
 import com.readora.gateway.config.RateLimitProperties.RateLimitRule;
 import com.readora.gateway.dto.ErrorResponse;
 import com.readora.gateway.filter.CorrelationIdGlobalFilter;
+import com.readora.gateway.security.JwtService;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
@@ -22,6 +23,8 @@ import reactor.core.publisher.Mono;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Enforces Redis-backed rate limits using route-specific rules and user ID or client IP keys.
@@ -35,15 +38,18 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
     private final RedisRateLimiterService rateLimiterService;
     private final RateLimitProperties properties;
     private final ObjectMapper objectMapper;
+    private final JwtService jwtService;
 
     public RateLimitingGlobalFilter(
             RedisRateLimiterService rateLimiterService,
             RateLimitProperties properties,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            JwtService jwtService
     ) {
         this.rateLimiterService = rateLimiterService;
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.jwtService = jwtService;
     }
 
     /**
@@ -85,9 +91,13 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
      * @return the user id if the request is authenticated, else the caller's IP, else "unknown"
      */
     private String resolveKey(ServerWebExchange exchange) {
-        String userId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
-        if (userId != null && !userId.isBlank()) {
-            return userId;
+        String header = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+
+        if (header != null && header.startsWith("Bearer ")) {
+            Optional<UUID> userId = jwtService.extractUserId(header.substring(7));
+            if (userId.isPresent()) {
+                return userId.get().toString();
+            }
         }
 
         InetSocketAddress remoteAddress = exchange.getRequest().getRemoteAddress();
@@ -147,7 +157,8 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
 
     /**
      * Runs after the correlation-id, gateway-secret, and JWT filters (all negative orders), so
-     * X-User-Id is already attached by the time this filter resolves its rate-limit key.
+     * the Authorization header has already been validated by the time this filter resolves its
+     * rate-limit key.
      *
      * @return this filter's order in the gateway filter chain
      */

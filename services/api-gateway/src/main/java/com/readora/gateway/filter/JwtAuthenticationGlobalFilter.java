@@ -1,21 +1,16 @@
 package com.readora.gateway.filter;
 
 import com.readora.gateway.config.SecurityProperties;
-import com.readora.gateway.security.AuthenticatedPrincipal;
 import com.readora.gateway.security.JwtService;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Optional;
-import java.util.UUID;
 
 /** Denies unauthenticated requests by default; only configured public routes bypass JWT validation. */
 @Component
@@ -31,7 +26,9 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
     }
 
     /**
-     * Enforces JWT authentication for protected gateway routes.
+     * Enforces JWT authentication for protected gateway routes. Only validates the token — the
+     * original Authorization header is forwarded to downstream services untouched, and each
+     * service extracts what it needs from the JWT itself.
      *
      * @param exchange the current HTTP request and response exchange
      * @param chain the remaining gateway filter chain
@@ -52,27 +49,12 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
         }
 
         String token = header.substring(7);
-        Optional<AuthenticatedPrincipal> principal = jwtService.validate(token);
 
-        if (principal.isEmpty()) {
+        if (!jwtService.isValid(token)) {
             return reject(exchange);
         }
 
-        // WebFlux request objects are immutable so we need an mutatedRequest
-        ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate()
-                .header("X-User-Id", principal.get().userId().toString());
-
-        if (principal.get().email() != null) {
-            requestBuilder.header("X-User-Email", principal.get().email());
-        }
-
-        if (!principal.get().roles().isEmpty()) {
-            requestBuilder.header("X-User-Roles", String.join(",", principal.get().roles()));
-        }
-
-        ServerHttpRequest mutatedRequest = requestBuilder.build();
-
-        return chain.filter(exchange.mutate().request(mutatedRequest).build());
+        return chain.filter(exchange);
     }
 
     /**

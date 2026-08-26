@@ -17,14 +17,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Deny-by-default for authentication, same as before. Additionally gates /api/v1/admin/** on
- * the ADMIN role — X-User-Roles is only trustworthy here because GatewaySecretFilter already
- * proved this request came through the gateway, which is the only thing that sets that header.
+ * the ADMIN role. Identity and roles come from CurrentUserContext, populated by
+ * JwtAuthenticationFilter after validating the caller's JWT — this filter itself no longer reads
+ * or trusts any headers.
  */
 @Component
 public class UserContextFilter extends OncePerRequestFilter implements Ordered {
@@ -54,33 +52,17 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
             return;
         }
 
-        String userIdHeader = request.getHeader("X-User-Id");
-        if (userIdHeader == null || userIdHeader.isBlank()) {
+        if (CurrentUserContext.get().isEmpty()) {
             rejectUnauthenticated(request, response);
             return;
         }
 
-        List<String> roles = parseRoles(request.getHeader("X-User-Roles"));
-
-        try {
-            CurrentUserContext.set(UUID.fromString(userIdHeader), roles);
-
-            if (path.startsWith(ADMIN_PATH_PREFIX) && !CurrentUserContext.hasRole(ADMIN_ROLE)) {
-                rejectForbidden(request, response);
-                return;
-            }
-
-            filterChain.doFilter(request, response);
-        } finally {
-            CurrentUserContext.clear();
+        if (path.startsWith(ADMIN_PATH_PREFIX) && !CurrentUserContext.hasRole(ADMIN_ROLE)) {
+            rejectForbidden(request, response);
+            return;
         }
-    }
 
-    private List<String> parseRoles(String header) {
-        if (header == null || header.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(header.split(",")).map(String::trim).toList();
+        filterChain.doFilter(request, response);
     }
 
     private boolean isPublicRoute(String path) {

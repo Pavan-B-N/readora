@@ -38,9 +38,38 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 app:
+  jwt:
+    secret: ${JWT_SECRET}
   gateway:
     secret: ${GATEWAY_SECRET}
   security:
     public-routes: []
   catalog-service:
     base-url: http://localhost:8083
+
+resilience4j:
+  timelimiter:
+    instances:
+      catalog-service:
+        timeout-duration: 3s
+  retry:
+    instances:
+      catalog-service:
+        max-attempts: 3
+        wait-duration: 500ms
+        ignore-exceptions:
+          - com.readora.commerce.exception.BookNotFoundException
+          - com.readora.commerce.exception.InsufficientStockException
+  circuitbreaker:
+    instances:
+      catalog-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+        ignore-exceptions:
+          - com.readora.commerce.exception.BookNotFoundException
+          - com.readora.commerce.exception.InsufficientStockException

@@ -145,7 +145,7 @@
 .errorBubble {
   align-self: flex-start;
   background: var(--color-danger-bg);
-  border: 1px solid rgba(248, 81, 73, 0.25);
+  border: 1px solid rgba(var(--color-danger-rgb), 0.25);
   color: var(--color-danger);
 }
 

@@ -61,6 +61,8 @@ spring:
           url: ${MCP_SERVER_URL:http://localhost:8087}
 
 app:
+  jwt:
+    secret: ${JWT_SECRET}
   gateway:
     secret: ${GATEWAY_SECRET}
   security:
@@ -68,3 +70,19 @@ app:
       - /api/v1/ai/search
   catalog-service:
     base-url: http://localhost:8083
+
+resilience4j:
+  timelimiter:
+    instances:
+      catalog-service:
+        timeout-duration: 10s
+  circuitbreaker:
+    instances:
+      catalog-service:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true

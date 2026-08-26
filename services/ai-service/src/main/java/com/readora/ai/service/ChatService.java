@@ -1,5 +1,6 @@
 package com.readora.ai.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.ai.dto.ChatRequest;
 import com.readora.ai.entity.Conversation;
 import com.readora.ai.entity.Message;
@@ -7,22 +8,21 @@ import com.readora.ai.entity.MessageRole;
 import com.readora.ai.exception.ConversationNotFoundException;
 import com.readora.ai.repository.ConversationRepository;
 import com.readora.ai.repository.MessageRepository;
+import com.readora.ai.tool.UserScopedToolCallback;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
- * KNOWN GAP, flagged rather than hidden: the doc's security section requires that MCP tool calls
- * are scoped to the caller's X-User-Id from the JWT — "never from anything the model produced."
- * As wired here, mcp-server's user-scoped tools (getCart, getOrderHistory, etc.) declare userId
- * as a tool parameter, which means the model supplies it — exactly what the doc says must not
- * happen. A correct fix needs either a per-request-scoped MCP client connection carrying userId
- * as a transport-level header (not a model-visible parameter), or Spring AI's ToolContext
- * mechanism if it extends to remote MCP tools by the time you're reading this — I couldn't
- * verify either path without a live build, so this is left as real follow-up work, not silently
- * "solved."
+ * The MCP tools that read a specific user's own data (getCart, getOrderHistory, etc.) declare
+ * userId as a parameter, but the model must never be trusted to supply it — see
+ * ChatClientConfig's userScopedToolCallbacks() bean. Each chat request wraps those callbacks with
+ * the caller's real, JWT-authenticated user id (never from request.message() or anything the
+ * model produced) before making them available for this one call.
  */
 @Service
 public class ChatService {
@@ -30,11 +30,21 @@ public class ChatService {
     private final ChatClient chatClient;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final List<ToolCallback> userScopedToolCallbacks;
+    private final ObjectMapper objectMapper;
 
-    public ChatService(ChatClient chatClient, ConversationRepository conversationRepository, MessageRepository messageRepository) {
+    public ChatService(
+            ChatClient chatClient,
+            ConversationRepository conversationRepository,
+            MessageRepository messageRepository,
+            List<ToolCallback> userScopedToolCallbacks,
+            ObjectMapper objectMapper
+    ) {
         this.chatClient = chatClient;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
+        this.userScopedToolCallbacks = userScopedToolCallbacks;
+        this.objectMapper = objectMapper;
     }
 
     public Flux<String> chat(UUID userId, ChatRequest request) {
@@ -44,8 +54,14 @@ public class ChatService {
 
         StringBuilder assistantReply = new StringBuilder();
 
+        List<ToolCallback> scopedCallbacks = userScopedToolCallbacks.stream()
+                .map(callback -> new UserScopedToolCallback(callback, userId.toString(), objectMapper))
+                .map(ToolCallback.class::cast)
+                .toList();
+
         return chatClient.prompt()
                 .user(request.message())
+                .toolCallbacks(scopedCallbacks)
                 .stream()
                 .content()
                 .doOnNext(assistantReply::append)

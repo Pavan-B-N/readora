@@ -52,7 +52,7 @@ img {
   display: block;
 }
 
-/* Scrollbars — default light ones look broken on a dark surface */
+/* Custom scrollbars for a consistent look across browsers */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

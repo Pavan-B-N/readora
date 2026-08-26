@@ -28,6 +28,8 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 app:
+  jwt:
+    secret: ${JWT_SECRET}
   gateway:
     secret: ${GATEWAY_SECRET}
   security:

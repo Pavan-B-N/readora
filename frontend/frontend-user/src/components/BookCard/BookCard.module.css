@@ -12,6 +12,7 @@
 
 .card:hover .cover {
   border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .coverWrap {
@@ -28,7 +29,7 @@
   align-items: center;
   justify-content: center;
   color: var(--color-text-subtle);
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .cover img {

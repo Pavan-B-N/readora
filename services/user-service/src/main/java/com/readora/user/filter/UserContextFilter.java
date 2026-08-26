@@ -17,7 +17,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.UUID;
 
 @Component
 public class UserContextFilter extends OncePerRequestFilter implements Ordered {
@@ -44,18 +43,12 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
             return;
         }
 
-        String userIdHeader = request.getHeader("X-User-Id");
-        if (userIdHeader == null || userIdHeader.isBlank()) {
+        if (CurrentUserContext.get().isEmpty()) {
             reject(request, response);
             return;
         }
 
-        try {
-            CurrentUserContext.set(UUID.fromString(userIdHeader), request.getHeader("X-User-Email"));
-            filterChain.doFilter(request, response);
-        } finally {
-            CurrentUserContext.clear();
-        }
+        filterChain.doFilter(request, response);
     }
 
     private boolean isPublicRoute(String path) {

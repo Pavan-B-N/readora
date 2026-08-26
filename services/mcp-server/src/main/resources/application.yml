@@ -17,6 +17,8 @@ spring:
         version: 1.0.0
 
 app:
+  jwt:
+    secret: ${JWT_SECRET}
   gateway:
     secret: ${GATEWAY_SECRET}
   catalog-service:

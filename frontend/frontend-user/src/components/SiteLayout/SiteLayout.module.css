@@ -7,8 +7,9 @@
 .header {
   height: var(--header-height);
   border-bottom: 1px solid var(--color-border);
-  background: rgba(22, 27, 34, 0.85);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   position: sticky;

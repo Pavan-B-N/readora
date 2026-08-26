@@ -1,0 +1,269 @@
+{
+  "note": "All users share the password 'Password123!' \u2014 passwordHash below is the exact bcrypt hash already verified against Spring Security's BCryptPasswordEncoder in seedData/seed.sql, reused here rather than freshly generated (a hand-written hash string can't be trusted to actually verify without running it through bcrypt).",
+  "passwordHash": "$2y$10$3tEIXdfY.cmxmMtuI4RIbOIY/sO19PceBf9xhsuyIPQ7l0ELl6q0i",
+  "users": [
+    {
+      "email": "dev@readora.dev",
+      "displayName": "Dev Patel",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000005",
+      "walletBalance": 150.0,
+      "marketingOptIn": true,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Dev Patel",
+          "line1": "12 MG Road",
+          "line2": null,
+          "city": "Pune",
+          "state": "Maharashtra",
+          "postalCode": "411001",
+          "countryCode": "IN",
+          "phone": "+91-9000000005",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "priya@readora.dev",
+      "displayName": "Priya Sharma",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000006",
+      "walletBalance": 300.0,
+      "marketingOptIn": true,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Priya Sharma",
+          "line1": "45 Park Street",
+          "line2": "Flat 3B",
+          "city": "Kolkata",
+          "state": "West Bengal",
+          "postalCode": "700016",
+          "countryCode": "IN",
+          "phone": "+91-9000000006",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "arjun@readora.dev",
+      "displayName": "Arjun Rao",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000007",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Arjun Rao",
+          "line1": "78 Jubilee Hills",
+          "line2": null,
+          "city": "Hyderabad",
+          "state": "Telangana",
+          "postalCode": "500033",
+          "countryCode": "IN",
+          "phone": "+91-9000000007",
+          "isDefault": true
+        },
+        {
+          "label": "WORK",
+          "recipientName": "Arjun Rao",
+          "line1": "Cyber Towers, Level 5",
+          "line2": "HITEC City",
+          "city": "Hyderabad",
+          "state": "Telangana",
+          "postalCode": "500081",
+          "countryCode": "IN",
+          "phone": "+91-9000000007",
+          "isDefault": false
+        }
+      ]
+    },
+    {
+      "email": "meera@readora.dev",
+      "displayName": "Meera Iyer",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000008",
+      "walletBalance": 100.0,
+      "marketingOptIn": true,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Meera Iyer",
+          "line1": "9 Anna Salai",
+          "line2": null,
+          "city": "Chennai",
+          "state": "Tamil Nadu",
+          "postalCode": "600002",
+          "countryCode": "IN",
+          "phone": "+91-9000000008",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "rohan@readora.dev",
+      "displayName": "Rohan Verma",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000009",
+      "walletBalance": 50.0,
+      "marketingOptIn": false,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Rohan Verma",
+          "line1": "23 Sector 18",
+          "line2": null,
+          "city": "Noida",
+          "state": "Uttar Pradesh",
+          "postalCode": "201301",
+          "countryCode": "IN",
+          "phone": "+91-9000000009",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "ananya@readora.dev",
+      "displayName": "Ananya Das",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000010",
+      "walletBalance": 400.0,
+      "marketingOptIn": true,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Ananya Das",
+          "line1": "56 Salt Lake",
+          "line2": "Block C",
+          "city": "Kolkata",
+          "state": "West Bengal",
+          "postalCode": "700091",
+          "countryCode": "IN",
+          "phone": "+91-9000000010",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "karan@readora.dev",
+      "displayName": "Karan Mehta",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000011",
+      "walletBalance": 0.0,
+      "marketingOptIn": true,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Karan Mehta",
+          "line1": "101 SG Highway",
+          "line2": null,
+          "city": "Ahmedabad",
+          "state": "Gujarat",
+          "postalCode": "380015",
+          "countryCode": "IN",
+          "phone": "+91-9000000011",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "divya@readora.dev",
+      "displayName": "Divya Nair",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000012",
+      "walletBalance": 220.0,
+      "marketingOptIn": false,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Divya Nair",
+          "line1": "34 MG Road",
+          "line2": null,
+          "city": "Kochi",
+          "state": "Kerala",
+          "postalCode": "682016",
+          "countryCode": "IN",
+          "phone": "+91-9000000012",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "vikram@readora.dev",
+      "displayName": "Vikram Singh",
+      "role": "CUSTOMER",
+      "phone": "+91-9000000013",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Vikram Singh",
+          "line1": "5 Civil Lines",
+          "line2": null,
+          "city": "Jaipur",
+          "state": "Rajasthan",
+          "postalCode": "302006",
+          "countryCode": "IN",
+          "phone": "+91-9000000013",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "sara.jones@readora.dev",
+      "displayName": "Sara Jones",
+      "role": "CUSTOMER",
+      "phone": "+1-4155550101",
+      "walletBalance": 100.0,
+      "marketingOptIn": true,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Sara Jones",
+          "line1": "500 Market Street",
+          "line2": "Apt 12",
+          "city": "San Francisco",
+          "state": "California",
+          "postalCode": "94105",
+          "countryCode": "US",
+          "phone": "+1-4155550101",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "liam.oconnor@readora.dev",
+      "displayName": "Liam O'Connor",
+      "role": "CUSTOMER",
+      "phone": "+44-2079460101",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": [
+        {
+          "label": "HOME",
+          "recipientName": "Liam O'Connor",
+          "line1": "10 Baker Street",
+          "line2": null,
+          "city": "London",
+          "state": "England",
+          "postalCode": "NW1 6XE",
+          "countryCode": "GB",
+          "phone": "+44-2079460101",
+          "isDefault": true
+        }
+      ]
+    },
+    {
+      "email": "moderator@readora.dev",
+      "displayName": "Readora Moderator",
+      "role": "ADMIN",
+      "phone": "+91-9000000014",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    }
+  ]
+}

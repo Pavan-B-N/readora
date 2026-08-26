@@ -1,0 +1,118 @@
+[
+  {
+    "name": "Ace Books",
+    "slug": "ace-books"
+  },
+  {
+    "name": "Addison-Wesley",
+    "slug": "addison-wesley"
+  },
+  {
+    "name": "Anchor Books",
+    "slug": "anchor-books"
+  },
+  {
+    "name": "Avery",
+    "slug": "avery"
+  },
+  {
+    "name": "Bantam Books",
+    "slug": "bantam-books"
+  },
+  {
+    "name": "Bantam Spectra",
+    "slug": "bantam-spectra"
+  },
+  {
+    "name": "Beacon Press",
+    "slug": "beacon-press"
+  },
+  {
+    "name": "Crown Business",
+    "slug": "crown-business"
+  },
+  {
+    "name": "Crown Publishing",
+    "slug": "crown-publishing"
+  },
+  {
+    "name": "Farrar, Straus and Giroux",
+    "slug": "farrar-straus-and-giroux"
+  },
+  {
+    "name": "Harper Perennial",
+    "slug": "harper-perennial"
+  },
+  {
+    "name": "HarperBusiness",
+    "slug": "harperbusiness"
+  },
+  {
+    "name": "HarperCollins",
+    "slug": "harpercollins"
+  },
+  {
+    "name": "Little, Brown and Company",
+    "slug": "little-brown-and-company"
+  },
+  {
+    "name": "MIT Press",
+    "slug": "mit-press"
+  },
+  {
+    "name": "McGraw-Hill",
+    "slug": "mcgraw-hill"
+  },
+  {
+    "name": "O'Reilly Media",
+    "slug": "o-reilly-media"
+  },
+  {
+    "name": "Oxford University Press",
+    "slug": "oxford-university-press"
+  },
+  {
+    "name": "Pan Books",
+    "slug": "pan-books"
+  },
+  {
+    "name": "Penguin Classics",
+    "slug": "penguin-classics"
+  },
+  {
+    "name": "Prentice Hall",
+    "slug": "prentice-hall"
+  },
+  {
+    "name": "Random House",
+    "slug": "random-house"
+  },
+  {
+    "name": "Scribner",
+    "slug": "scribner"
+  },
+  {
+    "name": "Simon & Schuster",
+    "slug": "simon-schuster"
+  },
+  {
+    "name": "St. Martin's Press",
+    "slug": "st-martin-s-press"
+  },
+  {
+    "name": "Tor Books",
+    "slug": "tor-books"
+  },
+  {
+    "name": "Vintage",
+    "slug": "vintage"
+  },
+  {
+    "name": "Vintage Crime",
+    "slug": "vintage-crime"
+  },
+  {
+    "name": "W. W. Norton & Company",
+    "slug": "w-w-norton-company"
+  }
+]

@@ -15,8 +15,9 @@ import java.util.UUID;
 
 /**
  * Validates the caller's JWT on STOMP CONNECT and binds their user id as the session principal —
- * connections without a valid Bearer token are rejected outright. This endpoint isn't routed
- * through api-gateway, so this is the only identity check in front of it.
+ * connections without a valid Bearer token are rejected outright. Defence-in-depth: the gateway
+ * already validates the JWT at the HTTP Upgrade request, but this check runs regardless of how
+ * the connection reached this service.
  */
 @Component
 public class StompAuthChannelInterceptor implements ChannelInterceptor {

@@ -1,0 +1,142 @@
+[
+  {
+    "isbn13": "9780385490818",
+    "title": "The Handmaid's Tale",
+    "fileUrl": "s3://readora-virtual-editions/9780385490818.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 179.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "title": "Gone Girl",
+    "fileUrl": "s3://readora-virtual-editions/9780307588364.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 209.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9781449335588",
+    "title": "You Don't Know JS: Scope & Closures",
+    "fileUrl": "s3://readora-virtual-editions/9781449335588.pdf",
+    "fileFormat": "PDF",
+    "fileSizeBytes": 3200000,
+    "price": 359.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780393609394",
+    "title": "Astrophysics for People in a Hurry",
+    "fileUrl": "s3://readora-virtual-editions/9780393609394.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 209.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780061120084",
+    "title": "To Kill a Mockingbird",
+    "fileUrl": "s3://readora-virtual-editions/9780061120084.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 239.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780743273565",
+    "title": "The Great Gatsby",
+    "fileUrl": "s3://readora-virtual-editions/9780743273565.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 209.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780201633610",
+    "title": "Design Patterns",
+    "fileUrl": "s3://readora-virtual-editions/9780201633610.pdf",
+    "fileFormat": "PDF",
+    "fileSizeBytes": 3200000,
+    "price": 779.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780262046305",
+    "title": "Introduction to Algorithms",
+    "fileUrl": "s3://readora-virtual-editions/9780262046305.pdf",
+    "fileFormat": "PDF",
+    "fileSizeBytes": 3200000,
+    "price": 1199.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780134685991",
+    "title": "Effective Java",
+    "fileUrl": "s3://readora-virtual-editions/9780134685991.pdf",
+    "fileFormat": "PDF",
+    "fileSizeBytes": 3200000,
+    "price": 599.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780078022159",
+    "title": "Database System Concepts",
+    "fileUrl": "s3://readora-virtual-editions/9780078022159.pdf",
+    "fileFormat": "PDF",
+    "fileSizeBytes": 3200000,
+    "price": 1079.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780735211292",
+    "title": "Atomic Habits",
+    "fileUrl": "s3://readora-virtual-editions/9780735211292.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 299.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780553380163",
+    "title": "A Brief History of Time",
+    "fileUrl": "s3://readora-virtual-editions/9780553380163.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 269.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780198788607",
+    "title": "The Selfish Gene",
+    "fileUrl": "s3://readora-virtual-editions/9780198788607.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 299.4,
+    "currency": "INR",
+    "isActive": true
+  },
+  {
+    "isbn13": "9780307887894",
+    "title": "The Lean Startup",
+    "fileUrl": "s3://readora-virtual-editions/9780307887894.epub",
+    "fileFormat": "EPUB",
+    "fileSizeBytes": 550000,
+    "price": 329.4,
+    "currency": "INR",
+    "isActive": true
+  }
+]

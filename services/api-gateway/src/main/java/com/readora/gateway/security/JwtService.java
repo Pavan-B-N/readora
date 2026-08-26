@@ -1,6 +1,5 @@
 package com.readora.gateway.security;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -9,13 +8,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Validates JWTs issued by auth-service using the shared signing secret — the gateway never issues its own tokens.
- * Extracts the caller's user id and email from a valid token's claims.
+ * Validates JWTs issued by auth-service using the shared signing secret — the gateway never
+ * issues its own tokens. The gateway only needs to accept or reject a request, so it does not
+ * parse or forward any claims; each downstream service extracts what it needs from the token
+ * itself.
  */
 @Component
 public class JwtService {
@@ -28,28 +28,40 @@ public class JwtService {
     }
 
     /**
-     * Verifies a token's signature and expiry, and extracts the caller's identity from its claims.
+     * Verifies a token's signature and expiry.
      *
      * @param token the JWT string presented in the Authorization header
-     * @return the authenticated principal (user id and email) if the token is valid, or empty if it's missing, expired, or the signature doesn't verify
+     * @return true if the token is signed with this service's key and not expired
      */
-    public Optional<AuthenticatedPrincipal> validate(String token) {
+    public boolean isValid(String token) {
         try {
-            Claims claims = Jwts.parser()
+            Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Verifies a token's signature and expiry, and extracts the caller's user id from its
+     * subject claim. Used by the rate limiter to key authenticated callers by user id rather
+     * than IP.
+     *
+     * @param token the JWT string presented in the Authorization header
+     * @return the user id if the token is valid, or empty if it's missing, expired, or the signature doesn't verify
+     */
+    public Optional<UUID> extractUserId(String token) {
+        try {
+            String subject = Jwts.parser()
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token)
-                    .getPayload();
-
-            UUID userId = UUID.fromString(claims.getSubject());
-            String email = claims.get("email", String.class);
-
-            List<?> rawRoles = claims.get("roles", List.class);
-            List<String> roles = rawRoles == null
-                    ? List.of()
-                    : rawRoles.stream().map(String::valueOf).toList();
-
-            return Optional.of(new AuthenticatedPrincipal(userId, email, roles));
+                    .getPayload()
+                    .getSubject();
+            return Optional.of(UUID.fromString(subject));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }

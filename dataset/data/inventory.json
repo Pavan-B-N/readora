@@ -1,0 +1,282 @@
+[
+  {
+    "isbn13": "9780061120084",
+    "title": "To Kill a Mockingbird",
+    "qtyOnHand": 25,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780743273565",
+    "title": "The Great Gatsby",
+    "qtyOnHand": 32,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780141439518",
+    "title": "Pride and Prejudice",
+    "qtyOnHand": 39,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780060850524",
+    "title": "Brave New World",
+    "qtyOnHand": 25,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780316769488",
+    "title": "The Catcher in the Rye",
+    "qtyOnHand": 32,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780060883287",
+    "title": "One Hundred Years of Solitude",
+    "qtyOnHand": 39,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780143058144",
+    "title": "Crime and Punishment",
+    "qtyOnHand": 25,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9781451673319",
+    "title": "Fahrenheit 451",
+    "qtyOnHand": 27,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780345391803",
+    "title": "The Hitchhiker's Guide to the Galaxy",
+    "qtyOnHand": 34,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780812550702",
+    "title": "Ender's Game",
+    "qtyOnHand": 20,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780441569595",
+    "title": "Neuromancer",
+    "qtyOnHand": 27,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780385490818",
+    "title": "The Handmaid's Tale",
+    "qtyOnHand": 34,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780553380958",
+    "title": "Snow Crash",
+    "qtyOnHand": 20,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780062073488",
+    "title": "And Then There Were None",
+    "qtyOnHand": 35,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780307949486",
+    "title": "The Girl with the Dragon Tattoo",
+    "qtyOnHand": 23,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780307588364",
+    "title": "Gone Girl",
+    "qtyOnHand": 30,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780312924584",
+    "title": "The Silence of the Lambs",
+    "qtyOnHand": 37,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780140328260",
+    "title": "A Study in Scarlet",
+    "qtyOnHand": 25,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780399590504",
+    "title": "Educated",
+    "qtyOnHand": 22,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780735211292",
+    "title": "Atomic Habits",
+    "qtyOnHand": 29,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780812981605",
+    "title": "The Power of Habit",
+    "qtyOnHand": 36,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780807014295",
+    "title": "Man's Search for Meaning",
+    "qtyOnHand": 22,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780374533557",
+    "title": "Thinking, Fast and Slow",
+    "qtyOnHand": 29,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780316017930",
+    "title": "Outliers",
+    "qtyOnHand": 36,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780201633610",
+    "title": "Design Patterns",
+    "qtyOnHand": 22,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9780135957059",
+    "title": "The Pragmatic Programmer",
+    "qtyOnHand": 29,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9780262046305",
+    "title": "Introduction to Algorithms",
+    "qtyOnHand": 10,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9780134685991",
+    "title": "Effective Java",
+    "qtyOnHand": 17,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9781449335588",
+    "title": "You Don't Know JS: Scope & Closures",
+    "qtyOnHand": 24,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9780262510875",
+    "title": "Structure and Interpretation of Computer Programs",
+    "qtyOnHand": 31,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9780078022159",
+    "title": "Database System Concepts",
+    "qtyOnHand": 12,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9781492078005",
+    "title": "Head First Design Patterns",
+    "qtyOnHand": 19,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9780131103627",
+    "title": "The C Programming Language",
+    "qtyOnHand": 26,
+    "qtyReserved": 0,
+    "reorderThreshold": 8
+  },
+  {
+    "isbn13": "9780307887894",
+    "title": "The Lean Startup",
+    "qtyOnHand": 22,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780804139298",
+    "title": "Zero to One",
+    "qtyOnHand": 29,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780066620992",
+    "title": "Good to Great",
+    "qtyOnHand": 20,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780060516406",
+    "title": "Built to Last",
+    "qtyOnHand": 27,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780553380163",
+    "title": "A Brief History of Time",
+    "qtyOnHand": 22,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780198788607",
+    "title": "The Selfish Gene",
+    "qtyOnHand": 29,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780393609394",
+    "title": "Astrophysics for People in a Hurry",
+    "qtyOnHand": 21,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  }
+]

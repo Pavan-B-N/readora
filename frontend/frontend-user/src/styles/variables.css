@@ -1,35 +1,43 @@
 :root {
-  /* Surfaces — layered dark, each step lighter than the one behind it */
-  --color-bg: #0d1117;
-  --color-surface: #161b22;
-  --color-surface-raised: #1c2333;
-  --color-surface-hover: #21283a;
-  --color-border: #262d3d;
-  --color-border-strong: #364054;
+  /* Surfaces — clean white theme, subtle neutral steps for layering */
+  --color-bg: #f7f7f8;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f4f5f6;
+  --color-surface-hover: #eceef0;
+  --color-border: #e5e6e9;
+  --color-border-strong: #d4d6db;
 
   /* Text */
-  --color-text: #e6edf3;
-  --color-text-muted: #8b949e;
-  --color-text-subtle: #6e7681;
+  --color-text: #14161a;
+  --color-text-muted: #6b7280;
+  --color-text-subtle: #9aa0a9;
 
   /* Brand / actions */
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
-  --color-primary-soft: rgba(37, 99, 235, 0.14);
+  --color-primary-soft: rgba(37, 99, 235, 0.08);
   --color-primary-contrast: #ffffff;
+  --color-primary-rgb: 37, 99, 235;
 
-  --color-accent: #f0a132;
-  --color-accent-soft: rgba(240, 161, 50, 0.14);
+  --color-accent: #f59e0b;
+  --color-accent-soft: rgba(245, 158, 11, 0.12);
 
   /* Status */
-  --color-danger: #f85149;
-  --color-danger-bg: rgba(248, 81, 73, 0.13);
-  --color-success: #3fb950;
-  --color-success-bg: rgba(63, 185, 80, 0.13);
-  --color-warning: #d29922;
-  --color-warning-bg: rgba(210, 153, 34, 0.13);
-  --color-info: #58a6ff;
-  --color-info-bg: rgba(88, 166, 255, 0.13);
+  --color-danger: #dc2626;
+  --color-danger-bg: rgba(220, 38, 38, 0.08);
+  --color-danger-rgb: 220, 38, 38;
+
+  --color-success: #15803d;
+  --color-success-bg: rgba(21, 128, 61, 0.08);
+  --color-success-rgb: 21, 128, 61;
+
+  --color-warning: #b45309;
+  --color-warning-bg: rgba(180, 83, 9, 0.08);
+  --color-warning-rgb: 180, 83, 9;
+
+  --color-info: #1d4ed8;
+  --color-info-bg: rgba(29, 78, 216, 0.08);
+  --color-info-rgb: 29, 78, 216;
 
   /* Radii */
   --radius-sm: 6px;
@@ -57,10 +65,10 @@
   --font-size-xl: 1.5rem;
   --font-size-2xl: 2rem;
 
-  /* Elevation */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.45);
+  /* Elevation — soft, warm-neutral shadows so surfaces lift cleanly off a white page */
+  --shadow-sm: 0 1px 2px rgba(20, 22, 30, 0.05);
+  --shadow-md: 0 8px 24px rgba(20, 22, 30, 0.08);
+  --shadow-lg: 0 20px 56px rgba(20, 22, 30, 0.12);
 
   --header-height: 60px;
   --content-max-width: 1200px;
