@@ -28,6 +28,9 @@ public class Author {
     @Column(name = "bio", columnDefinition = "text")
     private String bio;
 
+    @Column(name = "photo_url", columnDefinition = "text")
+    private String photoUrl;
+
     protected Author() {
     }
 
@@ -51,6 +54,10 @@ public class Author {
 
     public String getBio() {
         return bio;
+    }
+
+    public String getPhotoUrl() {
+        return photoUrl;
     }
 
     @Override

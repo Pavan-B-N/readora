@@ -54,7 +54,7 @@
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   margin-left: auto;
 }
 
@@ -93,6 +93,10 @@
 .navIconWrap {
   position: relative;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
 }
 
 .signInLink {
@@ -111,8 +115,8 @@
 
 .cartBadge {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: -4px;
+  right: -4px;
   background: var(--color-accent);
   color: #1a1205;
   border-radius: var(--radius-pill);
@@ -120,8 +124,10 @@
   font-weight: 700;
   padding: 1px 5px;
   min-width: 16px;
+  box-sizing: border-box;
   text-align: center;
   line-height: 1.4;
+  border: 2px solid var(--color-surface);
 }
 
 .main {
@@ -130,14 +136,6 @@
   margin: 0 auto;
   width: 100%;
   padding: var(--space-6) var(--space-5) var(--space-10);
-}
-
-.footer {
-  border-top: 1px solid var(--color-border);
-  padding: var(--space-5);
-  text-align: center;
-  color: var(--color-text-subtle);
-  font-size: var(--font-size-sm);
 }
 
 @media (max-width: 640px) {

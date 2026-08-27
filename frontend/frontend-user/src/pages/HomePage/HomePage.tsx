@@ -1,16 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Download, Sparkles, Truck, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { searchBooks, getCategoryTree, getRecommendations, listStores } from '@/api/catalogApi';
-import { getMe } from '@/api/userApi';
-import type { BookSummary, CategoryNode } from '@/types/catalog';
+import { BookOpen, Package, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { searchBooks, getCategoryTree, getRecommendations, getPurchasedBooks } from '@/api/catalogApi';
+import type { BookSummary, CategoryNode, PurchasedBook } from '@/types/catalog';
 import { useDebounced } from '@/hooks/useDebounced';
 import { useAppSelector } from '@/redux/hooks';
 import { BookCard } from '@/components/BookCard';
 import { Button } from '@/components/Button';
-import { Select } from '@/components/Input';
 import { EmptyState } from '@/components/EmptyState';
+import { statusVariant, displayStatus } from '@/utils/orderStatus';
 import styles from './HomePage.module.css';
 
 const PAGE_SIZE = 18;
@@ -38,10 +37,18 @@ function flatten(nodes: CategoryNode[], depth = 0): FlatCategory[] {
   ]);
 }
 
+const statusChipClassByVariant: Record<ReturnType<typeof statusVariant>, string> = {
+  success: styles.statusSuccess,
+  danger: styles.statusDanger,
+  warning: styles.statusWarning,
+  info: styles.statusInfo,
+};
+
 export function HomePage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
   const accessToken = useAppSelector((state) => state.auth.accessToken);
+  const { selectedId: storeId, resolved: storeResolved } = useAppSelector((state) => state.store);
 
   const [books, setBooks] = useState<BookSummary[]>([]);
   const [page, setPage] = useState(0);
@@ -51,76 +58,60 @@ export function HomePage() {
 
   const [categories, setCategories] = useState<FlatCategory[]>([]);
   const [categoryId, setCategoryId] = useState('');
-  const [priceBand, setPriceBand] = useState('');
-  const [sort, setSort] = useState('relevance');
-  const [edition, setEdition] = useState<'physical' | 'virtual'>('physical');
-  const [recommendations, setRecommendations] = useState<BookSummary[]>([]);
-  const [storeId, setStoreId] = useState<string | null>(null);
+  const [recommendedIds, setRecommendedIds] = useState<Set<string>>(new Set());
+  const [orders, setOrders] = useState<PurchasedBook[]>([]);
 
-  const filters = useMemo(
-    () => ({ categoryId, priceBand, edition }),
-    [categoryId, priceBand, edition],
-  );
-  const debouncedFilters = useDebounced(filters, 150);
+  const debouncedCategoryId = useDebounced(categoryId, 150);
 
   useEffect(() => {
     getCategoryTree().then((tree) => setCategories(flatten(tree)));
   }, []);
 
-  // Physical results are scoped to "the store we're delivering from" — the same resolution
-  // StoreSwitcher uses (preferred store, falling back to the only/first one).
+  // Recommended items aren't a separate rail — they're just sorted first in the main feed below.
   useEffect(() => {
-    listStores().then((stores) => {
-      if (!accessToken) {
-        setStoreId(stores[0]?.id ?? null);
-        return;
-      }
-      getMe().then((me) => setStoreId(me.preferredStoreId ?? stores[0]?.id ?? null));
-    });
-  }, [accessToken]);
+    if (!accessToken || !storeResolved) {
+      setRecommendedIds(new Set());
+      return;
+    }
+    getRecommendations(storeId ?? undefined).then((items) => setRecommendedIds(new Set(items.map((b) => b.id))));
+  }, [accessToken, storeId, storeResolved]);
 
   useEffect(() => {
     if (!accessToken) {
-      setRecommendations([]);
+      setOrders([]);
       return;
     }
-    getRecommendations().then(setRecommendations);
+    getPurchasedBooks().then(setOrders);
   }, [accessToken]);
 
   useEffect(() => {
     setPage(0);
-  }, [query, debouncedFilters]);
+  }, [query, debouncedCategoryId]);
 
   useEffect(() => {
+    if (!storeResolved) return;
+
     let cancelled = false;
     setLoading(true);
 
-    const [minPrice, maxPrice] = debouncedFilters.priceBand
-      ? debouncedFilters.priceBand.split('-')
-      : ['', ''];
-
     searchBooks({
       q: query || undefined,
-      categoryId: debouncedFilters.categoryId || undefined,
-      minPrice: minPrice || undefined,
-      maxPrice: maxPrice || undefined,
-      virtualOnly: debouncedFilters.edition === 'virtual',
-      storeId: debouncedFilters.edition === 'virtual' ? undefined : (storeId ?? undefined),
+      categoryId: debouncedCategoryId || undefined,
+      storeId: storeId ?? undefined,
       page,
       size: PAGE_SIZE,
     })
       .then((result) => {
         if (cancelled) return;
         const items = result.items ?? [];
-        setBooks(
-          sort === 'price-asc'
-            ? [...items].sort((a, b) => Number(a.listPrice) - Number(b.listPrice))
-            : sort === 'price-desc'
-              ? [...items].sort((a, b) => Number(b.listPrice) - Number(a.listPrice))
-              : sort === 'title'
-                ? [...items].sort((a, b) => a.title.localeCompare(b.title))
-                : items,
-        );
+        // Stable partition: recommended-for-you titles surface first, everything else follows
+        // in the order the backend returned it — no separate "Recommended" rail, this is it.
+        const sorted = [...items].sort((a, b) => {
+          const aRec = recommendedIds.has(a.id) ? 0 : 1;
+          const bRec = recommendedIds.has(b.id) ? 0 : 1;
+          return aRec - bRec;
+        });
+        setBooks(sorted);
         setTotalPages(result.totalPages);
         setTotalElements(result.totalElements);
       })
@@ -131,10 +122,9 @@ export function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [query, page, debouncedFilters, sort, storeId]);
+  }, [query, page, debouncedCategoryId, storeId, storeResolved, recommendedIds]);
 
   const activeCategoryName = categories.find((c) => c.id === categoryId)?.name;
-  const hasFilters = Boolean(categoryId || priceBand);
 
   return (
     <div className={styles.layout}>
@@ -166,17 +156,25 @@ export function HomePage() {
       </aside>
 
       <div className={styles.content}>
-        {!query && !categoryId && recommendations.length > 0 && (
-          <div className={styles.recommendations}>
-            <div className={styles.recommendationsHeading}>
-              <Sparkles size={15} />
-              <h2 className={styles.recommendationsTitle}>Recommended for you</h2>
+        {!query && !categoryId && orders.length > 0 && (
+          <div className={styles.rail}>
+            <div className={styles.railHeading}>
+              <Package size={15} />
+              <h2 className={styles.railTitle}>Your orders</h2>
             </div>
-            <div className={styles.recommendationsRowWrapper}>
-              <div className={styles.recommendationsRow}>
-                {recommendations.map((book) => (
-                  <div className={styles.recommendationCard} key={book.id}>
-                    <BookCard book={book} />
+            <div className={styles.railRowWrapper}>
+              <div className={styles.railRow}>
+                {orders.map((item, i) => (
+                  <div className={styles.railCard} key={`${item.book.id}-${item.placedAt}-${i}`}>
+                    <BookCard
+                      book={item.book}
+                      addLabel="Buy again"
+                      footer={
+                        <span className={[styles.statusChip, statusChipClassByVariant[statusVariant(item.orderStatus)]].join(' ')}>
+                          {displayStatus(item.orderStatus)}
+                        </span>
+                      }
+                    />
                   </div>
                 ))}
               </div>
@@ -184,53 +182,11 @@ export function HomePage() {
           </div>
         )}
 
-        <div className={styles.heading}>
-          <h1 className={styles.title}>
+        <div className={styles.railHeading}>
+          <BookOpen size={15} />
+          <h2 className={styles.railTitle}>
             {query ? `Results for “${query}”` : activeCategoryName ? activeCategoryName : 'Browse books'}
-          </h1>
-          <p className={styles.subtitle}>Physical and virtual editions, all in one place.</p>
-        </div>
-
-        <div className={styles.toolbar}>
-          <div className={styles.editionTabs} role="tablist" aria-label="Edition type">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={edition === 'physical'}
-              className={[styles.editionTab, edition === 'physical' && styles.editionTabActive].filter(Boolean).join(' ')}
-              onClick={() => setEdition('physical')}
-            >
-              <Truck size={14} />
-              Physical
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={edition === 'virtual'}
-              className={[styles.editionTab, edition === 'virtual' && styles.editionTabActive].filter(Boolean).join(' ')}
-              onClick={() => setEdition('virtual')}
-            >
-              <Download size={14} />
-              Virtual editions
-            </button>
-          </div>
-
-          <div className={styles.filterBar}>
-            <Select label="Price range" value={priceBand} onChange={(e) => setPriceBand(e.target.value)}>
-              <option value="">Any price</option>
-              <option value="-299">Under ₹299</option>
-              <option value="300-599">₹300 – ₹599</option>
-              <option value="600-999">₹600 – ₹999</option>
-              <option value="1000-">₹1000 and above</option>
-            </Select>
-
-            <Select label="Sort by" value={sort} onChange={(e) => setSort(e.target.value)}>
-              <option value="relevance">Relevance</option>
-              <option value="price-asc">Price: low to high</option>
-              <option value="price-desc">Price: high to low</option>
-              <option value="title">Title A–Z</option>
-            </Select>
-          </div>
+          </h2>
         </div>
 
         <div className={styles.resultsBar}>
@@ -242,30 +198,6 @@ export function HomePage() {
                   <X size={11} />
                 </button>
               </span>
-            )}
-            {priceBand && (
-              <span className={styles.chip}>
-                {priceBand.startsWith('-')
-                  ? `Under ₹${priceBand.slice(1)}`
-                  : priceBand.endsWith('-')
-                    ? `₹${priceBand.slice(0, -1)}+`
-                    : `₹${priceBand.replace('-', ' – ₹')}`}
-                <button type="button" onClick={() => setPriceBand('')} aria-label="Clear price filter">
-                  <X size={11} />
-                </button>
-              </span>
-            )}
-            {hasFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setCategoryId('');
-                  setPriceBand('');
-                }}
-              >
-                Clear all
-              </Button>
             )}
           </div>
           <span className={styles.count}>
@@ -293,15 +225,8 @@ export function HomePage() {
                 : 'Try clearing a filter to see more of the catalogue.'
             }
             action={
-              hasFilters ? (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setCategoryId('');
-                    setPriceBand('');
-                  }}
-                >
+              categoryId ? (
+                <Button variant="secondary" size="sm" onClick={() => setCategoryId('')}>
                   Clear filters
                 </Button>
               ) : undefined
@@ -311,7 +236,7 @@ export function HomePage() {
           <>
             <motion.div
               className={styles.grid}
-              key={`${page}-${edition}-${debouncedFilters.categoryId}-${debouncedFilters.priceBand}-${sort}-${query}`}
+              key={`${page}-${debouncedCategoryId}-${query}`}
               variants={gridVariants}
               initial="hidden"
               animate="show"

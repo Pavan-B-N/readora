@@ -9,27 +9,8 @@ import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
 import { Spinner } from '@/components/Spinner';
 import { ROUTES } from '@/constants/routes';
+import { statusVariant, displayStatus } from '@/utils/orderStatus';
 import styles from './OrdersPage.module.css';
-
-function statusVariant(status: string) {
-  if (status === 'DELIVERED' || status === 'CONFIRMED' || status === 'PAID') return 'success' as const;
-  if (status === 'CANCELLED' || status === 'PAYMENT_FAILED') return 'danger' as const;
-  if (status === 'ASSIGNED' || status === 'SHIPPED') return 'info' as const;
-  return 'warning' as const;
-}
-
-function prettyStatus(status: string) {
-  return status
-    .split('_')
-    .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
-    .join(' ');
-}
-
-/** SHIPPED is stored as-is (see backend's OrderStatus javadoc) but reads as "Out for delivery" here. */
-function displayStatus(status: string) {
-  if (status === 'SHIPPED') return 'Out for delivery';
-  return prettyStatus(status);
-}
 
 export function OrdersPage() {
   const navigate = useNavigate();

@@ -278,5 +278,89 @@
     "qtyOnHand": 21,
     "qtyReserved": 0,
     "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780441013593",
+    "title": "Dune",
+    "qtyOnHand": 30,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780553293357",
+    "title": "Foundation",
+    "qtyOnHand": 28,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780446605236",
+    "title": "The Notebook",
+    "qtyOnHand": 24,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780132350884",
+    "title": "Clean Code",
+    "qtyOnHand": 35,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780345539434",
+    "title": "Cosmos",
+    "qtyOnHand": 26,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9781451648539",
+    "title": "Steve Jobs",
+    "qtyOnHand": 33,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9781982137274",
+    "title": "The 7 Habits of Highly Effective People",
+    "qtyOnHand": 27,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9781501144325",
+    "title": "Why We Sleep",
+    "qtyOnHand": 22,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780062316097",
+    "title": "Sapiens",
+    "qtyOnHand": 31,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9780064400558",
+    "title": "Charlotte's Web",
+    "qtyOnHand": 20,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9781401245252",
+    "title": "Watchmen",
+    "qtyOnHand": 18,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
+  },
+  {
+    "isbn13": "9781449474256",
+    "title": "Milk and Honey",
+    "qtyOnHand": 25,
+    "qtyReserved": 0,
+    "reorderThreshold": 5
   }
 ]

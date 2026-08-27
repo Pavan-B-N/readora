@@ -2,271 +2,403 @@
   {
     "name": "Abraham Silberschatz",
     "slug": "abraham-silberschatz",
-    "bio": "Computer scientist and co-author of the standard textbook \"Database System Concepts,\" known for his work on database and operating systems."
+    "bio": "Avi Silberschatz is an Israeli computer scientist and researcher. He is known for having authored many influential texts in computer science. He finished high school at the Hebrew Reali School in Haifa and graduated in 1976 with a Ph.D. in computer science from the State University of New York (SUNY) at Stony Brook.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Avi_silberschatz.jpg/330px-Avi_silberschatz.jpg"
   },
   {
     "name": "Agatha Christie",
     "slug": "agatha-christie",
-    "bio": "English writer known for detective novels."
+    "bio": "Dame Agatha Mary Clarissa Mallowan, Lady Mallowan, usually known by her first married name, Agatha Christie, was an English author known for her 66 detective novels and 14 short-story collections, particularly those revolving around fictional detectives Hercule Poirot, Tommy and Tuppence, and Miss Marple. She is widely regarded as one of the greatest writers, particularly in the mystery genre.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Agatha_Christie_in_Nederland_%28detectiveschrijfster%29%2C_bij_aankomst_op_Schiphol_me%2C_Bestanddeelnr_916-8898_%28cropped%29.jpg/330px-Agatha_Christie_in_Nederland_%28detectiveschrijfster%29%2C_bij_aankomst_op_Schiphol_me%2C_Bestanddeelnr_916-8898_%28cropped%29.jpg"
   },
   {
     "name": "Aldous Huxley",
     "slug": "aldous-huxley",
-    "bio": "English writer and philosopher best known for the dystopian novel \"Brave New World.\""
+    "bio": "Aldous Leonard Huxley was an English writer and philosopher. His bibliography spans nearly 50 books, including non-fiction works, as well as essays, narratives and poems.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Aldous_Huxley_psychical_researcher.png/330px-Aldous_Huxley_psychical_researcher.png"
   },
   {
     "name": "Andrew Hunt",
     "slug": "andrew-hunt",
-    "bio": "Software engineer and co-author of \"The Pragmatic Programmer,\" a foundational text on software craftsmanship."
+    "bio": "Andy Hunt is an author on software development. Hunt co-authored The Pragmatic Programmer, ten other books and many articles, and was one of the 17 original authors of the Agile Manifesto. He and partner Dave Thomas founded the Pragmatic Bookshelf series of books for software developers. He also plays the trumpet, flugel horn, and keyboards and produces music at Strange & Special Air Productions.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Andy_Hunt_programmer.jpg/330px-Andy_Hunt_programmer.jpg"
   },
   {
     "name": "Arthur Conan Doyle",
     "slug": "arthur-conan-doyle",
-    "bio": "Scottish writer who created the detective Sherlock Holmes, one of the most enduring characters in fiction."
+    "bio": "Sir Arthur Ignatius Conan Doyle was a British writer and physician. He is best known for his four novels and fifty-six short stories about the fictional consulting detective Sherlock Holmes and his assistant Dr. Watson, which are milestones in crime fiction, and for his first work featuring Professor Challenger, The Lost World (1912), which gave its name to a subgenre of speculative fiction.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Arthur_Conan_Doyle_by_Walter_Benington%2C_1914.png/330px-Arthur_Conan_Doyle_by_Walter_Benington%2C_1914.png"
   },
   {
     "name": "Blake Masters",
     "slug": "blake-masters",
-    "bio": "Entrepreneur and investor who co-authored \"Zero to One\" from his notes on Peter Thiel's Stanford course."
+    "bio": "Blake Gates Masters is an American venture capitalist, author, former political candidate, and conspiracy theorist. Often regarded as a protégé of venture capitalist Peter Thiel, Masters co-wrote Zero to One: Notes on Startups, or How to Build the Future with Thiel in 2014, based on notes Masters had taken at Stanford Law School in 2012.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/BlakeMasters_%28cropped%29.jpg/330px-BlakeMasters_%28cropped%29.jpg"
   },
   {
     "name": "Brian W. Kernighan",
     "slug": "brian-w-kernighan",
-    "bio": "Computer scientist who helped define the C programming language and shape the early Unix operating system."
+    "bio": "Brian Wilson Kernighan is a Canadian computer scientist. He worked at Bell Labs and contributed to the development of Unix alongside Unix creators Ken Thompson and Dennis Ritchie. Kernighan's name became widely known through co-authorship of the first book on the C programming language with Dennis Ritchie. Kernighan affirmed that he had no part in the design of the C language.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Brian_Kernighan_at_VCF_East_2.jpg/330px-Brian_Kernighan_at_VCF_East_2.jpg"
   },
   {
     "name": "Charles Duhigg",
     "slug": "charles-duhigg",
-    "bio": "Journalist and author of \"The Power of Habit,\" exploring the science of habit formation."
+    "bio": "Charles Duhigg is an American journalist and non-fiction author. He was a reporter for The New York Times. He currently writes for The New Yorker Magazine and is the author of three books: The Power of Habit: Why We Do What We Do in Life and Business, Smarter Faster Better and Supercommunicators: How to Unlock the Secret Language of Connection.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Charles_Duhigg_at_the_Leading_Through_Excellence_summit_in_2013_%28cropped%29.jpg/330px-Charles_Duhigg_at_the_Leading_Through_Excellence_summit_in_2013_%28cropped%29.jpg"
   },
   {
     "name": "Charles E. Leiserson",
     "slug": "charles-e-leiserson",
-    "bio": "Computer scientist and co-author of \"Introduction to Algorithms,\" a standard text on algorithm design."
+    "bio": "Charles Eric Leiserson is a computer scientist and professor at Massachusetts Institute of Technology (MIT). He specializes in the theory of parallel computing and distributed computing.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Charles_E_Leiserson_2011.jpg/330px-Charles_E_Leiserson_2011.jpg"
   },
   {
     "name": "Clifford Stein",
     "slug": "clifford-stein",
-    "bio": "Computer scientist and co-author of \"Introduction to Algorithms.\""
+    "bio": "Clifford Seth Stein, a computer scientist, is a professor of industrial engineering and operations research at Columbia University in New York, NY, where he also holds an appointment in the Department of Computer Science. Stein is chair of the Industrial Engineering and Operations Research Department at Columbia University. Prior to joining Columbia, Stein was a professor at Dartmouth College in New Hampshire.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/CliffordStein2010.jpg/330px-CliffordStein2010.jpg"
   },
   {
     "name": "Daniel Kahneman",
     "slug": "daniel-kahneman",
-    "bio": "Psychologist and Nobel laureate in economics, known for his work on cognitive biases and decision-making in \"Thinking, Fast and Slow.\""
+    "bio": "Daniel Kahneman was an Israeli-American psychologist best known for his work on the psychology of judgment and decision-making as well as behavioral economics, for which he was awarded the 2002 Nobel Memorial Prize in Economic Sciences together with Vernon L. Smith. Kahneman's published empirical findings challenge the assumption of human rationality prevailing in modern economic theory.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Daniel_Kahneman_%283283955327%29_%28cropped%29.jpg/330px-Daniel_Kahneman_%283283955327%29_%28cropped%29.jpg"
   },
   {
     "name": "David Thomas",
     "slug": "david-thomas",
-    "bio": "Software engineer and co-author of \"The Pragmatic Programmer.\""
+    "bio": "Dave Thomas is a computer programmer, author and editor. He has written about Ruby and together with Andy Hunt, he co-authored The Pragmatic Programmer and runs The Pragmatic Bookshelf publishing company. Thomas moved to the United States from England in 1994 and lives north of Dallas, Texas.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Dave_Thomas_speaking_at_the_Pasadena_Rails_Studio.jpg/330px-Dave_Thomas_speaking_at_the_Pasadena_Rails_Studio.jpg"
   },
   {
     "name": "Dennis M. Ritchie",
     "slug": "dennis-m-ritchie",
-    "bio": "Computer scientist who created the C programming language and co-created the Unix operating system."
+    "bio": "Dennis MacAlistair Ritchie was an American computer scientist. He created, together with long-time colleague Ken Thompson, the Unix operating system, C programming language, and B programming language.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Dennis_Ritchie_2011.jpg/330px-Dennis_Ritchie_2011.jpg"
   },
   {
     "name": "Douglas Adams",
     "slug": "douglas-adams",
-    "bio": "English author best known for the science-fiction comedy series \"The Hitchhiker's Guide to the Galaxy.\""
+    "bio": "Douglas Noël Adams was an English author, humourist, and screenwriter. He wrote The Hitchhiker's Guide to the Galaxy, which originated in 1978 as a BBC radio comedy, before developing into a \"trilogy\" of five books that sold more than 14 million copies in his lifetime. He also adapted it into a 1981 television series, a 1984 video game and a posthumously-released 2005 feature film.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Douglas_adams_portrait_cropped.jpg/330px-Douglas_adams_portrait_cropped.jpg"
   },
   {
     "name": "Elisabeth Robson",
     "slug": "elisabeth-robson",
-    "bio": "Author and instructional designer known for explaining complex technical topics for O'Reilly Media."
+    "bio": "Elisabeth Robson is an author and instructional designer at O'Reilly Media, co-author of Head First HTML and CSS and Learning Web Design. She is known for making complex technical topics approachable through the visually rich, brain-friendly \"Head First\" teaching format, blending narrative and design principles with hands-on exercises.",
+    "photoUrl": null
   },
   {
     "name": "Eric Freeman",
     "slug": "eric-freeman",
-    "bio": "Author known for the \"Head First\" series of accessible, visually-driven programming books."
+    "bio": "Eric Freeman is a co-creator of the \"Head First\" book series published by O'Reilly Media, including Head First Design Patterns and Head First HTML. He holds a Ph.D. in computer science and has spent much of his career making dense software engineering concepts approachable through visually driven, brain-friendly learning techniques.",
+    "photoUrl": null
   },
   {
     "name": "Eric Ries",
     "slug": "eric-ries",
-    "bio": "Entrepreneur and author of \"The Lean Startup,\" a foundational text on building startups through rapid experimentation."
+    "bio": "Eric Ries is an American entrepreneur, blogger, and author of The Lean Startup, a book on the lean startup movement. He is also the author of The Startup Way, a book on modern entrepreneurial management.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Eric_Ries2.jpg/330px-Eric_Ries2.jpg"
   },
   {
     "name": "Erich Gamma",
     "slug": "erich-gamma",
-    "bio": "Software engineer and one of the \"Gang of Four\" authors of \"Design Patterns.\""
+    "bio": "Erich Gamma is a Swiss computer scientist, best known as one of the four co-authors (the \"Gang of Four\") of the seminal 1994 textbook Design Patterns: Elements of Reusable Object-Oriented Software. He later co-created the Eclipse IDE at IBM and went on to lead development of Visual Studio Code at Microsoft.",
+    "photoUrl": null
   },
   {
     "name": "F. Scott Fitzgerald",
     "slug": "f-scott-fitzgerald",
-    "bio": "American novelist best known for \"The Great Gatsby,\" a defining portrait of the Jazz Age."
+    "bio": "Francis Scott Key Fitzgerald, widely known as F. Scott Fitzgerald or simply Scott Fitzgerald, was an American novelist, essayist, and short story writer. He is most notable for his novels depicting the flamboyance and excess of the Jazz Age, a term that he popularized in his short story collection Tales of the Jazz Age. He published four novels, four story collections, and 164 short stories.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/F._Scott_Fitzgerald_%281921_portrait_-_crop%29_Retouched.jpg/330px-F._Scott_Fitzgerald_%281921_portrait_-_crop%29_Retouched.jpg"
   },
   {
     "name": "Fyodor Dostoevsky",
     "slug": "fyodor-dostoevsky",
-    "bio": "Russian novelist known for psychologically intense works including \"Crime and Punishment.\""
+    "bio": "Fyodor Mikhailovich Dostoevsky was a Russian philosopher, novelist, short-story writer, essayist and journalist. He is regarded as one of the greatest novelists in both Russian and world literature, and many of his works are considered highly influential masterpieces.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Vasily_Perov_-_%D0%9F%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82_%D0%A4.%D0%9C.%D0%94%D0%BE%D1%81%D1%82%D0%BE%D0%B5%D0%B2%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_-_Google_Art_Project.jpg/330px-Vasily_Perov_-_%D0%9F%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82_%D0%A4.%D0%9C.%D0%94%D0%BE%D1%81%D1%82%D0%BE%D0%B5%D0%B2%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_-_Google_Art_Project.jpg"
   },
   {
-    "name": "Gabriel Garc\u00eda M\u00e1rquez",
+    "name": "Gabriel García Márquez",
     "slug": "gabriel-garcia-marquez",
-    "bio": "Colombian novelist and Nobel laureate, a pioneer of magical realism best known for \"One Hundred Years of Solitude.\""
+    "bio": "Gabriel José García Márquez was a Colombian writer and journalist, known affectionately as Gabo or Gabito throughout Latin America. Considered one of the most significant authors of the 20th century, particularly in the Spanish language, he was awarded the 1972 Neustadt International Prize for Literature and the 1982 Nobel Prize in Literature.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Gabriel_Garcia_Marquez.jpg/330px-Gabriel_Garcia_Marquez.jpg"
   },
   {
     "name": "Gerald Jay Sussman",
     "slug": "gerald-jay-sussman",
-    "bio": "Computer scientist and educator known for his foundational contributions to computer science curricula."
+    "bio": "Gerald Jay Sussman is the Panasonic Professor of Electrical Engineering at the Massachusetts Institute of Technology (MIT). He has been involved in artificial intelligence (AI) research at MIT since 1964.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Jerry_Sussman.jpg"
   },
   {
     "name": "Gillian Flynn",
     "slug": "gillian-flynn",
-    "bio": "American author known for tense psychological thrillers including \"Gone Girl.\""
+    "bio": "Gillian Schieber Flynn is an American author, screenwriter, and producer, best known for her thriller and mystery novels Sharp Objects (2006), Dark Places (2009), and Gone Girl (2012). Her works have been published in 40 languages, and by 2016, Gone Girl had sold over 15 million copies worldwide.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Gillian_Flynn_2014_%28cropped%29.jpg/330px-Gillian_Flynn_2014_%28cropped%29.jpg"
   },
   {
     "name": "Harold Abelson",
     "slug": "harold-abelson",
-    "bio": "Computer scientist and MIT professor known for his foundational work in computer science education."
+    "bio": "Harold Abelson is an American mathematician and computer scientist. He is a professor of computer science and engineering in the Department of Electrical Engineering and Computer Science at the Massachusetts Institute of Technology (MIT), a founding director of both Creative Commons and the Free Software Foundation, creator of the MIT App Inventor platform, and co-author of the widely used textbook Structure and Inte…",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/HalAbelsonJI1.jpg/330px-HalAbelsonJI1.jpg"
   },
   {
     "name": "Harper Lee",
     "slug": "harper-lee",
-    "bio": "American novelist best known for \"To Kill a Mockingbird,\" a landmark work on racial injustice in the American South."
+    "bio": "Nelle Harper Lee was an American novelist whose 1960 novel To Kill a Mockingbird won the 1961 Pulitzer Prize and became a classic of modern American literature. She assisted her close friend Truman Capote in his research for the book In Cold Blood (1966). An earlier draft of Mockingbird, set at a later date, Go Set a Watchman, was published in July 2015 as a sequel.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Photo_portrait_of_Harper_Lee_%28To_Kill_a_Mockingbird_dust_jacket%2C_1960%29.jpg/330px-Photo_portrait_of_Harper_Lee_%28To_Kill_a_Mockingbird_dust_jacket%2C_1960%29.jpg"
   },
   {
     "name": "Henry Korth",
     "slug": "henry-korth",
-    "bio": "Computer scientist and co-author of \"Database System Concepts.\""
+    "bio": "Henry Francis Korth is a professor of Computer Science and Engineering at Lehigh University, and a fellow of both the ACM and IEEE. He is best known as a co-author, alongside Abraham Silberschatz and S. Sudarshan, of the widely used university textbook Database System Concepts, now in its seventh edition.",
+    "photoUrl": null
   },
   {
     "name": "J.D. Salinger",
     "slug": "j-d-salinger",
-    "bio": "American author best known for \"The Catcher in the Rye,\" a defining novel of postwar alienation."
+    "bio": "Jerome David Salinger was an American writer best known for his 1951 novel The Catcher in the Rye. Salinger published several short stories in Story magazine in 1940, before serving in World War II. In 1948, his critically acclaimed story \"A Perfect Day for Bananafish\" appeared in The New Yorker, which published much of his later work.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/J._D._Salinger_%28Catcher_in_the_Rye_portrait%29.jpg/330px-J._D._Salinger_%28Catcher_in_the_Rye_portrait%29.jpg"
   },
   {
     "name": "James Clear",
     "slug": "james-clear",
-    "bio": "Author and speaker known for \"Atomic Habits,\" a practical guide to behavior change."
+    "bio": "James Clear is an American writer. Raised in Hamilton, Ohio, and receiving education from Denison University and Ohio State University, he is best known for his 2018 self-help book Atomic Habits.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/James_Clear_in_2010.jpg/330px-James_Clear_in_2010.jpg"
   },
   {
     "name": "Jane Austen",
     "slug": "jane-austen",
-    "bio": "English novelist known for witty social commentary in works including \"Pride and Prejudice.\""
+    "bio": "Jane Austen was an English writer known primarily for her six novels, which implicitly interpret, critique, and comment on the English landed gentry at the end of the 18th century.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/CassandraAusten-JaneAusten%28c.1810%29_hires.jpg/330px-CassandraAusten-JaneAusten%28c.1810%29_hires.jpg"
   },
   {
     "name": "Jerry I. Porras",
     "slug": "jerry-i-porras",
-    "bio": "Organizational theorist and co-author of \"Built to Last.\""
+    "bio": "Jerry I. Porras is an American organizational theorist and Lane Professor Emeritus of Organizational Behavior and Change at the Stanford University Graduate School of Business. He is best known as co-author, with James C. Collins, of the bestseller Built to Last: Successful Habits of Visionary Companies.",
+    "photoUrl": null
   },
   {
     "name": "Jim Collins",
     "slug": "jim-collins",
-    "bio": "Management researcher and author of \"Good to Great\" and \"Built to Last.\""
+    "bio": "James C. Collins is an American researcher, author, and management consultant known for his work on what separates enduring, high-performing companies from the rest. He is the author of Good to Great and co-author, with Jerry I. Porras, of Built to Last, both widely regarded as foundational texts in business strategy.",
+    "photoUrl": null
   },
   {
     "name": "John Vlissides",
     "slug": "john-vlissides",
-    "bio": "Software engineer and one of the \"Gang of Four\" authors of \"Design Patterns.\""
+    "bio": "John Matthew Vlissides was an American software engineer and computer scientist, best known as one of the four co-authors (the \"Gang of Four\") of the influential 1994 textbook Design Patterns: Elements of Reusable Object-Oriented Software. He spent much of his career as a researcher at IBM's Thomas J. Watson Research Center.",
+    "photoUrl": null
   },
   {
     "name": "Joshua Bloch",
     "slug": "joshua-bloch",
-    "bio": "Software engineer known for his work on Java's core libraries and the book \"Effective Java.\""
+    "bio": "Joshua J. Bloch is an American software engineer and a technology author.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/Joshua_Bloch_at_JavaOne_2005_%28cropped%29.jpg/330px-Joshua_Bloch_at_JavaOne_2005_%28cropped%29.jpg"
   },
   {
     "name": "Kyle Simpson",
     "slug": "kyle-simpson",
-    "bio": "Author and developer known for the \"You Don't Know JS\" book series on JavaScript internals."
+    "bio": "Kyle Simpson is a web developer, open web evangelist, and author best known for the deeply technical \"You Don't Know JS\" book series, which explores the inner workings of the JavaScript language. He has taught programming workshops worldwide and has been an active contributor to open-source JavaScript tooling.",
+    "photoUrl": null
   },
   {
     "name": "Malcolm Gladwell",
     "slug": "malcolm-gladwell",
-    "bio": "Journalist and author known for accessible explorations of social science, including \"Outliers.\""
+    "bio": "Malcolm Timothy Gladwell is a British-Canadian journalist, author, and public speaker. He has been a staff writer for The New Yorker since 1996. He has published eight books. He is also the host of the podcast Revisionist History and co-founder of the podcast company Pushkin Industries.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Malcolm_Gladwell%2C_author%2C_at_SXSW_2025_02_%28cropped%29.jpg/330px-Malcolm_Gladwell%2C_author%2C_at_SXSW_2025_02_%28cropped%29.jpg"
   },
   {
     "name": "Margaret Atwood",
     "slug": "margaret-atwood",
-    "bio": "Canadian author known for \"The Handmaid's Tale,\" a landmark work of dystopian fiction."
+    "bio": "Margaret Eleanor Atwood is a Canadian novelist, poet, literary critic, and inventor. Since 1961, she has published 18 books of poetry, 18 novels, 11 books of nonfiction, nine collections of short fiction, eight children's books, two graphic novels, and a number of small press editions of both poetry and fiction. Her best-known work is the 1985 dystopian novel The Handmaid's Tale.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Margaret_Atwood_%283x4_cropped%29.jpg/330px-Margaret_Atwood_%283x4_cropped%29.jpg"
   },
   {
     "name": "Neal Stephenson",
     "slug": "neal-stephenson",
-    "bio": "American author known for speculative fiction including \"Snow Crash,\" which popularized the term \"metaverse.\""
+    "bio": "Neal Town Stephenson is an American writer known for his works of speculative fiction. His novels have been categorized as science fiction, historical fiction, cyberpunk, and baroque.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Neal_Stephenson_in_2019_A_021.jpg/330px-Neal_Stephenson_in_2019_A_021.jpg"
   },
   {
     "name": "Neil deGrasse Tyson",
     "slug": "neil-degrasse-tyson",
-    "bio": "Astrophysicist and science communicator, author of \"Astrophysics for People in a Hurry.\""
+    "bio": "Neil deGrasse Tyson is an American astrophysicist, author, and science communicator. Tyson studied at Harvard University, the University of Texas at Austin, and Columbia University. From 1991 to 1994, he was a postdoctoral research associate at Princeton University. In 1994, he joined the Hayden Planetarium as a staff scientist and the Princeton faculty as a visiting research scientist and lecturer.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Neil_DeGrasse_Tyson_%282023%29.jpg/330px-Neil_DeGrasse_Tyson_%282023%29.jpg"
   },
   {
     "name": "Orson Scott Card",
     "slug": "orson-scott-card",
-    "bio": "American author best known for the science-fiction novel \"Ender's Game.\""
+    "bio": "Orson Scott Card is an American writer known best for his science fiction works. As of 2024, he is the only person to have won a Hugo Award and a Nebula Award in consecutive years, winning both awards for his novel Ender's Game (1985) and its sequel Speaker for the Dead (1986). A feature film adaptation of Ender's Game, which Card coproduced, was released in 2013.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Orson_Scott_Card_at_BYU_Symposium_20080216_closeup.jpg/330px-Orson_Scott_Card_at_BYU_Symposium_20080216_closeup.jpg"
   },
   {
     "name": "Peter Thiel",
     "slug": "peter-thiel",
-    "bio": "Entrepreneur and investor, co-founder of PayPal and author of \"Zero to One.\""
+    "bio": "Peter Andreas Thiel is a German-American entrepreneur, venture capitalist, and conservative political activist. A co-founder of PayPal (1998), Palantir Technologies (2003), and Founders Fund (2005), he was also the first outside investor in Facebook (2004). As of August 2026, Forbes estimated Thiel's net worth at US$32 billion.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Peter_Thiel_by_Gage_Skidmore.jpg/330px-Peter_Thiel_by_Gage_Skidmore.jpg"
   },
   {
     "name": "Ralph Johnson",
     "slug": "ralph-johnson",
-    "bio": "Software engineer and one of the \"Gang of Four\" authors of \"Design Patterns.\""
+    "bio": "Ralph E. Johnson is a research associate professor in the Department of Computer Science at the University of Illinois at Urbana-Champaign. He is one of the four co-authors (the \"Gang of Four\") of the influential textbook Design Patterns: Elements of Reusable Object-Oriented Software, for which he won the 2010 ACM SIGSOFT Outstanding Research Award.",
+    "photoUrl": null
   },
   {
     "name": "Ray Bradbury",
     "slug": "ray-bradbury",
-    "bio": "American author known for speculative fiction including \"Fahrenheit 451.\""
+    "bio": "Ray Douglas Bradbury was an American author and screenwriter. One of the most celebrated 20th-century American writers, he worked in a variety of genres, including fantasy, science fiction, horror, mystery, and realistic fiction.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Ray_Bradbury_%281975%29_-cropped-.jpg/330px-Ray_Bradbury_%281975%29_-cropped-.jpg"
   },
   {
     "name": "Readora Editorial",
     "slug": "readora-editorial",
-    "bio": "In-house Readora content, used for demo virtual editions."
+    "bio": "The in-house editorial team behind Readora's original and virtual-edition content. This byline is used for demo and sample material curated specifically for the Readora catalog rather than externally published works, covering original summaries, companion guides, and collected editions.",
+    "photoUrl": null
   },
   {
     "name": "Richard Dawkins",
     "slug": "richard-dawkins",
-    "bio": "Evolutionary biologist known for \"The Selfish Gene,\" which popularized gene-centered evolution."
+    "bio": "Richard Dawkins is a British evolutionary biologist, zoologist, science communicator, noted atheist, and author. He is an emeritus fellow of New College, Oxford. In 1995 he was named the first Simonyi Professor for the Public Understanding of Science, a position he held until 2008, and is on the advisory board of the University of Austin.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Dinner_with_Richard_Dawkins_and_CFI..._like_a_candle_in_the_dark.jpg/330px-Dinner_with_Richard_Dawkins_and_CFI..._like_a_candle_in_the_dark.jpg"
   },
   {
     "name": "Richard Helm",
     "slug": "richard-helm",
-    "bio": "Software engineer and one of the \"Gang of Four\" authors of \"Design Patterns.\""
+    "bio": "Richard Helm is a software consultant and one of the four co-authors (the \"Gang of Four\") of the influential 1994 textbook Design Patterns: Elements of Reusable Object-Oriented Software. In 2006 he received the Dahl-Nygaard Prize, and in 2010 the ACM SIGSOFT Outstanding Research Award, both for his contributions to software design.",
+    "photoUrl": null
   },
   {
     "name": "Ronald L. Rivest",
     "slug": "ronald-l-rivest",
-    "bio": "Cryptographer and computer scientist, co-inventor of the RSA algorithm and co-author of \"Introduction to Algorithms.\""
+    "bio": "Ronald Linn Rivest is an American cryptographer and computer scientist whose work has spanned the fields of algorithms and combinatorics, cryptography, machine learning, and election integrity. He is an Institute Professor at the Massachusetts Institute of Technology (MIT), and a member of MIT's Department of Electrical Engineering and Computer Science and its Computer Science and Artificial Intelligence Laboratory.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Ronald_L_Rivest_photo.jpg/330px-Ronald_L_Rivest_photo.jpg"
   },
   {
     "name": "S. Sudarshan",
     "slug": "s-sudarshan",
-    "bio": "Computer scientist and co-author of \"Database System Concepts.\""
+    "bio": "Shamkant B. \"S.\" Sudarshan is an Indian computer scientist and professor at the Indian Institute of Technology Bombay, specializing in database systems. He is best known as a co-author, alongside Abraham Silberschatz and Henry Korth, of the widely used textbook Database System Concepts.",
+    "photoUrl": null
   },
   {
     "name": "Stephen Hawking",
     "slug": "stephen-hawking",
-    "bio": "Theoretical physicist and cosmologist, author of \"A Brief History of Time.\""
+    "bio": "Stephen William Hawking was an English theoretical astrophysicist, cosmologist, and author who was director of research at the Centre for Theoretical Cosmology at the University of Cambridge. Between 1979 and 2009, he was the Lucasian Professor of Mathematics at Cambridge, widely viewed as one of the most prestigious academic posts in the world.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/e/eb/Stephen_Hawking.StarChild.jpg"
   },
   {
     "name": "Stieg Larsson",
     "slug": "stieg-larsson",
-    "bio": "Swedish journalist and author of \"The Girl with the Dragon Tattoo.\""
+    "bio": "Karl Stig-Erland \"Stieg\" Larsson was a Swedish writer, journalist, and far-left activist. He is best known for writing the first trilogy in the Millennium series of crime novels, which was published posthumously, starting in 2005, after he died of a sudden heart attack. The trilogy was adapted as three motion pictures in Sweden, and one in the United States.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/en/1/1b/Stieg_Larsson.jpg"
   },
   {
     "name": "Tara Westover",
     "slug": "tara-westover",
-    "bio": "American author of the memoir \"Educated,\" recounting her journey from an isolated upbringing to a Cambridge PhD."
+    "bio": "Tara Westover is an American memoirist, essayist and historian. Her memoir Educated (2018) debuted at No. 1 on The New York Times bestseller list and was a finalist for a number of national awards, including the Los Angeles Times Book Prize, PEN America's Jean Stein Book Award, and two awards from the National Book Critics Circle Award. The New York Times ranked Educated as one of the 10 Best Books of 2018.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Tara_Westover_receives_the_National_Humanities_Medal_on_March_21%2C_2023%2C_in_the_East_Room_of_the_White_House_-_P20230321ES-0780_%28cropped%29.jpg/330px-Tara_Westover_receives_the_National_Humanities_Medal_on_March_21%2C_2023%2C_in_the_East_Room_of_the_White_House_-_P20230321ES-0780_%28cropped%29.jpg"
   },
   {
     "name": "Thomas H. Cormen",
     "slug": "thomas-h-cormen",
-    "bio": "Computer scientist and lead author of \"Introduction to Algorithms.\""
+    "bio": "Thomas H. Cormen is an American computer scientist and emeritus professor at Dartmouth College, best known as co-author of Introduction to Algorithms (commonly known as CLRS), alongside Charles Leiserson, Ron Rivest, and Clifford Stein. He later wrote the companion volume Algorithms Unlocked for a broader audience.",
+    "photoUrl": null
   },
   {
     "name": "Thomas Harris",
     "slug": "thomas-harris",
-    "bio": "American author known for psychological thrillers including \"The Silence of the Lambs.\""
+    "bio": "Thomas Harris is an American novelist best known for a series of suspense novels featuring the character Hannibal Lecter, including Red Dragon, The Silence of the Lambs, and Hannibal. Several of his works have been adapted into acclaimed films, cementing his reputation as one of the defining voices in modern psychological thrillers.",
+    "photoUrl": null
   },
   {
     "name": "Viktor E. Frankl",
     "slug": "viktor-e-frankl",
-    "bio": "Austrian psychiatrist and Holocaust survivor, author of \"Man's Search for Meaning.\""
+    "bio": "Viktor Emil Frankl was an Austrian neurologist, psychiatrist, philosopher, and Holocaust survivor, who founded logotherapy, a school of psychotherapy that describes a search for a life's meaning as the central human motivational force. Logotherapy is part of existential and humanistic psychology theories.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Viktor_Frankl2.jpg/330px-Viktor_Frankl2.jpg"
   },
   {
     "name": "William Gibson",
     "slug": "william-gibson",
-    "bio": "American-Canadian author who coined the term \"cyberspace\" and pioneered cyberpunk fiction with \"Neuromancer.\""
+    "bio": "William Ford Gibson is an American and Canadian speculative fiction writer and essayist widely credited with pioneering the science fiction subgenre known as cyberpunk, a category from which he has repeatedly distanced himself.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/William_Gibson_60th_birthday_portrait_%283x4_cropped%29.jpg/330px-William_Gibson_60th_birthday_portrait_%283x4_cropped%29.jpg"
+  },
+  {
+    "name": "Frank Herbert",
+    "slug": "frank-herbert",
+    "bio": "Franklin Patrick Herbert Jr. was an American science-fiction author, best known for his 1965 novel Dune and five sequels to it. He also wrote short stories and worked as a newspaper journalist, photographer, book reviewer, ecological consultant, and lecturer.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Frank_Herbert_1984_%28square%29.jpg/330px-Frank_Herbert_1984_%28square%29.jpg"
+  },
+  {
+    "name": "Isaac Asimov",
+    "slug": "isaac-asimov",
+    "bio": "Isaac Asimov was an American writer and professor of biochemistry at Boston University. During his lifetime, Asimov was considered one of the \"Big Three\" science fiction writers, along with Robert A. Heinlein and Arthur C. Clarke. He wrote or edited more than 500 books and an estimated 90,000 letters and postcards.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Isaac.Asimov01.jpg/330px-Isaac.Asimov01.jpg"
+  },
+  {
+    "name": "Nicholas Sparks",
+    "slug": "nicholas-sparks",
+    "bio": "Nicholas Charles Sparks is an American novelist, screenwriter, and film producer. He has published 24 novels, 16 of which are New York Times bestsellers, and two works of nonfiction, with over 130 million copies sold worldwide in more than 50 languages. Among his works are The Notebook, A Walk to Remember, and Message in a Bottle all of which, along with eight other books, have been adapted as feature films.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Nicholas_Sparks_2011_%28cropped%29.jpg/330px-Nicholas_Sparks_2011_%28cropped%29.jpg"
+  },
+  {
+    "name": "Robert C. Martin",
+    "slug": "robert-c-martin",
+    "bio": "Robert Cecil Martin, colloquially called \"Uncle Bob\", is an American software engineer, instructor, and author. He is most recognized for promoting many software design principles and for being an author and signatory of the influential Agile Manifesto.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Robert_C._Martin_surrounded_by_computers_%28cropped%29.jpg/330px-Robert_C._Martin_surrounded_by_computers_%28cropped%29.jpg"
+  },
+  {
+    "name": "Carl Sagan",
+    "slug": "carl-sagan",
+    "bio": "Carl Edward Sagan was an American astronomer, planetary scientist and science communicator. Initially an assistant professor at Harvard, Sagan later moved to Cornell, where he was the David Duncan Professor of Astronomy and Space Sciences and directed the Laboratory for Planetary Studies. He played an active role in the Mariner, Viking and Voyager programs.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/b/be/Carl_Sagan_Planetary_Society.JPG"
+  },
+  {
+    "name": "Walter Isaacson",
+    "slug": "walter-isaacson",
+    "bio": "Walter Seff Isaacson is an American journalist who has written biographies of Henry Kissinger, Benjamin Franklin, Leonardo da Vinci, Albert Einstein, Steve Jobs, Jennifer Doudna, and Elon Musk. As of 2024, Isaacson is a professor at Tulane University and, since 2018, an interviewer for the PBS and CNN news show Amanpour & Company.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Walter_Isaacson_VF_2012_Shankbone_2.JPG/330px-Walter_Isaacson_VF_2012_Shankbone_2.JPG"
+  },
+  {
+    "name": "Stephen R. Covey",
+    "slug": "stephen-r-covey",
+    "bio": "Stephen Richards Covey was an American educator, author, businessman, and speaker. His most popular book is The 7 Habits of Highly Effective People. His other books include First Things First, Principle-Centered Leadership, The 7 Habits of Highly Effective Families, The 8th Habit, and The Leader In Me: How Schools and Parents Around the World Are Inspiring Greatness, One Child at a Time.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Stephen_Covey_174-CD-L05-03-02A-002_%28cropped%29.jpg/330px-Stephen_Covey_174-CD-L05-03-02A-002_%28cropped%29.jpg"
+  },
+  {
+    "name": "Matthew Walker",
+    "slug": "matthew-walker",
+    "bio": "Matthew Walker is a British author, scientist and professor of neuroscience and psychology at the University of California, Berkeley.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Matt_Scientist_Headshot.jpg/330px-Matt_Scientist_Headshot.jpg"
+  },
+  {
+    "name": "Yuval Noah Harari",
+    "slug": "yuval-noah-harari",
+    "bio": "Yuval Noah Harari is an Israeli medievalist, military historian, public intellectual, and popular science writer. He is a professor of history at the Hebrew University of Jerusalem. His first bestselling book, Sapiens: A Brief History of Humankind (2011) is based on his lectures to an undergraduate world history class.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/MKr364751_Yuval_Noah_Harari_%28Frankfurter_Buchmesse_2024%29.jpg/330px-MKr364751_Yuval_Noah_Harari_%28Frankfurter_Buchmesse_2024%29.jpg"
+  },
+  {
+    "name": "E. B. White",
+    "slug": "e-b-white",
+    "bio": "Elwyn Brooks White was an American writer, essayist, and a contributing editor for The New Yorker magazine. He was also the author of highly popular books for children: Stuart Little (1945), Charlotte's Web (1952), and The Trumpet of the Swan (1970).",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/1/18/EB_White_and_his_dog_Minnie.png"
+  },
+  {
+    "name": "Alan Moore",
+    "slug": "alan-moore",
+    "bio": "Alan Moore is an English author known primarily for his work in comics including Watchmen, V for Vendetta, The Ballad of Halo Jones, Swamp Thing, Batman: The Killing Joke, Superman: Whatever Happened to the Man of Tomorrow? and From Hell. He is widely recognised among his peers and critics as one of the best comic book writers in the English language.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Alan_Moore_%282%29.jpg/330px-Alan_Moore_%282%29.jpg"
+  },
+  {
+    "name": "Dave Gibbons",
+    "slug": "dave-gibbons",
+    "bio": "David Chester Gibbons is an English comics artist, writer and sometimes letterer. He is best known for his collaborations with writer Alan Moore, which include the miniseries Watchmen and the Superman story \"For the Man Who Has Everything\". He was an artist for 2000 AD, for which he contributed a large body of work from its first issue in 1977.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Dave_gibbons_comicfestival_muenchen_2025.jpg/330px-Dave_gibbons_comicfestival_muenchen_2025.jpg"
+  },
+  {
+    "name": "Rupi Kaur",
+    "slug": "rupi-kaur",
+    "bio": "Rupi Kaur is an Indian-Canadian poet, illustrator, photographer, and author. Born in Punjab, India, Kaur immigrated to Canada at a young age with her family. She began performing poetry in 2009 and rose to fame on Instagram, eventually becoming a popular poet through her three collections of poetry.",
+    "photoUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Rupi_Kaur_by_Baljit_Singh.jpg/330px-Rupi_Kaur_by_Baljit_Singh.jpg"
   }
 ]

@@ -9,6 +9,7 @@ import {
   Plus,
   ShoppingCart,
   Truck,
+  User,
   Zap,
 } from 'lucide-react';
 import { getBookDetail, getRelatedBooks } from '@/api/catalogApi';
@@ -35,6 +36,7 @@ export function BookDetailPage() {
   const { showToast } = useToast();
   const accessToken = useAppSelector((state) => state.auth.accessToken);
   const cartItems = useAppSelector((state) => state.cart.items);
+  const { selectedId: storeId, resolved: storeResolved } = useAppSelector((state) => state.store);
 
   const [book, setBook] = useState<BookDetail | null>(null);
   const [related, setRelated] = useState<RelatedBook[]>([]);
@@ -42,10 +44,10 @@ export function BookDetailPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
-    if (!bookId) return;
-    getBookDetail(bookId).then(setBook);
+    if (!bookId || !storeResolved) return;
+    getBookDetail(bookId, storeId ?? undefined).then(setBook);
     getRelatedBooks(bookId).then(setRelated);
-  }, [bookId]);
+  }, [bookId, storeId, storeResolved]);
 
   useEffect(() => {
     if (accessToken) dispatch(fetchCart());
@@ -54,6 +56,8 @@ export function BookDetailPage() {
   if (!book) return <Spinner />;
 
   const inStock = book.availability.status === 'IN_STOCK';
+  const notAvailableAtStore = book.availability.status === 'NOT_AVAILABLE_AT_STORE';
+  const noPhysicalEdition = book.availability.status === 'NO_PHYSICAL_EDITION';
   const hasVirtual = book.virtualEdition !== null;
 
   const physicalLine = cartItems.find((i) => i.bookId === book.id && i.deliveryType === 'PHYSICAL');
@@ -67,7 +71,9 @@ export function BookDetailPage() {
     }
     setBusy(true);
     try {
-      await dispatch(addToCart({ bookId: book.id, qty: 1, deliveryType })).unwrap();
+      await dispatch(
+        addToCart({ bookId: book.id, qty: 1, deliveryType, storeId: storeId ?? undefined }),
+      ).unwrap();
       showToast(`Added ${deliveryType === 'VIRTUAL' ? 'the virtual edition' : 'a physical copy'} to cart`);
       setPickerOpen(false);
     } catch {
@@ -160,19 +166,32 @@ export function BookDetailPage() {
               <span className={styles.currency}>{book.currency}</span>
             </div>
 
-            <div className={[styles.availability, inStock ? styles.inStock : styles.outOfStock].join(' ')}>
-              {inStock ? (
-                <>
-                  <Check size={14} />
-                  In stock — {book.availability.quantityAvailable} available
-                </>
-              ) : (
-                'Currently out of stock'
-              )}
-            </div>
+            {!noPhysicalEdition && (
+              <div className={[styles.availability, inStock ? styles.inStock : styles.outOfStock].join(' ')}>
+                {inStock ? (
+                  <>
+                    <Check size={14} />
+                    In stock — {book.availability.quantityAvailable} available
+                  </>
+                ) : notAvailableAtStore ? (
+                  `Not available for delivery from your store${book.store ? ` — only stocked at ${book.store.name}` : ''}`
+                ) : (
+                  'Currently out of stock'
+                )}
+              </div>
+            )}
+            {noPhysicalEdition && hasVirtual && (
+              <div className={[styles.availability, styles.virtualOnly].join(' ')}>
+                <Zap size={14} />
+                Available as a virtual edition only
+              </div>
+            )}
 
             <div className={styles.purchaseRow}>
-              <Button onClick={onAddToCartClick} disabled={(!inStock && !hasVirtual) || busy}>
+              <Button
+                onClick={onAddToCartClick}
+                disabled={((!inStock || notAvailableAtStore) && !hasVirtual) || busy}
+              >
                 <ShoppingCart size={15} />
                 {busy ? 'Adding…' : 'Add to cart'}
               </Button>
@@ -264,7 +283,16 @@ export function BookDetailPage() {
                   .filter((a) => a.bio)
                   .map((author) => (
                     <div className={styles.authorBio} key={author.id}>
-                      <span className={styles.authorBioName}>{author.name}</span>
+                      <div className={styles.authorBioHeader}>
+                        {author.photoUrl ? (
+                          <img className={styles.authorAvatar} src={author.photoUrl} alt={author.name} />
+                        ) : (
+                          <span className={styles.authorAvatarFallback}>
+                            <User size={18} />
+                          </span>
+                        )}
+                        <span className={styles.authorBioName}>{author.name}</span>
+                      </div>
                       <p className={styles.authorBioText}>{author.bio}</p>
                     </div>
                   ))}

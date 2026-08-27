@@ -39,6 +39,7 @@ export interface Author {
   name: string;
   slug: string;
   bio: string | null;
+  photoUrl: string | null;
 }
 
 export interface BookSummary {

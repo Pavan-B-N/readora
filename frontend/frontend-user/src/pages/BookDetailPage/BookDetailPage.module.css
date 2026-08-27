@@ -143,6 +143,10 @@
   color: var(--color-danger);
 }
 
+.virtualOnly {
+  color: var(--color-text-subtle);
+}
+
 .purchaseRow {
   display: flex;
   align-items: center;
@@ -328,7 +332,34 @@
 .authorBio {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
+}
+
+.authorBioHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.authorAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.authorAvatarFallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface-hover);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
 .authorBioName {

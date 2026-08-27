@@ -10,6 +10,7 @@ import com.readora.user.dto.TopUpRequest;
 import com.readora.user.dto.UpdateProfileRequest;
 import com.readora.user.dto.WalletBalanceResponse;
 import com.readora.user.dto.WalletResponse;
+import com.readora.user.dto.WishlistItemResponse;
 import com.readora.user.security.CurrentUserContext;
 import com.readora.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -131,6 +132,47 @@ public class UserController {
     @PutMapping("/addresses/{id}/default")
     public ResponseEntity<Void> setDefaultAddress(@PathVariable UUID id) {
         userService.setDefaultAddress(CurrentUserContext.require(), id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "List wishlist items",
+            description = "Lists the caller's wishlisted book ids, newest-first. Just ids — the caller looks up display data via catalog-service's batch lookup.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Wishlist returned")
+    })
+    @GetMapping("/wishlist")
+    public ResponseEntity<List<WishlistItemResponse>> listWishlist() {
+        return ResponseEntity.ok(userService.listWishlist(CurrentUserContext.require()));
+    }
+
+    @Operation(
+            summary = "Add a book to the wishlist",
+            description = "Idempotent — adding a book already on the wishlist is a no-op.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Book is on the wishlist")
+    })
+    @PutMapping("/wishlist/{bookId}")
+    public ResponseEntity<Void> addToWishlist(@PathVariable UUID bookId) {
+        userService.addToWishlist(CurrentUserContext.require(), bookId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Remove a book from the wishlist",
+            description = "Idempotent — removing a book that isn't on the wishlist is a no-op.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Book is off the wishlist")
+    })
+    @DeleteMapping("/wishlist/{bookId}")
+    public ResponseEntity<Void> removeFromWishlist(@PathVariable UUID bookId) {
+        userService.removeFromWishlist(CurrentUserContext.require(), bookId);
         return ResponseEntity.noContent().build();
     }
 

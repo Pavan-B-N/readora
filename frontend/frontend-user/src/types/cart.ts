@@ -27,4 +27,5 @@ export interface AddCartItemRequest {
   bookId: string;
   qty: number;
   deliveryType: DeliveryType;
+  storeId?: string;
 }

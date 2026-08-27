@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Search } from 'lucide-react';
 import { suggestBooks } from '@/api/catalogApi';
 import { useDebounced } from '@/hooks/useDebounced';
+import { useAppSelector } from '@/redux/hooks';
 import type { BookSuggestion } from '@/types/catalog';
 import { ROUTES } from '@/constants/routes';
 import styles from './SearchBar.module.css';
@@ -19,21 +20,22 @@ export function SearchBar() {
   const [activeIndex, setActiveIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounced(query, 250);
+  const { selectedId: storeId, resolved: storeResolved } = useAppSelector((state) => state.store);
 
   useEffect(() => {
     const trimmed = debouncedQuery.trim();
-    if (trimmed.length < MIN_QUERY_LENGTH) {
+    if (trimmed.length < MIN_QUERY_LENGTH || !storeResolved) {
       setSuggestions([]);
       return;
     }
     let cancelled = false;
-    suggestBooks(trimmed, 8).then((results) => {
+    suggestBooks(trimmed, 8, storeId ?? undefined).then((results) => {
       if (!cancelled) setSuggestions(results);
     });
     return () => {
       cancelled = true;
     };
-  }, [debouncedQuery]);
+  }, [debouncedQuery, storeId, storeResolved]);
 
   useEffect(() => {
     function onClickOutside(event: MouseEvent) {

@@ -4,6 +4,8 @@ import com.readora.commerce.dto.ErrorResponse;
 import com.readora.commerce.dto.FieldErrorItem;
 import com.readora.commerce.filter.CorrelationIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,8 @@ import java.util.UUID;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<ErrorResponse> handleServiceException(ServiceException ex, HttpServletRequest request) {
@@ -42,9 +46,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
+        String traceId = traceId();
+        // Genuinely-unexpected exceptions must never vanish silently — this was previously the
+        // only path in this handler with no log call at all, so a real bug here left zero trace
+        // anywhere, client or server. traceId ties this line back to the traceId in the response.
+        log.error("Unhandled exception on {} {} [traceId={}]", request.getMethod(), request.getRequestURI(), traceId, ex);
         ErrorResponse body = new ErrorResponse(
                 "INTERNAL_ERROR", "An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                request.getRequestURI(), traceId(), Instant.now()
+                request.getRequestURI(), traceId, Instant.now()
         );
         return ResponseEntity.internalServerError().body(body);
     }

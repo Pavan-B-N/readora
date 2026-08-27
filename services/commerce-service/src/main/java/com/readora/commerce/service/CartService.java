@@ -8,9 +8,11 @@ import com.readora.commerce.dto.BookInfo;
 import com.readora.commerce.dto.CartResponse;
 import com.readora.commerce.dto.CartSummaryResponse;
 import com.readora.commerce.entity.DeliveryType;
+import com.readora.commerce.exception.BookNotAvailableAtStoreException;
 import com.readora.commerce.exception.CartItemNotFoundException;
 import com.readora.commerce.exception.InsufficientStockException;
 import com.readora.commerce.exception.QtyLimitExceededException;
+import com.readora.commerce.exception.StoreIdRequiredException;
 import com.readora.commerce.exception.VirtualEditionNotAvailableException;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +59,11 @@ public class CartService {
             }
         }
 
-        BookInfo book = catalogClient.getBook(request.bookId());
+        if (request.deliveryType() == DeliveryType.PHYSICAL && request.storeId() == null) {
+            throw new StoreIdRequiredException();
+        }
+
+        BookInfo book = catalogClient.getBook(request.bookId(), request.storeId());
         BigDecimal unitPrice = validateAvailability(book, request.deliveryType(), newQty);
 
         CartItemData updated = new CartItemData(book.id(), book.title(), newQty, unitPrice, request.deliveryType(), Instant.now());
@@ -83,7 +89,10 @@ public class CartService {
             if (clampedQty > MAX_QTY_PER_TITLE) {
                 throw new QtyLimitExceededException();
             }
-            BookInfo book = catalogClient.getBook(bookId);
+            // No storeId here — this item was already store-validated when it was added, and a
+            // qty-only change can't move it to a different store, so re-checking against a store
+            // isn't meaningful (or available: the caller doesn't resend it for a qty bump).
+            BookInfo book = catalogClient.getBook(bookId, null);
             validateAvailability(book, deliveryType, clampedQty);
             items.replaceAll(i -> i.bookId().equals(bookId) && i.deliveryType() == deliveryType ? i.withQty(clampedQty) : i);
         }
@@ -101,6 +110,9 @@ public class CartService {
             return book.virtualEdition().price();
         }
 
+        if (book.availability() != null && "NOT_AVAILABLE_AT_STORE".equals(book.availability().status())) {
+            throw new BookNotAvailableAtStoreException();
+        }
         if (book.availability() == null || book.availability().quantityAvailable() < qty) {
             throw new InsufficientStockException("Requested quantity exceeds available inventory");
         }

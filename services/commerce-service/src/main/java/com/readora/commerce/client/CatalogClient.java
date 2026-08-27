@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -53,11 +54,19 @@ public class CatalogClient {
                 .build();
     }
 
+    /**
+     * storeId is the caller's currently-delivering-from store — forwarded so catalog-service can
+     * report NOT_AVAILABLE_AT_STORE for a book stocked at a different store, rather than its raw
+     * (irrelevant to this caller) inventory count. Null is a valid value (e.g. a qty-only cart
+     * update where the item was already store-validated at add time).
+     */
     @CircuitBreaker(name = "catalog-service", fallbackMethod = "getBookFallback")
     @Retry(name = "catalog-service")
-    public BookInfo getBook(UUID bookId) {
+    public BookInfo getBook(UUID bookId, UUID storeId) {
         return restClient.get()
-                .uri("/api/v1/books/{id}", bookId)
+                .uri(uriBuilder -> uriBuilder.path("/api/v1/books/{id}")
+                        .queryParamIfPresent("storeId", Optional.ofNullable(storeId))
+                        .build(bookId))
                 .retrieve()
                 .onStatus(this::isNotFound, (req, res) -> {
                     throw new BookNotFoundException();
@@ -92,7 +101,7 @@ public class CatalogClient {
                 .body(VirtualEditionLookupResponse.class);
     }
 
-    private BookInfo getBookFallback(UUID bookId, Throwable t) {
+    private BookInfo getBookFallback(UUID bookId, UUID storeId, Throwable t) {
         throw translate(t);
     }
 

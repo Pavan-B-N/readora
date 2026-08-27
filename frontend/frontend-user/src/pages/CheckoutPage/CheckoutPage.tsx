@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Check, Lock, Plus, QrCode, Wallet as WalletIcon } from 'lucide-react';
+import { AlertTriangle, Check, Loader2, Lock, Plus, QrCode, Truck, Wallet as WalletIcon } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchCart, cartCleared } from '@/redux/slices/cartSlice';
-import { checkout } from '@/api/orderApi';
+import { checkout, getOrderDetail } from '@/api/orderApi';
 import { addAddress, getMe, listAddresses } from '@/api/userApi';
 import { listStores } from '@/api/catalogApi';
 import type { Address, AddressRecipientType, MeResponse } from '@/types/user';
 import type { Store } from '@/types/catalog';
-import type { PaymentMethod } from '@/types/order';
+import type { CheckoutRequest, PaymentMethod } from '@/types/order';
 import { useToast } from '@/components/Toast';
+import { Badge } from '@/components/Badge';
 import { Card, CardHeader } from '@/components/Card';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
@@ -20,6 +21,10 @@ const FREE_SHIPPING_THRESHOLD = 499;
 const FLAT_SHIPPING_FEE = 40;
 const PACKAGING_FEE = 15;
 const TAX_RATE = 0.09;
+const UPI_POLL_INTERVAL_MS = 1200;
+const UPI_MAX_WAIT_MS = 60_000;
+const RESOLVED_ORDER_STATUSES = ['PAID', 'CONFIRMED', 'DELIVERED'];
+const FAILED_ORDER_STATUSES = ['PAYMENT_FAILED', 'CANCELLED'];
 
 interface NewAddressForm {
   label: 'HOME' | 'WORK' | 'OTHER';
@@ -46,6 +51,20 @@ export function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('WALLET');
   const [upiId, setUpiId] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [upiWaiting, setUpiWaiting] = useState(false);
+  const [upiElapsedSeconds, setUpiElapsedSeconds] = useState(0);
+  const [upiTimedOut, setUpiTimedOut] = useState(false);
+
+  // StrictMode double-invokes effects in dev (mount → cleanup → mount) — without resetting to
+  // true on (re-)mount, the simulated cleanup would leave this permanently false, silently
+  // short-circuiting the UPI poll loop below before it ever ran a single iteration.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     dispatch(fetchCart());
@@ -70,6 +89,7 @@ export function CheckoutPage() {
   const walletBalance = me ? Number(me.wallet.balance) : 0;
   const walletShort = pricing.grandTotal - walletBalance;
   const walletSufficient = walletShort <= 0;
+  const codAvailable = requiresShippingAddress;
 
   const openNewAddressForm = () => {
     setNewAddress({
@@ -152,12 +172,36 @@ export function CheckoutPage() {
     return selected;
   };
 
-  const onSubmit = async () => {
-    if (paymentMethod === 'UPI' && !upiId.trim()) {
-      showToast('Enter your UPI ID', 'error');
-      return;
-    }
+  const buildItems = () => items.map((item) => ({ bookId: item.bookId, qty: item.qty, deliveryType: item.deliveryType }));
 
+  const buildShippingAddressInput = (address: Address | null): CheckoutRequest['shippingAddress'] =>
+    address
+      ? {
+          recipientName: address.recipientName,
+          line1: address.line1,
+          line2: address.line2 ?? undefined,
+          city: address.city,
+          state: address.state,
+          postalCode: address.postalCode,
+          countryCode: address.countryCode,
+          phone: address.recipientPhone ?? undefined,
+        }
+      : null;
+
+  const handleCheckoutError = (error: unknown) => {
+    const errorCode = (error as { response?: { data?: { errorCode?: string; message?: string } } })?.response?.data
+      ?.errorCode;
+    const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+
+    if (errorCode === 'INSUFFICIENT_WALLET_BALANCE') {
+      showToast(message ?? 'Insufficient wallet balance', 'error');
+    } else {
+      showToast(message ?? 'Checkout failed', 'error');
+    }
+  };
+
+  /** WALLET and COD both resolve (near-)instantly server-side, so a single round trip is enough. */
+  const onSubmit = async () => {
     setSubmitting(true);
     try {
       const address = await resolveShippingAddress();
@@ -167,35 +211,85 @@ export function CheckoutPage() {
       }
 
       const response = await checkout({
-        shippingAddress: address
-          ? {
-              recipientName: address.recipientName,
-              line1: address.line1,
-              line2: address.line2 ?? undefined,
-              city: address.city,
-              state: address.state,
-              postalCode: address.postalCode,
-              countryCode: address.countryCode,
-              phone: address.recipientPhone ?? undefined,
-            }
-          : null,
+        shippingAddress: buildShippingAddressInput(address),
         paymentMethod,
-        upiId: paymentMethod === 'UPI' ? upiId.trim() : undefined,
-        items: items.map((item) => ({ bookId: item.bookId, qty: item.qty, deliveryType: item.deliveryType })),
+        items: buildItems(),
       });
       dispatch(cartCleared());
-      showToast(paymentMethod === 'UPI' ? 'Order placed — confirming your UPI payment…' : 'Order placed');
+      showToast(paymentMethod === 'COD' ? 'Order placed — pay in cash on delivery' : 'Order placed');
       navigate(ROUTES.orderDetail(response.orderId));
-    } catch (error: unknown) {
-      const errorCode = (error as { response?: { data?: { errorCode?: string; message?: string } } })?.response?.data
-        ?.errorCode;
-      const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
+    } catch (error) {
+      handleCheckoutError(error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-      if (errorCode === 'INSUFFICIENT_WALLET_BALANCE') {
-        showToast(message ?? 'Insufficient wallet balance', 'error');
-      } else {
-        showToast(message ?? 'Checkout failed', 'error');
+  /**
+   * UPI has a real (simulated) settlement delay — the order is created immediately at
+   * PENDING_PAYMENT, and payment-service's UpiSettlementJob captures it a few seconds later,
+   * entirely server-side. So instead of guessing, this polls the order itself until its status
+   * actually moves — a genuine "waiting for payment," not a fake client-side timer — and auto-
+   * places (navigates to) the order the moment it resolves.
+   */
+  const processUpiPayment = async () => {
+    const trimmedUpiId = upiId.trim();
+    if (!trimmedUpiId || !trimmedUpiId.includes('@')) {
+      showToast('Enter a valid UPI ID, e.g. yourname@ybl', 'error');
+      return;
+    }
+
+    setSubmitting(true);
+    setUpiTimedOut(false);
+    try {
+      const address = await resolveShippingAddress();
+      if (requiresShippingAddress && !address) {
+        setSubmitting(false);
+        return;
       }
+
+      const response = await checkout({
+        shippingAddress: buildShippingAddressInput(address),
+        paymentMethod: 'UPI',
+        upiId: trimmedUpiId,
+        items: buildItems(),
+      });
+
+      setUpiWaiting(true);
+      setUpiElapsedSeconds(0);
+      const startedAt = Date.now();
+      const tick = setInterval(() => {
+        if (mountedRef.current) setUpiElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+      }, 1000);
+
+      try {
+        while (mountedRef.current) {
+          if (Date.now() - startedAt > UPI_MAX_WAIT_MS) {
+            setUpiWaiting(false);
+            setUpiTimedOut(true);
+            return;
+          }
+
+          const order = await getOrderDetail(response.orderId);
+          if (RESOLVED_ORDER_STATUSES.includes(order.status)) {
+            dispatch(cartCleared());
+            showToast('Payment confirmed — order placed!');
+            navigate(ROUTES.orderDetail(response.orderId));
+            return;
+          }
+          if (FAILED_ORDER_STATUSES.includes(order.status)) {
+            setUpiWaiting(false);
+            showToast('Payment could not be confirmed — please try again', 'error');
+            return;
+          }
+          await new Promise((resolve) => setTimeout(resolve, UPI_POLL_INTERVAL_MS));
+        }
+      } finally {
+        clearInterval(tick);
+      }
+    } catch (error) {
+      handleCheckoutError(error);
+      setUpiWaiting(false);
     } finally {
       setSubmitting(false);
     }
@@ -205,7 +299,7 @@ export function CheckoutPage() {
     return <p style={{ color: 'var(--color-text-muted)' }}>Your cart is empty.</p>;
   }
 
-  const canSubmit = paymentMethod === 'UPI' || walletSufficient;
+  const canSubmit = paymentMethod !== 'WALLET' || walletSufficient;
 
   return (
     <div>
@@ -339,30 +433,61 @@ export function CheckoutPage() {
                 <QrCode size={16} />
                 UPI
               </button>
+              <button
+                type="button"
+                className={[styles.paymentTab, paymentMethod === 'COD' && styles.paymentTabActive, !codAvailable && styles.paymentTabDisabled]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() =>
+                  codAvailable
+                    ? setPaymentMethod('COD')
+                    : showToast("Cash on Delivery isn't available for a virtual-only order", 'error')
+                }
+              >
+                <Truck size={16} />
+                Cash on Delivery
+              </button>
             </div>
 
             {paymentMethod === 'WALLET' && me && (
-              <div className={[styles.walletStatus, !walletSufficient && styles.walletStatusShort].join(' ')}>
-                <span>Wallet balance</span>
-                <span className={styles.walletBalanceValue}>
-                  ₹{me.wallet.balance}
-                  {!walletSufficient && (
-                    <span className={styles.walletShort}>
-                      <AlertTriangle size={12} />
-                      Short by ₹{walletShort.toFixed(2)}
+              <div className={styles.walletPanel}>
+                <div className={styles.walletBalanceRow}>
+                  <span className={styles.walletIconWrap}>
+                    <WalletIcon size={18} />
+                  </span>
+                  <div className={styles.walletBalanceText}>
+                    <span className={styles.walletLabel}>Wallet balance</span>
+                    <span className={styles.walletBalanceBig}>
+                      ₹{me.wallet.balance} <span className={styles.walletCurrency}>{me.wallet.currency}</span>
                     </span>
-                  )}
-                </span>
+                  </div>
+                  <Badge variant={walletSufficient ? 'success' : 'danger'} dot>
+                    {walletSufficient ? 'Sufficient' : 'Insufficient'}
+                  </Badge>
+                </div>
                 {!walletSufficient && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => navigate(`${ROUTES.wallet}?topup=1`)}
-                    style={{ gridColumn: '1 / -1' }}
-                  >
-                    Top up wallet
-                  </Button>
+                  <div className={styles.walletShortBox}>
+                    <AlertTriangle size={14} />
+                    <span>
+                      You're short by <strong>₹{walletShort.toFixed(2)}</strong> for this order.
+                    </span>
+                    <Button variant="secondary" size="sm" onClick={() => navigate(`${ROUTES.wallet}?topup=1`)}>
+                      Top up wallet
+                    </Button>
+                  </div>
                 )}
+              </div>
+            )}
+
+            {paymentMethod === 'COD' && (
+              <div className={styles.codPanel}>
+                <span className={styles.codIconWrap}>
+                  <Truck size={18} />
+                </span>
+                <div>
+                  <div className={styles.codTitle}>Pay ₹{pricing.grandTotal.toFixed(2)} in cash on delivery</div>
+                  <div className={styles.codHint}>Have the exact amount ready for the delivery agent.</div>
+                </div>
               </div>
             )}
 
@@ -371,13 +496,41 @@ export function CheckoutPage() {
                 <Input
                   label="UPI ID"
                   required
-                  placeholder="yourname@bank"
+                  placeholder="yourname@ybl"
                   value={upiId}
                   onChange={(e) => setUpiId(e.target.value)}
+                  disabled={upiWaiting}
                 />
-                <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
-                  Demo UPI — we'll simulate your approval and confirm the payment in a few seconds.
-                </p>
+                <Button onClick={processUpiPayment} disabled={submitting || addingAddress || upiWaiting} block>
+                  <QrCode size={14} />
+                  {upiWaiting ? 'Waiting for payment…' : `Pay ₹${pricing.grandTotal.toFixed(2)} via UPI`}
+                </Button>
+
+                {upiWaiting && (
+                  <div className={styles.upiWaiting}>
+                    <Loader2 size={16} className="spin" />
+                    <span>
+                      Waiting for payment confirmation for <strong>{upiId.trim()}</strong>… ({upiElapsedSeconds}s)
+                    </span>
+                  </div>
+                )}
+                {upiTimedOut && (
+                  <div className={styles.upiTimeout}>
+                    <AlertTriangle size={14} />
+                    <span>
+                      This is taking longer than expected. We'll keep confirming it in the background — check your
+                      orders shortly.
+                    </span>
+                    <Button variant="secondary" size="sm" onClick={() => navigate(ROUTES.orders)}>
+                      Go to your orders
+                    </Button>
+                  </div>
+                )}
+                {!upiWaiting && !upiTimedOut && (
+                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
+                    Demo UPI — we'll simulate your approval and confirm the payment in a few seconds.
+                  </p>
+                )}
               </div>
             )}
           </Card>
@@ -419,10 +572,12 @@ export function CheckoutPage() {
               ₹{pricing.grandTotal.toFixed(2)} <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400 }}>{currency}</span>
             </span>
           </div>
-          <Button onClick={onSubmit} disabled={submitting || addingAddress || !canSubmit} block>
-            <Lock size={14} />
-            {submitting || addingAddress ? 'Placing order…' : !canSubmit ? 'Top up wallet to continue' : 'Place order'}
-          </Button>
+          {paymentMethod !== 'UPI' && (
+            <Button onClick={onSubmit} disabled={submitting || addingAddress || !canSubmit} block>
+              <Lock size={14} />
+              {submitting || addingAddress ? 'Placing order…' : !canSubmit ? 'Top up wallet to continue' : 'Place order'}
+            </Button>
+          )}
         </Card>
       </div>
     </div>

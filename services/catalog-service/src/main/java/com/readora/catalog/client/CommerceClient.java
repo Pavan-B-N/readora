@@ -1,6 +1,7 @@
 package com.readora.catalog.client;
 
 import com.readora.catalog.dto.PurchasedBookIdsResponse;
+import com.readora.catalog.dto.RecentOrderItemResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +43,20 @@ public class CommerceClient {
             return response != null ? response.bookIds() : List.of();
         } catch (Exception e) {
             log.warn("Could not fetch purchase history from commerce-service for recommendations", e);
+            return List.of();
+        }
+    }
+
+    /** Backs the "Your orders" rail — best-effort, same reasoning as getPurchasedBookIds: empty on failure, not an error. */
+    public List<RecentOrderItemResponse> getRecentOrderItems(UUID userId, int limit) {
+        try {
+            RecentOrderItemResponse[] response = restClient.get()
+                    .uri("/internal/orders/recent-items?userId={userId}&limit={limit}", userId, limit)
+                    .retrieve()
+                    .body(RecentOrderItemResponse[].class);
+            return response != null ? List.of(response) : List.of();
+        } catch (Exception e) {
+            log.warn("Could not fetch recent orders from commerce-service", e);
             return List.of();
         }
     }

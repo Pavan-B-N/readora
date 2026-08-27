@@ -1,0 +1,1826 @@
+[
+  {
+    "isbn13": "9780061120084",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780061120084",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780061120084",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780061120084",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780743273565",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Beautifully written and paced perfectly. Will definitely be revisiting this one.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780743273565",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780743273565",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 4,
+    "comment": "Engaging read, though I expected a bit more depth in the second half.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Good book with a lot of value — docking one star only because the pacing dipped mid-way.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060850524",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060850524",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780060850524",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780316769488",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780316769488",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 2,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780316769488",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 4,
+    "comment": "Pretty happy with this purchase. A few parts dragged but the payoff was worth it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060883287",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Beautifully written and paced perfectly. Will definitely be revisiting this one.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060883287",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 4,
+    "comment": "Enjoyable and well worth the time, even if a couple of chapters felt like filler.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780060883287",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 2,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060883287",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060883287",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 4,
+    "comment": "Good book with a lot of value — docking one star only because the pacing dipped mid-way.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780143058144",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780143058144",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780143058144",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781451673319",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 3,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781451673319",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Well written and informative. I'd recommend it with minor reservations.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781451673319",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 4,
+    "comment": "Enjoyed this a lot. Not perfect, but definitely worth adding to your shelf.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781451673319",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780345391803",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780345391803",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780345391803",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Enjoyed this a lot. Not perfect, but definitely worth adding to your shelf.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780812550702",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 4,
+    "comment": "Enjoyed this a lot. Not perfect, but definitely worth adding to your shelf.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780812550702",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780812550702",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780812550702",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 4,
+    "comment": "Enjoyable and well worth the time, even if a couple of chapters felt like filler.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780812550702",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780441569595",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 4,
+    "comment": "Really solid read overall, a couple of slower sections but worth it in the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780441569595",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780441569595",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780441569595",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780441569595",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780385490818",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780385490818",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780385490818",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380958",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380958",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380958",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 4,
+    "comment": "Pretty happy with this purchase. A few parts dragged but the payoff was worth it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380958",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780062073488",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780062073488",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780062073488",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307949486",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307949486",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307949486",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 3,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 3,
+    "comment": "Okay book. Started strong but lost momentum toward the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780312924584",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Engaging read, though I expected a bit more depth in the second half.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780312924584",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 4,
+    "comment": "Well written and informative. I'd recommend it with minor reservations.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780312924584",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 4,
+    "comment": "Enjoyable and well worth the time, even if a couple of chapters felt like filler.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780312924584",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 2,
+    "comment": "Okay book. Started strong but lost momentum toward the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780312924584",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "Beautifully written and paced perfectly. Will definitely be revisiting this one.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780140328260",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 4,
+    "comment": "Engaging read, though I expected a bit more depth in the second half.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780140328260",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780140328260",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "Exceeded my expectations. The writing pulled me in from the first chapter and never let go.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780140328260",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 3,
+    "comment": "Not bad, but I probably wouldn't re-read it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780140328260",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 2,
+    "comment": "Not bad, but I probably wouldn't re-read it.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780399590504",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780399590504",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Pretty happy with this purchase. A few parts dragged but the payoff was worth it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780399590504",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780735211292",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 3,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780735211292",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Really solid read overall, a couple of slower sections but worth it in the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780735211292",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780812981605",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780812981605",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 2,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780812981605",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780807014295",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780807014295",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 3,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780807014295",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780807014295",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 3,
+    "comment": "Not bad, but I probably wouldn't re-read it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780374533557",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780374533557",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780374533557",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 2,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780316017930",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 2,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780316017930",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 4,
+    "comment": "Engaging read, though I expected a bit more depth in the second half.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780316017930",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780201633610",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780201633610",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780201633610",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 4,
+    "comment": "Pretty happy with this purchase. A few parts dragged but the payoff was worth it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780135957059",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Engaging read, though I expected a bit more depth in the second half.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780135957059",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780135957059",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780262046305",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780262046305",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 4,
+    "comment": "Well written and informative. I'd recommend it with minor reservations.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780262046305",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 3,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780134685991",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 5,
+    "comment": "Beautifully written and paced perfectly. Will definitely be revisiting this one.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780134685991",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 3,
+    "comment": "Middle-of-the-road for me. Some readers will love it more than I did.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780134685991",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781449335588",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781449335588",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 4,
+    "comment": "Well written and informative. I'd recommend it with minor reservations.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781449335588",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781449335588",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780262510875",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Well written and informative. I'd recommend it with minor reservations.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780262510875",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 4,
+    "comment": "Enjoyable and well worth the time, even if a couple of chapters felt like filler.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780262510875",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780078022159",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780078022159",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780078022159",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 3,
+    "comment": "Middle-of-the-road for me. Some readers will love it more than I did.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781492078005",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781492078005",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781492078005",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780131103627",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 2,
+    "comment": "Okay book. Started strong but lost momentum toward the end.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780131103627",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 4,
+    "comment": "Enjoyed this a lot. Not perfect, but definitely worth adding to your shelf.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780131103627",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307887894",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Beautifully written and paced perfectly. Will definitely be revisiting this one.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307887894",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 4,
+    "comment": "Enjoyed this a lot. Not perfect, but definitely worth adding to your shelf.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780307887894",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 4,
+    "comment": "Really solid read overall, a couple of slower sections but worth it in the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307887894",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Enjoyable and well worth the time, even if a couple of chapters felt like filler.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307887894",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780804139298",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780804139298",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780804139298",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 2,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780066620992",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780066620992",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780066620992",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 2,
+    "comment": "Not bad, but I probably wouldn't re-read it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060516406",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 4,
+    "comment": "Engaging read, though I expected a bit more depth in the second half.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060516406",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 2,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060516406",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 4,
+    "comment": "Enjoyable and well worth the time, even if a couple of chapters felt like filler.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780060516406",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 3,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780060516406",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 4,
+    "comment": "Enjoyed this a lot. Not perfect, but definitely worth adding to your shelf.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 2,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780198788607",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780198788607",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780198788607",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780393609394",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 3,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780393609394",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780393609394",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Exceeded my expectations. The writing pulled me in from the first chapter and never let go.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781234567897",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781234567897",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781234567897",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 3,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780441013593",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780441013593",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780441013593",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Really solid read overall, a couple of slower sections but worth it in the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780441013593",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 5,
+    "comment": "Beautifully written and paced perfectly. Will definitely be revisiting this one.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780441013593",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553293357",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553293357",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Exceeded my expectations. The writing pulled me in from the first chapter and never let go.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553293357",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 3,
+    "comment": "Middle-of-the-road for me. Some readers will love it more than I did.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780553293357",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Really solid read overall, a couple of slower sections but worth it in the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 3,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307588364",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 3,
+    "comment": "Okay book. Started strong but lost momentum toward the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307949486",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307949486",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780307949486",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Good book with a lot of value — docking one star only because the pacing dipped mid-way.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780141439518",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "This book stuck with me long after I finished it. Fantastic purchase.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780446605236",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 3,
+    "comment": "Middle-of-the-road for me. Some readers will love it more than I did.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780446605236",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780446605236",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780446605236",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "Exceeded my expectations. The writing pulled me in from the first chapter and never let go.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780446605236",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780132350884",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780132350884",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 4,
+    "comment": "Good book with a lot of value — docking one star only because the pacing dipped mid-way.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780132350884",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780132350884",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780135957059",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Engaging read, though I expected a bit more depth in the second half.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780135957059",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780135957059",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780804139298",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780804139298",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780804139298",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 2,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 4,
+    "comment": "Enjoyed this a lot. Not perfect, but definitely worth adding to your shelf.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 2,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780553380163",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 4,
+    "comment": "Would recommend — just wasn't quite a five-star experience for me personally.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780345539434",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Good book with a lot of value — docking one star only because the pacing dipped mid-way.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780345539434",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780345539434",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 3,
+    "comment": "Good in parts, slow in others. A mixed experience overall.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781451648539",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 3,
+    "comment": "Not bad, but I probably wouldn't re-read it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781451648539",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781451648539",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781451648539",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781451648539",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780399590504",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "A genuine favorite now. I've already recommended it to three friends.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780399590504",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Pretty happy with this purchase. A few parts dragged but the payoff was worth it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780399590504",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 5,
+    "comment": "Brilliant from start to finish. Already looking for more from this author.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780735211292",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 3,
+    "comment": "Decent read, but didn't fully live up to the hype for me.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780735211292",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 4,
+    "comment": "Really solid read overall, a couple of slower sections but worth it in the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780735211292",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "A must-read. I underlined half the pages by the time I was done.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781982137274",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 4,
+    "comment": "Really solid read overall, a couple of slower sections but worth it in the end.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781982137274",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 4,
+    "comment": "Pretty happy with this purchase. A few parts dragged but the payoff was worth it.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781982137274",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "Five stars easily. The delivery was quick too and the book arrived in great condition.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781501144325",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781501144325",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781501144325",
+    "email": "ananya@readora.dev",
+    "authorDisplayName": "Ananya Das",
+    "rating": 5,
+    "comment": "Exceeded my expectations. The writing pulled me in from the first chapter and never let go.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781501144325",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 3,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781501144325",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 4,
+    "comment": "Good book with a lot of value — docking one star only because the pacing dipped mid-way.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780062316097",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780062316097",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 2,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9780062316097",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 4,
+    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780064400558",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 4,
+    "comment": "Good book with a lot of value — docking one star only because the pacing dipped mid-way.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780064400558",
+    "email": "divya@readora.dev",
+    "authorDisplayName": "Divya Nair",
+    "rating": 5,
+    "comment": "Beautifully written and paced perfectly. Will definitely be revisiting this one.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780064400558",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "Absolutely loved this. Couldn't put it down once I started — finished it in a couple of sittings.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780064400558",
+    "email": "meera@readora.dev",
+    "authorDisplayName": "Meera Iyer",
+    "rating": 2,
+    "comment": "It was fine — some strong moments, but overall fairly average.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9780064400558",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 4,
+    "comment": "Well written and informative. I'd recommend it with minor reservations.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781401245252",
+    "email": "karan@readora.dev",
+    "authorDisplayName": "Karan Mehta",
+    "rating": 3,
+    "comment": "Middle-of-the-road for me. Some readers will love it more than I did.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781401245252",
+    "email": "liam.oconnor@readora.dev",
+    "authorDisplayName": "Liam O'Connor",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781401245252",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "Exceeded my expectations. The writing pulled me in from the first chapter and never let go.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781401245252",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781449474256",
+    "email": "vikram@readora.dev",
+    "authorDisplayName": "Vikram Singh",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781449474256",
+    "email": "dev@readora.dev",
+    "authorDisplayName": "Dev Patel",
+    "rating": 5,
+    "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
+    "verifiedPurchase": false
+  },
+  {
+    "isbn13": "9781449474256",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 5,
+    "comment": "Exactly what I was looking for — clear, engaging, and well worth the price.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781449474256",
+    "email": "arjun@readora.dev",
+    "authorDisplayName": "Arjun Rao",
+    "rating": 4,
+    "comment": "Good quality print and a satisfying read. Glad I picked this one up.",
+    "verifiedPurchase": true
+  }
+]

@@ -288,6 +288,20 @@ CREATE TABLE IF NOT EXISTS users.addresses (
 );
 
 
+-- Stores the user's saved-for-later book list. book_id is a cross-service reference to
+-- catalog.books, unconstrained for the same reason users.user_profiles.user_id is (different
+-- service/schema entirely). Not seeded — empty until a user actually saves something.
+CREATE TABLE IF NOT EXISTS users.wishlist_items (
+    id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id  uuid NOT NULL,
+    book_id  uuid NOT NULL,
+    added_at timestamptz NOT NULL DEFAULT now(),
+
+    CONSTRAINT uq_wishlist_user_book
+        UNIQUE (user_id, book_id)
+);
+
+
 -- ============================================================================
 -- CATALOG SERVICE
 -- ============================================================================
@@ -326,10 +340,11 @@ CREATE TABLE IF NOT EXISTS catalog.publishers (
 
 -- Stores book authors.
 CREATE TABLE IF NOT EXISTS catalog.authors (
-    id   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    name text NOT NULL,
-    slug text NOT NULL UNIQUE,
-    bio  text
+    id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name      text NOT NULL,
+    slug      text NOT NULL UNIQUE,
+    bio       text,
+    photo_url text
 );
 
 
@@ -617,6 +632,7 @@ CREATE TABLE IF NOT EXISTS commerce.order_status_history (
                 'PENDING_PAYMENT',
                 'PAID',
                 'CONFIRMED',
+                'ASSIGNED',
                 'SHIPPED',
                 'DELIVERED',
                 'PAYMENT_FAILED',
@@ -631,6 +647,7 @@ CREATE TABLE IF NOT EXISTS commerce.order_status_history (
                 'PENDING_PAYMENT',
                 'PAID',
                 'CONFIRMED',
+                'ASSIGNED',
                 'SHIPPED',
                 'DELIVERED',
                 'PAYMENT_FAILED',
@@ -1076,19 +1093,22 @@ INSERT INTO catalog.authors (
     id,
     name,
     slug,
-    bio
+    bio,
+    photo_url
 )
 SELECT
     gen_random_uuid(),
     a.name,
     a.slug,
-    a.bio
+    a.bio,
+    a."photoUrl"
 FROM jsonb_to_recordset(
     :'authors_json'::jsonb
 ) AS a(
     name text,
     slug text,
-    bio text
+    bio text,
+    "photoUrl" text
 )
 ON CONFLICT (slug) DO NOTHING;
 
@@ -1131,9 +1151,28 @@ SELECT
     b->>'tableOfContents',
     c.id,
     p.id,
-    -- Books are physically stocked at Bangalore by default; a book explicitly marked
-    -- "virtualOnly" in the seed JSON gets no store — it's a universal virtual-only title.
-    CASE WHEN (b->>'virtualOnly')::boolean IS TRUE THEN NULL::uuid ELSE '00000000-0000-0000-0000-0000000000b1'::uuid END,
+    -- Physical books are round-robined across every active store (by ordinality over the seed
+    -- JSON's own order, modulo the store count) so store-scoped browsing actually varies by
+    -- store instead of everything sitting at one location. A book explicitly marked
+    -- "virtualOnly" gets no store — it's a universal virtual-only title. A book with a
+    -- "preferredStoreCity" (e.g. a batch seeded for a demo/presentation store) is pinned there
+    -- instead of round-robining, so that city ends up with a deliberately full catalogue.
+    CASE
+        WHEN (b->>'virtualOnly')::boolean IS TRUE THEN NULL::uuid
+        WHEN b->>'preferredStoreCity' IS NOT NULL THEN (
+            SELECT s.id
+            FROM catalog.stores AS s
+            WHERE s.city = b->>'preferredStoreCity'
+            LIMIT 1
+        )
+        ELSE (
+            SELECT s.id
+            FROM catalog.stores AS s
+            ORDER BY s.name
+            OFFSET (ord - 1) % (SELECT count(*) FROM catalog.stores)
+            LIMIT 1
+        )
+    END,
     b->>'language',
     (b->>'pageCount')::int,
     (b->>'publishedOn')::date,
@@ -1145,7 +1184,7 @@ SELECT
     now()
 FROM jsonb_array_elements(
     :'books_json'::jsonb
-) AS b
+) WITH ORDINALITY AS elems(b, ord)
 -- LEFT JOIN: a book with no clean-fitting category (e.g. general literary classics that don't
 -- belong under any of the flat, specific topics) ships with category_id NULL rather than being
 -- forced into an inaccurate bucket, or silently dropped from the seed like an INNER JOIN would.
@@ -1154,6 +1193,19 @@ LEFT JOIN catalog.categories AS c
 JOIN catalog.publishers AS p
     ON p.name = b->>'publisher'
 ON CONFLICT (isbn13) DO NOTHING;
+
+
+-- A "preferredStoreCity" book that already existed under the same isbn13 (e.g. a well-known
+-- title also picked by the original round-robin seed) was skipped by ON CONFLICT DO NOTHING
+-- above, so it would otherwise keep whatever store it originally landed at. Force it to its
+-- preferred store explicitly so every preferredStoreCity book actually ends up there.
+UPDATE catalog.books
+SET store_id = target_store.id
+FROM jsonb_array_elements(:'books_json'::jsonb) AS wanted(spec),
+     catalog.stores AS target_store
+WHERE catalog.books.isbn13 = wanted.spec->>'isbn13'
+  AND wanted.spec->>'preferredStoreCity' IS NOT NULL
+  AND target_store.city = wanted.spec->>'preferredStoreCity';
 
 
 -- ============================================================================
@@ -1420,6 +1472,43 @@ ON CONFLICT (user_id) DO NOTHING;
 
 
 -- ============================================================================
+-- 15c. REVIEWS
+-- ============================================================================
+
+-- Load reviews JSON.
+\set reviews_json `cat "data/reviews.json"`
+
+
+-- Attach each review to its book (by isbn13) and reviewing customer (by email). Both were
+-- inserted earlier in this script, so both joins are guaranteed to resolve.
+INSERT INTO catalog.reviews (
+    id,
+    book_id,
+    user_id,
+    author_display_name,
+    rating,
+    comment,
+    verified_purchase
+)
+SELECT
+    gen_random_uuid(),
+    b.id,
+    au.id,
+    r->>'authorDisplayName',
+    (r->>'rating')::int,
+    r->>'comment',
+    (r->>'verifiedPurchase')::boolean
+FROM jsonb_array_elements(
+    :'reviews_json'::jsonb
+) AS r
+JOIN catalog.books AS b
+    ON b.isbn13 = r->>'isbn13'
+JOIN auth.users AS au
+    ON au.email = r->>'email'
+ON CONFLICT (book_id, user_id) DO NOTHING;
+
+
+-- ============================================================================
 -- 16. COMMIT
 -- ============================================================================
 
@@ -1504,6 +1593,11 @@ UNION ALL
 
 SELECT 'delivery.delivery_agents', COUNT(*)
 FROM delivery.delivery_agents
+
+UNION ALL
+
+SELECT 'catalog.reviews', COUNT(*)
+FROM catalog.reviews
 
 ORDER BY table_name;
 

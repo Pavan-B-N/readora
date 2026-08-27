@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { getConversationMessages, semanticSearch, streamChat } from '@/api/aiApi';
 import { getBookDetail } from '@/api/catalogApi';
+import { useAppSelector } from '@/redux/hooks';
 import type { BookDetail } from '@/types/catalog';
 
 export interface ChatMessage {
@@ -19,6 +20,7 @@ const MAX_CAROUSEL_BOOKS = 5;
  * just different shells around the same conversation session.
  */
 export function useChatSession(enabled: boolean) {
+  const storeId = useAppSelector((state) => state.store.selectedId);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [streaming, setStreaming] = useState(false);
@@ -31,6 +33,15 @@ export function useChatSession(enabled: boolean) {
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const loadConversation = async (id: string | null) => {
+    // Guards against the caller (AssistantPage's URL-sync effect) re-firing for a conversation
+    // this session already has loaded — e.g. right after send() mints a new id and the URL
+    // catches up to it. conversationIdRef is authoritative and updates synchronously (unlike the
+    // conversationId *state*, which the caller's effect can still read as stale for a render or
+    // two), so checking against it here is race-proof regardless of how the effect above behaves.
+    // Without this, a redundant reload replaces the freshly-streamed messages — complete with any
+    // attached book carousels — with server history, which never carries carousel data at all.
+    if (id === conversationIdRef.current) return;
+
     abortRef.current?.abort();
     conversationIdRef.current = id;
     setConversationId(id);
@@ -49,7 +60,9 @@ export function useChatSession(enabled: boolean) {
       const relevant = items.filter((i) => i.score >= BOOK_RELEVANCE_THRESHOLD).slice(0, MAX_CAROUSEL_BOOKS);
       if (relevant.length === 0) return;
 
-      const books = await Promise.all(relevant.map((i) => getBookDetail(i.bookId).catch(() => null)));
+      const books = await Promise.all(
+        relevant.map((i) => getBookDetail(i.bookId, storeId ?? undefined).catch(() => null)),
+      );
       const found = books.filter((b): b is BookDetail => b !== null);
       if (found.length === 0) return;
 
@@ -68,18 +81,30 @@ export function useChatSession(enabled: boolean) {
     const message = text.trim();
     if (!message || streaming) return;
 
+    // The assistant reply's eventual index — known up front since it's always the 2nd of the two
+    // messages pushed below. Computed here rather than via a setMessages-updater trick, because
+    // that call site needs to stay pure: React 18 StrictMode invokes updaters twice to check for
+    // exactly that, and a call with real side effects (attachBookResults' network requests) inside
+    // one fires twice in dev as a result.
+    const assistantIndex = messages.length + 1;
+
     setDraft('');
     setMessages((m) => [...m, { role: 'user', content: message }, { role: 'assistant', content: '' }]);
     setStreaming(true);
 
     const controller = new AbortController();
     abortRef.current = controller;
+    // Tracked independently of React state — a `let` mutated inside a setState updater isn't
+    // reliably readable right after the call, since the updater's execution isn't guaranteed to
+    // run synchronously with the dispatch (depends on whether other updates are already queued).
+    let accumulated = '';
 
     try {
       const resolvedConversationId = await streamChat(
         message,
         conversationIdRef.current,
         (chunk) => {
+          accumulated += chunk;
           setMessages((m) => {
             const next = [...m];
             const last = next[next.length - 1];
@@ -95,26 +120,20 @@ export function useChatSession(enabled: boolean) {
       setConversationId(resolvedConversationId);
 
       // An empty reply means the model produced nothing — surface it rather than leaving a blank bubble.
-      let hadContent = false;
-      setMessages((m) => {
-        const next = [...m];
-        const last = next[next.length - 1];
-        if (last?.role === 'assistant' && !last.content.trim()) {
-          next[next.length - 1] = {
-            role: 'error',
-            content: "The assistant didn't return a reply. It may not be configured yet.",
-          };
-        } else {
-          hadContent = true;
-        }
-        return next;
-      });
-
-      if (hadContent) {
-        setMessages((current) => {
-          attachBookResults(current.length - 1, message);
-          return current;
+      if (!accumulated.trim()) {
+        setMessages((m) => {
+          const next = [...m];
+          const last = next[next.length - 1];
+          if (last?.role === 'assistant' && !last.content.trim()) {
+            next[next.length - 1] = {
+              role: 'error',
+              content: "The assistant didn't return a reply. It may not be configured yet.",
+            };
+          }
+          return next;
         });
+      } else {
+        attachBookResults(assistantIndex, message);
       }
     } catch (error) {
       if ((error as Error).name === 'AbortError') return;

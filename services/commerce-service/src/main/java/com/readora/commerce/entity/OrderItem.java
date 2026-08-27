@@ -69,6 +69,10 @@ public class OrderItem {
         this.deliveryType = deliveryType;
     }
 
+    public Order getOrder() {
+        return order;
+    }
+
     public UUID getBookId() {
         return bookId;
     }

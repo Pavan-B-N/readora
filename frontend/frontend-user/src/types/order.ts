@@ -1,5 +1,5 @@
 export type DeliveryType = 'PHYSICAL' | 'VIRTUAL';
-export type PaymentMethod = 'WALLET' | 'UPI';
+export type PaymentMethod = 'WALLET' | 'UPI' | 'COD';
 
 export interface ShippingAddressInput {
   recipientName: string;

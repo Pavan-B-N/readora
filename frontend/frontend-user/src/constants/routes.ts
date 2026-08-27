@@ -4,6 +4,7 @@ export const ROUTES = {
   register: '/register',
   bookDetail: (bookId: string) => `/books/${bookId}`,
   cart: '/cart',
+  wishlist: '/wishlist',
   checkout: '/checkout',
   orders: '/orders',
   orderDetail: (orderId: string) => `/orders/${orderId}`,

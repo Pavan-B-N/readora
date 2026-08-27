@@ -57,7 +57,10 @@ public class PaymentService {
 
     /**
      * WALLET checkout already had its balance verified synchronously by commerce-service before
-     * the order was created, so it's safe to capture immediately here. UPI has no real gateway —
+     * the order was created, so it's safe to capture immediately here. COD is captured
+     * immediately too — this dummy provider's "capture" means "payment secured," and for Cash on
+     * Delivery that's true the moment the order is confirmed (the actual cash changes hands for
+     * real at delivery, a real-world step this service doesn't model). UPI has no real gateway —
      * it's simulated: authorize now, and {@link UpiSettlementJob} captures it a few seconds
      * later, entirely server-side over Kafka, so the frontend sees a genuine "pending, then
      * confirmed" flow rather than a fake client-side timer.
@@ -79,6 +82,11 @@ public class PaymentService {
             payment.capture();
             paymentRepository.save(payment);
             paymentAttemptRepository.save(new PaymentAttempt(payment, 1, payment.getStatus(), "dummy provider: auto-approved"));
+            publishCaptured(payment);
+        } else if (method == PaymentMethod.COD) {
+            payment.capture();
+            paymentRepository.save(payment);
+            paymentAttemptRepository.save(new PaymentAttempt(payment, 1, payment.getStatus(), "cash on delivery: confirmed, collected at delivery"));
             publishCaptured(payment);
         } else {
             paymentRepository.save(payment);

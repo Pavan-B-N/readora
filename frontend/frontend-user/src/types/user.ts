@@ -65,3 +65,8 @@ export interface WalletResponse {
   currency: string;
   items: WalletLedgerItem[];
 }
+
+export interface WishlistItem {
+  bookId: string;
+  addedAt: string;
+}

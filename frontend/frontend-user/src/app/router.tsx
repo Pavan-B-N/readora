@@ -6,6 +6,7 @@ import { RegisterPage } from '@/pages/RegisterPage/RegisterPage';
 import { HomePage } from '@/pages/HomePage/HomePage';
 import { BookDetailPage } from '@/pages/BookDetailPage/BookDetailPage';
 import { CartPage } from '@/pages/CartPage/CartPage';
+import { WishlistPage } from '@/pages/WishlistPage/WishlistPage';
 import { CheckoutPage } from '@/pages/CheckoutPage/CheckoutPage';
 import { OrdersPage } from '@/pages/OrdersPage/OrdersPage';
 import { OrderDetailPage } from '@/pages/OrderDetailPage/OrderDetailPage';
@@ -27,14 +28,14 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: ROUTES.cart, element: <CartPage /> },
+          { path: ROUTES.wishlist, element: <WishlistPage /> },
           { path: ROUTES.checkout, element: <CheckoutPage /> },
           { path: ROUTES.orders, element: <OrdersPage /> },
           { path: '/orders/:orderId', element: <OrderDetailPage /> },
           { path: ROUTES.wallet, element: <WalletPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
           { path: '/read/:bookId', element: <VirtualReaderPage /> },
-          { path: ROUTES.assistant, element: <AssistantPage /> },
-          { path: '/assistant/:conversationId', element: <AssistantPage /> },
+          { path: '/assistant/:conversationId?', element: <AssistantPage /> },
         ],
       },
     ],

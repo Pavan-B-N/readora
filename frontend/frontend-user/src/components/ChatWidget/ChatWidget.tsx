@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Sparkles, RotateCcw, Maximize2 } from 'lucide-react';
 import { listConversations } from '@/api/aiApi';
 import { useAppSelector } from '@/redux/hooks';
@@ -20,6 +20,7 @@ const SUGGESTIONS = [
 export function ChatWidget() {
   const accessToken = useAppSelector((state) => state.auth.accessToken);
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +47,10 @@ export function ChatWidget() {
       send(draft);
     }
   };
+
+  if (location.pathname.startsWith(ROUTES.assistant)) {
+    return null;
+  }
 
   if (!open) {
     return (
@@ -86,7 +91,10 @@ export function ChatWidget() {
             <button
               type="button"
               className={styles.iconButton}
-              onClick={() => navigate(ROUTES.assistant)}
+              onClick={() => {
+                setOpen(false);
+                navigate(ROUTES.assistant);
+              }}
               aria-label="Open the assistant in a full page"
             >
               <Maximize2 size={15} />

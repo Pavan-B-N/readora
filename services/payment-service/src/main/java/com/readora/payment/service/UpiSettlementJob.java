@@ -17,13 +17,15 @@ import java.util.List;
  * SETTLE_DELAY — a few seconds later, same as a real customer approving a UPI collect request
  * on their phone. Poll cadence matches {@link OutboxRelay}, so actual settlement lands roughly
  * SETTLE_DELAY to SETTLE_DELAY+POLL_INTERVAL after authorization (comfortably inside the
- * intended 5-10s window). Deliberately a scheduled poll over Kafka-published events, not a
- * frontend timer — the frontend only ever learns the outcome from payment.captured.
+ * intended 2-4s window — the frontend polls the order for this same window, showing a "waiting
+ * for payment" spinner in the meantime). Deliberately a scheduled poll over Kafka-published
+ * events, not a frontend timer — the frontend only ever learns the outcome from payment.captured
+ * (indirectly, via the order's status).
  */
 @Component
 public class UpiSettlementJob {
 
-    private static final Duration SETTLE_DELAY = Duration.ofSeconds(6);
+    private static final Duration SETTLE_DELAY = Duration.ofSeconds(3);
 
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
@@ -33,7 +35,7 @@ public class UpiSettlementJob {
         this.paymentService = paymentService;
     }
 
-    @Scheduled(fixedDelay = 2000)
+    @Scheduled(fixedDelay = 1000)
     public void settle() {
         Instant cutoff = Instant.now().minus(SETTLE_DELAY);
         List<Payment> due = paymentRepository.findAllByStatusAndMethodAndAuthorizedAtBefore(

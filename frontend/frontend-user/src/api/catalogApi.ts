@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { BookDetail, BookSuggestion, BookSummary, CategoryNode, RelatedBook, Review, Store } from '@/types/catalog';
+import type { BookDetail, BookSuggestion, BookSummary, CategoryNode, PurchasedBook, RelatedBook, Review, Store } from '@/types/catalog';
 import type { PageResponse } from '@/types/api';
 
 export interface SearchParams {
@@ -8,6 +8,7 @@ export interface SearchParams {
   publisherId?: string;
   minPrice?: string;
   maxPrice?: string;
+  /** Omit for the unified storefront view (physical-at-store + virtual, together). true/false restrict to one or the other. */
   virtualOnly?: boolean;
   storeId?: string;
   page?: number;
@@ -19,8 +20,8 @@ export async function searchBooks(params: SearchParams): Promise<PageResponse<Bo
   return response.data;
 }
 
-export async function getBookDetail(bookId: string): Promise<BookDetail> {
-  const response = await apiClient.get<BookDetail>(`/api/v1/books/${bookId}`);
+export async function getBookDetail(bookId: string, storeId?: string): Promise<BookDetail> {
+  const response = await apiClient.get<BookDetail>(`/api/v1/books/${bookId}`, { params: { storeId } });
   return response.data;
 }
 
@@ -39,13 +40,26 @@ export async function listStores(): Promise<Store[]> {
   return response.data;
 }
 
-export async function suggestBooks(q: string, limit = 8): Promise<BookSuggestion[]> {
-  const response = await apiClient.get<BookSuggestion[]>('/api/v1/books/suggest', { params: { q, limit } });
+export async function suggestBooks(q: string, limit = 8, storeId?: string): Promise<BookSuggestion[]> {
+  const response = await apiClient.get<BookSuggestion[]>('/api/v1/books/suggest', { params: { q, limit, storeId } });
   return response.data;
 }
 
-export async function getRecommendations(): Promise<BookSummary[]> {
-  const response = await apiClient.get<BookSummary[]>('/api/v1/books/recommended');
+export async function getRecommendations(storeId?: string): Promise<BookSummary[]> {
+  const response = await apiClient.get<BookSummary[]>('/api/v1/books/recommended', { params: { storeId } });
+  return response.data;
+}
+
+/** "Your orders" rail — the caller's most recent order line items, each with its order's status. Empty (not an error) for anonymous callers. */
+export async function getPurchasedBooks(): Promise<PurchasedBook[]> {
+  const response = await apiClient.get<PurchasedBook[]>('/api/v1/books/purchased');
+  return response.data;
+}
+
+/** Batch lookup by id, e.g. to render a wishlist — unscoped by store. */
+export async function getBooksByIds(ids: string[]): Promise<BookSummary[]> {
+  if (ids.length === 0) return [];
+  const response = await apiClient.get<BookSummary[]>('/api/v1/books/batch', { params: { ids } });
   return response.data;
 }
 

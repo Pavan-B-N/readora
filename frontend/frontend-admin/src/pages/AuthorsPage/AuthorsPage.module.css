@@ -25,6 +25,14 @@
   flex-shrink: 0;
 }
 
+.avatarPhoto {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .authorName {
   font-size: var(--font-size-sm);
   font-weight: 600;

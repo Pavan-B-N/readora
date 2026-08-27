@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Address, CreateAddressRequest, MeResponse, UpdateProfileRequest, WalletResponse } from '@/types/user';
+import type { Address, CreateAddressRequest, MeResponse, UpdateProfileRequest, WalletResponse, WishlistItem } from '@/types/user';
 
 export async function getMe(): Promise<MeResponse> {
   const response = await apiClient.get<MeResponse>('/api/v1/users/me');
@@ -45,4 +45,17 @@ export async function redeemCoupon(code: string): Promise<{ creditedAmount: stri
     { code },
   );
   return response.data;
+}
+
+export async function listWishlist(): Promise<WishlistItem[]> {
+  const response = await apiClient.get<WishlistItem[]>('/api/v1/users/me/wishlist');
+  return response.data;
+}
+
+export async function addToWishlist(bookId: string): Promise<void> {
+  await apiClient.put(`/api/v1/users/me/wishlist/${bookId}`);
+}
+
+export async function removeFromWishlist(bookId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/users/me/wishlist/${bookId}`);
 }

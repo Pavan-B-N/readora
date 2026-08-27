@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Check, Download, ShoppingCart, Truck } from 'lucide-react';
 import type { BookDetail } from '@/types/catalog';
 import type { DeliveryType } from '@/types/cart';
-import { useAppDispatch } from '@/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { addToCart } from '@/redux/slices/cartSlice';
 import { Modal } from '@/components/Modal';
 import { Button } from '@/components/Button';
@@ -18,6 +18,7 @@ interface ChatBookPickerProps {
 export function ChatBookPicker({ book, onClose }: ChatBookPickerProps) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const storeId = useAppSelector((state) => state.store.selectedId);
   const [busy, setBusy] = useState(false);
   const [added, setAdded] = useState<DeliveryType | null>(null);
 
@@ -33,7 +34,9 @@ export function ChatBookPicker({ book, onClose }: ChatBookPickerProps) {
   const onAdd = async (deliveryType: DeliveryType) => {
     setBusy(true);
     try {
-      await dispatch(addToCart({ bookId: book.id, qty: 1, deliveryType })).unwrap();
+      await dispatch(
+        addToCart({ bookId: book.id, qty: 1, deliveryType, storeId: storeId ?? undefined }),
+      ).unwrap();
       setAdded(deliveryType);
     } finally {
       setBusy(false);

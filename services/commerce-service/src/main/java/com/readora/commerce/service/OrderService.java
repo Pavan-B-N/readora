@@ -33,6 +33,7 @@ import com.readora.commerce.entity.OutboxEvent;
 import com.readora.commerce.exception.CartEmptyException;
 import com.readora.commerce.exception.InsufficientWalletBalanceException;
 import com.readora.commerce.exception.InvalidDeliveryTransitionException;
+import com.readora.commerce.exception.InvalidPaymentMethodException;
 import com.readora.commerce.exception.MultipleStoresInCartException;
 import com.readora.commerce.exception.OrderAlreadyCancelledException;
 import com.readora.commerce.exception.OrderAlreadyShippedException;
@@ -57,6 +58,7 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -67,6 +69,7 @@ public class OrderService {
     private static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("499.00");
     private static final BigDecimal FLAT_SHIPPING_FEE = new BigDecimal("40.00");
     private static final BigDecimal PACKAGING_FEE = new BigDecimal("15.00");
+    private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("WALLET", "UPI", "COD");
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -150,6 +153,15 @@ public class OrderService {
         BigDecimal grandTotal = subtotal.add(shippingFee).add(packagingFee).add(taxAmount);
 
         String paymentMethod = request.paymentMethod().toUpperCase();
+        if (!SUPPORTED_PAYMENT_METHODS.contains(paymentMethod)) {
+            throw new InvalidPaymentMethodException("Unsupported payment method: " + request.paymentMethod());
+        }
+        // Cash on Delivery has nothing to collect cash for on a virtual-only order — there's no
+        // physical touchpoint at which an agent could take payment.
+        if ("COD".equals(paymentMethod) && !hasPhysical) {
+            throw new InvalidPaymentMethodException("Cash on Delivery isn't available for a virtual-only order");
+        }
+
         BigDecimal walletAmountUsed = BigDecimal.ZERO;
         if ("WALLET".equals(paymentMethod)) {
             WalletBalance balance = userServiceClient.getWalletBalance(userId);

@@ -120,9 +120,13 @@ export function AuthorsPage() {
         <div className={styles.grid}>
           {filtered.map((a) => (
             <Card key={a.id} className={styles.authorCard}>
-              <span className={styles.avatar}>
-                {a.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()}
-              </span>
+              {a.photoUrl ? (
+                <img className={styles.avatarPhoto} src={a.photoUrl} alt={a.name} />
+              ) : (
+                <span className={styles.avatar}>
+                  {a.name.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()}
+                </span>
+              )}
               <span className={styles.authorName}>{a.name}</span>
               {a.bio ? <span className={styles.authorBio}>{a.bio}</span> : <span className={styles.authorSlug}>/{a.slug}</span>}
             </Card>

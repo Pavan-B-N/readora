@@ -14,7 +14,8 @@ import java.util.UUID;
  * virtual items (quick-commerce model: everything physical ships from one store at once,
  * virtual items are available instantly). shippingAddress is required only when at least one
  * item is PHYSICAL — validated in OrderService, not here, since it's a cross-field rule bean
- * validation doesn't express well. paymentMethod is "WALLET" or "UPI"; upiId is required only
+ * validation doesn't express well. paymentMethod is "WALLET", "UPI", or "COD" (Cash on Delivery,
+ * itself rejected for a virtual-only order — see OrderService.checkout); upiId is required only
  * for UPI.
  */
 public record CheckoutRequest(

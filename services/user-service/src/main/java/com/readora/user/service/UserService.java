@@ -8,6 +8,7 @@ import com.readora.user.dto.RedeemCouponResponse;
 import com.readora.user.dto.UpdateProfileRequest;
 import com.readora.user.dto.WalletBalanceResponse;
 import com.readora.user.dto.WalletResponse;
+import com.readora.user.dto.WishlistItemResponse;
 import com.readora.user.entity.Address;
 import com.readora.user.entity.Coupon;
 import com.readora.user.entity.CouponRedemption;
@@ -15,6 +16,7 @@ import com.readora.user.entity.UserProfile;
 import com.readora.user.entity.WalletAccount;
 import com.readora.user.entity.WalletTransaction;
 import com.readora.user.entity.WalletTransactionType;
+import com.readora.user.entity.WishlistItem;
 import com.readora.user.exception.AddressLimitReachedException;
 import com.readora.user.exception.AddressNotFoundException;
 import com.readora.user.exception.CouponAlreadyRedeemedException;
@@ -26,6 +28,7 @@ import com.readora.user.repository.CouponRepository;
 import com.readora.user.repository.UserProfileRepository;
 import com.readora.user.repository.WalletAccountRepository;
 import com.readora.user.repository.WalletTransactionRepository;
+import com.readora.user.repository.WishlistRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +50,7 @@ public class UserService {
     private final WalletTransactionRepository walletTransactionRepository;
     private final CouponRepository couponRepository;
     private final CouponRedemptionRepository couponRedemptionRepository;
+    private final WishlistRepository wishlistRepository;
     private final BigDecimal signupBonus;
 
     public UserService(
@@ -56,6 +60,7 @@ public class UserService {
             WalletTransactionRepository walletTransactionRepository,
             CouponRepository couponRepository,
             CouponRedemptionRepository couponRedemptionRepository,
+            WishlistRepository wishlistRepository,
             @Value("${app.wallet.signup-bonus}") BigDecimal signupBonus
     ) {
         this.userProfileRepository = userProfileRepository;
@@ -64,7 +69,30 @@ public class UserService {
         this.walletTransactionRepository = walletTransactionRepository;
         this.couponRepository = couponRepository;
         this.couponRedemptionRepository = couponRedemptionRepository;
+        this.wishlistRepository = wishlistRepository;
         this.signupBonus = signupBonus;
+    }
+
+    @Transactional(readOnly = true)
+    public List<WishlistItemResponse> listWishlist(UUID userId) {
+        return wishlistRepository.findAllByUserIdOrderByAddedAtDesc(userId).stream()
+                .map(item -> new WishlistItemResponse(item.getBookId(), item.getAddedAt()))
+                .toList();
+    }
+
+    /** Idempotent — adding a book already on the wishlist is a no-op, not a conflict. */
+    @Transactional
+    public void addToWishlist(UUID userId, UUID bookId) {
+        if (wishlistRepository.existsByUserIdAndBookId(userId, bookId)) {
+            return;
+        }
+        wishlistRepository.save(new WishlistItem(userId, bookId));
+    }
+
+    /** Idempotent — removing a book that isn't on the wishlist is a no-op, not a 404. */
+    @Transactional
+    public void removeFromWishlist(UUID userId, UUID bookId) {
+        wishlistRepository.findByUserIdAndBookId(userId, bookId).ifPresent(wishlistRepository::delete);
     }
 
     /**
