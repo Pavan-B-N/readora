@@ -1,5 +1,6 @@
 package com.readora.ai.controller;
 
+import com.readora.ai.dto.EmbeddingJobBookLogResponse;
 import com.readora.ai.dto.EmbeddingJobResponse;
 import com.readora.ai.security.CurrentUserContext;
 import com.readora.ai.service.EmbeddingJobService;
@@ -75,5 +76,19 @@ public class AdminEmbeddingController {
         return embeddingJobService.findJob(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Operation(
+            summary = "List the books a backfill job has embedded so far",
+            description = "Requires the ADMIN role. Newest first. Poll this alongside the job itself while it's RUNNING for a live, book-by-book feed instead of just the aggregate counters.",
+            tags = {"Admin Embeddings"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Book log returned (possibly empty)"),
+            @ApiResponse(responseCode = "403", description = "Caller does not have the ADMIN role")
+    })
+    @GetMapping("/jobs/{id}/books")
+    public ResponseEntity<List<EmbeddingJobBookLogResponse>> listJobBooks(@PathVariable UUID id) {
+        return ResponseEntity.ok(embeddingJobService.listBookLogs(id));
     }
 }

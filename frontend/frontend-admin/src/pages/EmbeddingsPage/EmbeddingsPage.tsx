@@ -1,39 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Sparkles, Info, History, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Sparkles, Info, History, Loader2, ChevronRight } from 'lucide-react';
 import { listJobs, queueBackfill } from '@/api/embeddingsApi';
 import type { EmbeddingJob } from '@/types/embeddings';
+import { formatDuration, statusVariant } from '@/utils/embeddingJob';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { ROUTES } from '@/constants/routes';
 import styles from './EmbeddingsPage.module.css';
 
 const POLL_INTERVAL_MS = 1500;
 
-function statusVariant(status: EmbeddingJob['status']) {
-  switch (status) {
-    case 'COMPLETED':
-      return 'success' as const;
-    case 'FAILED':
-      return 'danger' as const;
-    case 'RUNNING':
-      return 'info' as const;
-    default:
-      return 'warning' as const;
-  }
-}
-
-function formatDuration(job: EmbeddingJob): string {
-  if (!job.startedAt) return '—';
-  const end = job.finishedAt ? new Date(job.finishedAt) : new Date();
-  const seconds = Math.round((end.getTime() - new Date(job.startedAt).getTime()) / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-}
-
 export function EmbeddingsPage() {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [jobs, setJobs] = useState<EmbeddingJob[]>([]);
   const [loading, setLoading] = useState(true);
@@ -206,11 +189,12 @@ export function EmbeddingsPage() {
                   <th>Duration</th>
                   <th>Queued</th>
                   <th>Detail</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
                 {jobs.map((job) => (
-                  <tr key={job.id}>
+                  <tr key={job.id} className={styles.row} onClick={() => navigate(ROUTES.embeddingJobDetail(job.id))}>
                     <td>
                       <Badge
                         variant={statusVariant(job.status)}
@@ -239,6 +223,9 @@ export function EmbeddingsPage() {
                       ) : (
                         <span className={styles.mono}>—</span>
                       )}
+                    </td>
+                    <td>
+                      <ChevronRight size={15} className={styles.chevron} />
                     </td>
                   </tr>
                 ))}

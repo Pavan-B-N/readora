@@ -2,12 +2,16 @@ package com.readora.ai.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.readora.ai.dto.BookDoc;
 import com.readora.ai.dto.EmbeddingBackfillRequestedEvent;
+import com.readora.ai.dto.EmbeddingJobBookLogResponse;
 import com.readora.ai.dto.EmbeddingJobResponse;
 import com.readora.ai.entity.EmbeddingJob;
+import com.readora.ai.entity.EmbeddingJobBookLog;
 import com.readora.ai.entity.EmbeddingJobStatus;
 import com.readora.ai.exception.BackfillAlreadyRunningException;
 import com.readora.ai.kafka.KafkaTopics;
+import com.readora.ai.repository.EmbeddingJobBookLogRepository;
 import com.readora.ai.repository.EmbeddingJobRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,17 +38,20 @@ public class EmbeddingJobService {
     private static final List<EmbeddingJobStatus> ACTIVE = List.of(EmbeddingJobStatus.QUEUED, EmbeddingJobStatus.RUNNING);
 
     private final EmbeddingJobRepository jobRepository;
+    private final EmbeddingJobBookLogRepository bookLogRepository;
     private final EmbeddingService embeddingService;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     public EmbeddingJobService(
             EmbeddingJobRepository jobRepository,
+            EmbeddingJobBookLogRepository bookLogRepository,
             EmbeddingService embeddingService,
             KafkaTemplate<String, String> kafkaTemplate,
             ObjectMapper objectMapper
     ) {
         this.jobRepository = jobRepository;
+        this.bookLogRepository = bookLogRepository;
         this.embeddingService = embeddingService;
         this.kafkaTemplate = kafkaTemplate;
         this.objectMapper = objectMapper;
@@ -93,7 +100,7 @@ public class EmbeddingJobService {
 
         try {
             int total = embeddingService.backfillAll(
-                    (processed, title) -> recordProgress(jobId, processed, title)
+                    (processed, pageBooks) -> recordProgress(jobId, processed, pageBooks)
             );
             updateStatus(jobId, j -> j.markCompleted(total));
             log.info("Embedding backfill {} completed — {} books embedded", jobId, total);
@@ -105,13 +112,20 @@ public class EmbeddingJobService {
 
     /**
      * Progress updates commit in their own transaction so the admin UI can poll and see them
-     * while the (long-running) backfill is still in flight.
+     * while the (long-running) backfill is still in flight. Logs every book in the just-processed
+     * page individually (not just the last one) so the detail page can show a real book-by-book
+     * feed, not only an aggregate counter.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordProgress(UUID jobId, int processed, String currentTitle) {
+    public void recordProgress(UUID jobId, int processed, List<BookDoc> pageBooks) {
         jobRepository.findById(jobId).ifPresent(job -> {
-            job.recordProgress(processed, Math.max(processed, job.getTotalBooks()), currentTitle);
+            String lastTitle = pageBooks.isEmpty() ? null : pageBooks.get(pageBooks.size() - 1).title();
+            job.recordProgress(processed, Math.max(processed, job.getTotalBooks()), lastTitle);
             jobRepository.save(job);
+
+            pageBooks.forEach(book ->
+                    bookLogRepository.save(new EmbeddingJobBookLog(job, UUID.fromString(book.id()), book.title()))
+            );
         });
     }
 
@@ -138,6 +152,14 @@ public class EmbeddingJobService {
     @Transactional(readOnly = true)
     public Optional<EmbeddingJobResponse> findJob(UUID jobId) {
         return jobRepository.findById(jobId).map(this::toResponse);
+    }
+
+    /** Every book this job has embedded so far, newest first — polled by the detail page while RUNNING. */
+    @Transactional(readOnly = true)
+    public List<EmbeddingJobBookLogResponse> listBookLogs(UUID jobId) {
+        return bookLogRepository.findAllByJobIdOrderByProcessedAtDesc(jobId).stream()
+                .map(log -> new EmbeddingJobBookLogResponse(log.getBookId(), log.getTitle(), log.getProcessedAt()))
+                .toList();
     }
 
     private EmbeddingJobResponse toResponse(EmbeddingJob job) {

@@ -39,11 +39,13 @@ public class EmbeddingService {
      * next page-0 fetch naturally returns whatever wasn't covered yet. Walking page 1, 2, 3... on
      * a set that shrinks under you would skip books.
      *
-     * @param progressCallback invoked after each page with (booksProcessedSoFar, lastBookTitle),
-     *                         so a caller can surface live progress. Pass null to skip reporting.
+     * @param progressCallback invoked after each page with (booksProcessedSoFar, thisPageBooks) —
+     *                         the full page, not just the last title, so a caller can log every
+     *                         book that was just embedded rather than only the most recent one.
+     *                         Pass null to skip reporting.
      * @return the total number of books embedded
      */
-    public int backfillAll(BiConsumer<Integer, String> progressCallback) {
+    public int backfillAll(BiConsumer<Integer, List<BookDoc>> progressCallback) {
         int processed = 0;
         List<BookDoc> books;
 
@@ -54,7 +56,7 @@ public class EmbeddingService {
                 catalogClient.markEmbedded(books.stream().map(b -> UUID.fromString(b.id())).toList());
                 processed += books.size();
                 if (progressCallback != null) {
-                    progressCallback.accept(processed, books.get(books.size() - 1).title());
+                    progressCallback.accept(processed, books);
                 }
             }
         } while (books.size() == PAGE_SIZE);

@@ -8,6 +8,7 @@ export const ROUTES = {
   publishers: '/publishers',
   authors: '/authors',
   embeddings: '/embeddings',
+  embeddingJobDetail: (jobId: string) => `/embeddings/${jobId}`,
   returns: '/returns',
   deliveryAgents: '/delivery-agents',
   profile: '/profile',

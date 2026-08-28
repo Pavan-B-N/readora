@@ -11,3 +11,10 @@ export interface EmbeddingJob {
   startedAt: string | null;
   finishedAt: string | null;
 }
+
+/** One book this job has embedded — see EmbeddingJob for the run-level aggregate. */
+export interface EmbeddingJobBookLog {
+  bookId: string;
+  title: string;
+  processedAt: string;
+}

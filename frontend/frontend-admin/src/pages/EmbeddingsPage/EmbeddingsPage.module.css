@@ -119,6 +119,19 @@
   border-bottom: none;
 }
 
+.row {
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.row:hover {
+  background: var(--color-surface-hover);
+}
+
+.chevron {
+  color: var(--color-text-subtle);
+}
+
 .mono {
   font-family: ui-monospace, monospace;
   font-size: var(--font-size-xs);

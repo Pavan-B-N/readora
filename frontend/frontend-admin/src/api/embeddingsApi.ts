@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { EmbeddingJob } from '@/types/embeddings';
+import type { EmbeddingJob, EmbeddingJobBookLog } from '@/types/embeddings';
 
 /** Queues a backfill. Returns the created job — the work runs asynchronously off Kafka. */
 export async function queueBackfill(): Promise<EmbeddingJob> {
@@ -16,5 +16,10 @@ export async function listJobs(limit = 20): Promise<EmbeddingJob[]> {
 
 export async function getJob(jobId: string): Promise<EmbeddingJob> {
   const response = await apiClient.get<EmbeddingJob>(`/api/v1/admin/embeddings/jobs/${jobId}`);
+  return response.data;
+}
+
+export async function listJobBooks(jobId: string): Promise<EmbeddingJobBookLog[]> {
+  const response = await apiClient.get<EmbeddingJobBookLog[]>(`/api/v1/admin/embeddings/jobs/${jobId}/books`);
   return response.data;
 }
