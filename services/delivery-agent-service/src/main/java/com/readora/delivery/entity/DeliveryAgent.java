@@ -34,6 +34,17 @@ public class DeliveryAgent {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
+    /**
+     * Whether the agent is currently working, distinct from isActive (which means "this is a
+     * real, enabled account" rather than "clocked in right now"). Off-duty agents don't see new
+     * orders in the queue, but keep full access to whatever they already claimed — going off
+     * duty mid-delivery doesn't strand the order.
+     */
+    // columnDefinition gives the ALTER TABLE a DEFAULT so adding this NOT NULL column doesn't fail
+    // against the already-seeded delivery_agents table (ddl-auto: update, no migration tooling).
+    @Column(name = "on_duty", nullable = false, columnDefinition = "boolean not null default false")
+    private boolean onDuty = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -50,6 +61,10 @@ public class DeliveryAgent {
     @jakarta.persistence.PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();
+    }
+
+    public void setOnDuty(boolean onDuty) {
+        this.onDuty = onDuty;
     }
 
     public UUID getUserId() {
@@ -70,6 +85,10 @@ public class DeliveryAgent {
 
     public boolean isActive() {
         return isActive;
+    }
+
+    public boolean isOnDuty() {
+        return onDuty;
     }
 
     public Instant getCreatedAt() {

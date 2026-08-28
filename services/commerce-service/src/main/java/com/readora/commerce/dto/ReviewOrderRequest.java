@@ -2,5 +2,6 @@ package com.readora.commerce.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record ReviewOrderRequest(@NotBlank String note) {
+/** decision is "APPROVE" or "REJECT" for a return awaiting review; null for a plain cancellation note (nothing to decide). */
+public record ReviewOrderRequest(@NotBlank String note, String decision) {
 }

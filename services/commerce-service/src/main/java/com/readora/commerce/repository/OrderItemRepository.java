@@ -13,10 +13,26 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
 
     List<OrderItem> findAllByOrderId(UUID orderId);
 
+    /** Batch variant for listing a page of orders at once — avoids one query per order. */
+    List<OrderItem> findAllByOrderIdIn(List<UUID> orderIds);
+
+    /**
+     * Excludes CANCELLED and every return-family status from RETURN_APPROVED onward — but not
+     * RETURN_REQUESTED or RETURN_REJECTED, so a customer keeps ebook access while a return is
+     * pending admin review, and permanently if it's rejected. See OrderStatus's javadoc.
+     */
     @Query("""
             SELECT DISTINCT oi.bookId FROM OrderItem oi
             JOIN oi.order o
-            WHERE o.userId = :userId AND o.status NOT IN (com.readora.commerce.entity.OrderStatus.CANCELLED, com.readora.commerce.entity.OrderStatus.RETURNED)
+            WHERE o.userId = :userId AND o.status NOT IN (
+                com.readora.commerce.entity.OrderStatus.CANCELLED,
+                com.readora.commerce.entity.OrderStatus.RETURN_APPROVED,
+                com.readora.commerce.entity.OrderStatus.RETURN_ASSIGNED,
+                com.readora.commerce.entity.OrderStatus.RETURN_EN_ROUTE,
+                com.readora.commerce.entity.OrderStatus.RETURN_COLLECTED,
+                com.readora.commerce.entity.OrderStatus.REFUND_INITIATED,
+                com.readora.commerce.entity.OrderStatus.RETURNED
+            )
             """)
     List<UUID> findDistinctBookIdsByUserId(@Param("userId") UUID userId);
 

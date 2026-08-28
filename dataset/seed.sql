@@ -810,6 +810,7 @@ CREATE TABLE IF NOT EXISTS ai.messages (
     conversation_id uuid NOT NULL,
     role            varchar NOT NULL,
     content         text NOT NULL,
+    book_ids        text[],
     created_at      timestamptz NOT NULL DEFAULT now(),
 
     CONSTRAINT fk_messages_conversation

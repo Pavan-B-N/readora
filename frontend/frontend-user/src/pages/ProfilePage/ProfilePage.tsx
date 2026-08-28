@@ -4,6 +4,7 @@ import { addAddress, deleteAddress, getMe, listAddresses, setDefaultAddress } fr
 import { listStores } from '@/api/catalogApi';
 import type { Address, AddressLabel, AddressRecipientType, MeResponse } from '@/types/user';
 import type { Store } from '@/types/catalog';
+import { pickDefaultStore } from '@/utils/store';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
 import { Input, Select } from '@/components/Input';
@@ -50,7 +51,7 @@ export function ProfilePage() {
   useEffect(() => {
     getMe().then(setMe);
     reloadAddresses();
-    listStores().then((stores) => setStore(stores[0] ?? null));
+    listStores().then((stores) => setStore(pickDefaultStore(stores)));
   }, []);
 
   const set = (patch: Partial<AddressForm>) => {

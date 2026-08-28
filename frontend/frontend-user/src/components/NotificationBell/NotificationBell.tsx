@@ -7,10 +7,14 @@ import { Bell, CheckCheck, Package } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchNotifications, markAllRead, markRead, notificationReceived, notificationsCleared } from '@/redux/slices/notificationSlice';
 import type { NotificationItem } from '@/types/notification';
+import { playNotificationSound } from '@/utils/notificationSound';
 import { ROUTES } from '@/constants/routes';
 import styles from './NotificationBell.module.css';
 
 const WS_URL = import.meta.env.VITE_NOTIFICATION_WS_URL ?? 'http://localhost:8086/ws';
+
+/** How long a live popup stays on screen before auto-dismissing. */
+const POPUP_LIFETIME_MS = 6000;
 
 function timeAgo(iso: string): string {
   const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -26,12 +30,18 @@ export function NotificationBell() {
   const accessToken = useAppSelector((state) => state.auth.accessToken);
   const { items, unreadCount } = useAppSelector((state) => state.notifications);
   const [open, setOpen] = useState(false);
+  const [livePopups, setLivePopups] = useState<NotificationItem[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const clientRef = useRef<Client | null>(null);
+
+  const dismissPopup = (id: string) => {
+    setLivePopups((current) => current.filter((n) => n.id !== id));
+  };
 
   useEffect(() => {
     if (!accessToken) {
       dispatch(notificationsCleared());
+      setLivePopups([]);
       return;
     }
 
@@ -46,6 +56,13 @@ export function NotificationBell() {
           try {
             const payload = JSON.parse(message.body) as { data: NotificationItem };
             dispatch(notificationReceived(payload.data));
+
+            // Surfacing this only via the bell's badge count is easy to miss entirely — a live
+            // popup plus a sound is what actually gets a user's attention while they're doing
+            // something else on the page.
+            setLivePopups((current) => [...current, payload.data]);
+            window.setTimeout(() => dismissPopup(payload.data.id), POPUP_LIFETIME_MS);
+            playNotificationSound();
           } catch {
             // ignore malformed frames
           }
@@ -80,6 +97,11 @@ export function NotificationBell() {
       navigate(ROUTES.orderDetail(item.orderId));
       setOpen(false);
     }
+  };
+
+  const onPopupClick = (item: NotificationItem) => {
+    dismissPopup(item.id);
+    onItemClick(item);
   };
 
   return (
@@ -140,6 +162,42 @@ export function NotificationBell() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className={styles.livePopupStack}>
+        <AnimatePresence>
+          {livePopups.map((item) => (
+            <motion.button
+              type="button"
+              key={item.id}
+              className={styles.livePopup}
+              onClick={() => onPopupClick(item)}
+              initial={{ opacity: 0, y: -16, x: 24 }}
+              animate={{ opacity: 1, y: 0, x: 0 }}
+              exit={{ opacity: 0, x: 40, transition: { duration: 0.15 } }}
+              transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+            >
+              <span className={styles.livePopupIcon}>
+                <Package size={16} />
+              </span>
+              <span className={styles.itemBody}>
+                <span className={styles.itemTitle}>{item.title}</span>
+                <span className={styles.itemMessage}>{item.message}</span>
+              </span>
+              <button
+                type="button"
+                className={styles.livePopupClose}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dismissPopup(item.id);
+                }}
+                aria-label="Dismiss notification"
+              >
+                ×
+              </button>
+            </motion.button>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

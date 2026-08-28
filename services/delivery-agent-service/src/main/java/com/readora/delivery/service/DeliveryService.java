@@ -16,11 +16,15 @@ import com.readora.delivery.repository.DeliveryAssignmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class DeliveryService {
+
+    /** Flat, mock payout per delivery — this is a portfolio simulation, not a real payout engine. */
+    private static final BigDecimal DELIVERY_PAYOUT = new BigDecimal("40.00");
 
     private final DeliveryAgentRepository agentRepository;
     private final DeliveryAssignmentRepository assignmentRepository;
@@ -43,13 +47,27 @@ public class DeliveryService {
     @Transactional(readOnly = true)
     public AgentMeResponse getMe(UUID userId) {
         DeliveryAgent agent = requireAgent(userId);
-        return new AgentMeResponse(agent.getUserId(), agent.getName(), agent.getPhone(), agent.getStoreId());
+        return toMeResponse(agent);
     }
 
-    /** Every UNASSIGNED order at the caller's store — the shared claim queue. */
+    @Transactional
+    public AgentMeResponse setOnDuty(UUID userId, boolean onDuty) {
+        DeliveryAgent agent = requireAgent(userId);
+        agent.setOnDuty(onDuty);
+        agentRepository.save(agent);
+        return toMeResponse(agent);
+    }
+
+    /**
+     * Every UNASSIGNED order at the caller's store — the shared claim queue. Empty while off
+     * duty, same as a real gig-delivery app: going online is what makes new work visible.
+     */
     @Transactional(readOnly = true)
     public List<AssignmentResponse> getQueue(UUID userId) {
         DeliveryAgent agent = requireAgent(userId);
+        if (!agent.isOnDuty()) {
+            return List.of();
+        }
         return assignmentRepository
                 .findAllByStoreIdAndStatusOrderByCreatedAt(agent.getStoreId(), DeliveryAssignmentStatus.UNASSIGNED)
                 .stream()
@@ -131,7 +149,12 @@ public class DeliveryService {
     private AssignmentResponse toResponse(DeliveryAssignment a) {
         return new AssignmentResponse(
                 a.getId(), a.getOrderId(), a.getOrderNumber(), a.getStoreId(), a.getStatus().name(),
-                a.getCreatedAt(), a.getAssignedAt(), a.getOutForDeliveryAt(), a.getDeliveredAt()
+                a.getCreatedAt(), a.getAssignedAt(), a.getOutForDeliveryAt(), a.getDeliveredAt(),
+                a.getDestinationCity(), DELIVERY_PAYOUT
         );
+    }
+
+    private AgentMeResponse toMeResponse(DeliveryAgent agent) {
+        return new AgentMeResponse(agent.getUserId(), agent.getName(), agent.getPhone(), agent.getStoreId(), agent.isOnDuty());
     }
 }

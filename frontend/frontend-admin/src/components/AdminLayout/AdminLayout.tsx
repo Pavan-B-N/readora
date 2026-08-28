@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store, Undo2 } from 'lucide-react';
+import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store, Undo2, Bike } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
 import { getMe } from '@/api/userApi';
 import { listStores } from '@/api/catalogApi';
@@ -22,6 +22,7 @@ const NAV_GROUPS = [
     label: 'Operations',
     items: [
       { to: ROUTES.returns, label: 'Returns', icon: Undo2 },
+      { to: ROUTES.deliveryAgents, label: 'Delivery agents', icon: Bike },
       { to: ROUTES.embeddings, label: 'Embeddings', icon: Sparkles },
     ],
   },

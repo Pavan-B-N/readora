@@ -14,11 +14,17 @@ import { WalletPage } from '@/pages/WalletPage/WalletPage';
 import { ProfilePage } from '@/pages/ProfilePage/ProfilePage';
 import { VirtualReaderPage } from '@/pages/VirtualReaderPage/VirtualReaderPage';
 import { AssistantPage } from '@/pages/AssistantPage/AssistantPage';
+import { NotFoundPage } from '@/pages/NotFoundPage/NotFoundPage';
+import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import { ROUTES } from '@/constants/routes';
 
 export const router = createBrowserRouter([
   {
     element: <SiteLayout />,
+    // Catches render/loader exceptions thrown anywhere under SiteLayout. A plain unmatched URL
+    // (no route pattern matches) is handled below by the "*" route instead, so it keeps the
+    // header/nav chrome rather than falling all the way out to this boundary.
+    errorElement: <RouteErrorBoundary />,
     children: [
       { path: ROUTES.home, element: <HomePage /> },
       { path: '/books/:bookId', element: <BookDetailPage /> },
@@ -38,6 +44,7 @@ export const router = createBrowserRouter([
           { path: '/assistant/:conversationId?', element: <AssistantPage /> },
         ],
       },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ]);

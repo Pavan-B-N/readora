@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.commerce.cart.CartRepository;
 import com.readora.commerce.client.CatalogClient;
+import com.readora.commerce.client.PaymentClient;
 import com.readora.commerce.client.UserServiceClient;
 import com.readora.commerce.dto.CancelOrderRequest;
 import com.readora.commerce.dto.CancelOrderResponse;
@@ -18,6 +19,7 @@ import com.readora.commerce.dto.OrderStatusChangedEvent;
 import com.readora.commerce.dto.OrderSummaryResponse;
 import com.readora.commerce.dto.ReserveStockRequest;
 import com.readora.commerce.dto.ReserveStockResponse;
+import com.readora.commerce.dto.ReturnMessageResponse;
 import com.readora.commerce.dto.ReturnOrderRequest;
 import com.readora.commerce.dto.ReturnOrderResponse;
 import com.readora.commerce.dto.VirtualEditionLookupRequest;
@@ -30,16 +32,19 @@ import com.readora.commerce.entity.OrderShippingAddress;
 import com.readora.commerce.entity.OrderStatus;
 import com.readora.commerce.entity.OrderStatusHistory;
 import com.readora.commerce.entity.OutboxEvent;
+import com.readora.commerce.entity.ReturnSenderRole;
 import com.readora.commerce.exception.CartEmptyException;
 import com.readora.commerce.exception.InsufficientWalletBalanceException;
 import com.readora.commerce.exception.InvalidDeliveryTransitionException;
 import com.readora.commerce.exception.InvalidPaymentMethodException;
+import com.readora.commerce.exception.InvalidReturnTransitionException;
 import com.readora.commerce.exception.MultipleStoresInCartException;
 import com.readora.commerce.exception.OrderAlreadyCancelledException;
 import com.readora.commerce.exception.OrderAlreadyShippedException;
 import com.readora.commerce.exception.OrderCancelWindowExpiredException;
 import com.readora.commerce.exception.OrderNotFoundException;
 import com.readora.commerce.exception.OrderNotReturnableException;
+import com.readora.commerce.exception.ReturnNotUnderReviewException;
 import com.readora.commerce.exception.ShippingAddressRequiredException;
 import com.readora.commerce.exception.VirtualEditionNotAvailableException;
 import com.readora.commerce.kafka.KafkaTopics;
@@ -58,9 +63,11 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -69,7 +76,9 @@ public class OrderService {
     private static final BigDecimal FREE_SHIPPING_THRESHOLD = new BigDecimal("499.00");
     private static final BigDecimal FLAT_SHIPPING_FEE = new BigDecimal("40.00");
     private static final BigDecimal PACKAGING_FEE = new BigDecimal("15.00");
-    private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("WALLET", "UPI", "COD");
+    private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("WALLET", "UPI");
+    /** How many line items the order list's cover collage shows before collapsing into "+N more". */
+    private static final int ORDER_LIST_ITEM_PREVIEW_LIMIT = 4;
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -78,8 +87,10 @@ public class OrderService {
     private final OutboxEventRepository outboxEventRepository;
     private final CatalogClient catalogClient;
     private final UserServiceClient userServiceClient;
+    private final PaymentClient paymentClient;
     private final CartRepository cartRepository;
     private final ObjectMapper objectMapper;
+    private final ReturnMessageService returnMessageService;
 
     public OrderService(
             OrderRepository orderRepository,
@@ -89,8 +100,10 @@ public class OrderService {
             OutboxEventRepository outboxEventRepository,
             CatalogClient catalogClient,
             UserServiceClient userServiceClient,
+            PaymentClient paymentClient,
             CartRepository cartRepository,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            ReturnMessageService returnMessageService
     ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
@@ -99,8 +112,10 @@ public class OrderService {
         this.outboxEventRepository = outboxEventRepository;
         this.catalogClient = catalogClient;
         this.userServiceClient = userServiceClient;
+        this.paymentClient = paymentClient;
         this.cartRepository = cartRepository;
         this.objectMapper = objectMapper;
+        this.returnMessageService = returnMessageService;
     }
 
     /** One resolved, priced line — physical (reserved stock) or virtual (looked-up edition) — before persistence. */
@@ -155,11 +170,6 @@ public class OrderService {
         String paymentMethod = request.paymentMethod().toUpperCase();
         if (!SUPPORTED_PAYMENT_METHODS.contains(paymentMethod)) {
             throw new InvalidPaymentMethodException("Unsupported payment method: " + request.paymentMethod());
-        }
-        // Cash on Delivery has nothing to collect cash for on a virtual-only order — there's no
-        // physical touchpoint at which an agent could take payment.
-        if ("COD".equals(paymentMethod) && !hasPhysical) {
-            throw new InvalidPaymentMethodException("Cash on Delivery isn't available for a virtual-only order");
         }
 
         BigDecimal walletAmountUsed = BigDecimal.ZERO;
@@ -258,11 +268,34 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public Page<OrderSummaryResponse> listOrders(UUID userId, Pageable pageable) {
-        return orderRepository.findAllByUserIdOrderByPlacedAtDesc(userId, pageable)
-                .map(order -> new OrderSummaryResponse(
-                        order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getGrandTotal(),
-                        order.getCurrency(), order.getPlacedAt(), order.isCancellable(), order.getDeliveredAt()
-                ));
+        Page<Order> orders = orderRepository.findAllByUserIdOrderByPlacedAtDesc(userId, pageable);
+        List<UUID> orderIds = orders.getContent().stream().map(Order::getId).toList();
+
+        Map<UUID, List<OrderItem>> itemsByOrderId = orderItemRepository.findAllByOrderIdIn(orderIds).stream()
+                .collect(Collectors.groupingBy(item -> item.getOrder().getId()));
+
+        List<UUID> distinctBookIds = itemsByOrderId.values().stream()
+                .flatMap(List::stream)
+                .map(OrderItem::getBookId)
+                .distinct()
+                .toList();
+        Map<UUID, String> coverImageUrls = catalogClient.getCoverImageUrls(distinctBookIds);
+
+        return orders.map(order -> {
+            List<OrderItem> items = itemsByOrderId.getOrDefault(order.getId(), List.of());
+            List<OrderSummaryResponse.ItemPreview> previews = items.stream()
+                    .limit(ORDER_LIST_ITEM_PREVIEW_LIMIT)
+                    .map(item -> new OrderSummaryResponse.ItemPreview(
+                            item.getBookId(), item.getTitleSnapshot(), coverImageUrls.get(item.getBookId())
+                    ))
+                    .toList();
+
+            return new OrderSummaryResponse(
+                    order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getGrandTotal(),
+                    order.getCurrency(), order.getPlacedAt(), order.isCancellable(), order.getDeliveredAt(),
+                    previews, items.size()
+            );
+        });
     }
 
     @Transactional(readOnly = true)
@@ -288,12 +321,18 @@ public class OrderService {
                 .map(h -> new OrderDetailResponse.HistoryEntry(h.getToStatus().name(), h.getChangedAt()))
                 .toList();
 
+        OrderDetailResponse.PaymentInfo paymentInfo = paymentClient.getPaymentDetails(orderId)
+                .map(p -> new OrderDetailResponse.PaymentInfo(
+                        p.paymentId(), p.status(), p.amount(), p.walletAmountUsed(), p.authorizedAt(), p.capturedAt()
+                ))
+                .orElse(null);
+
         return new OrderDetailResponse(
                 order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getDeliveryType().name(),
                 items, addressDto, history, order.isCancellable(), order.isReturnable(), order.getSubtotal(), order.getShippingFee(),
                 order.getPackagingFee(), order.getTaxAmount(), order.getGrandTotal(), order.getWalletAmountUsed(),
                 order.getPaymentMethod(), order.getCurrency(), order.getPlacedAt(),
-                order.getDeliveryAgentName(), order.getDeliveredAt()
+                order.getDeliveryAgentName(), order.getDeliveredAt(), paymentInfo, order.getReturnAgentName()
         );
     }
 
@@ -325,6 +364,13 @@ public class OrderService {
         return new CancelOrderResponse(order.getId(), order.getStatus().name(), order.getCancelledAt());
     }
 
+    /**
+     * A virtual-only order has nothing physical to inspect, so it auto-advances straight through
+     * to REFUND_INITIATED in this same call — no admin review, no chat. An order with a physical
+     * item stops at RETURN_REQUESTED and waits for an admin decision (see reviewReturn()); the
+     * refund itself doesn't fire until the book is actually collected
+     * (updateReturnPickupStatus() -> RETURN_COLLECTED).
+     */
     @Transactional
     public ReturnOrderResponse returnOrder(UUID userId, UUID orderId, ReturnOrderRequest request) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId).orElseThrow(OrderNotFoundException::new);
@@ -334,15 +380,116 @@ public class OrderService {
         }
 
         OrderStatus previousStatus = order.getStatus();
-        order.returnOrder(request.reason());
+        order.requestReturn(request.reason());
         orderRepository.save(order);
+        recordHistory(order, previousStatus, OrderStatus.RETURN_REQUESTED, request.reason(), "user");
 
-        recordHistory(order, previousStatus, OrderStatus.RETURNED, request.reason(), "user");
-
-        publish("Order", order.getId(), KafkaTopics.ORDER_RETURNED,
-                new OrderReturnedEvent(order.getId(), userId, request.reason(), order.getGrandTotal()));
+        if (order.getDeliveryType() == DeliveryType.VIRTUAL) {
+            initiateRefund(order, request.reason(), "system");
+        }
 
         return new ReturnOrderResponse(order.getId(), order.getStatus().name(), order.getCancelledAt());
+    }
+
+    /**
+     * The admin decision gate for a return with a physical item (a virtual-only return never
+     * reaches RETURN_REQUESTED for long enough to be reviewed — see returnOrder()). Approving
+     * queues a pickup for delivery-agent-service (it listens for RETURN_APPROVED on
+     * order.status_changed); rejecting is terminal, no refund.
+     */
+    @Transactional
+    public void reviewReturn(UUID adminId, UUID orderId, UUID storeId, String decision, String note) {
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId).orElseThrow(OrderNotFoundException::new);
+        if (order.getStatus() != OrderStatus.RETURN_REQUESTED) {
+            throw new ReturnNotUnderReviewException();
+        }
+
+        order.markReviewed(adminId, note);
+
+        OrderStatus previousStatus = order.getStatus();
+        if ("APPROVE".equalsIgnoreCase(decision)) {
+            order.approveReturn();
+            orderRepository.save(order);
+            recordHistory(order, previousStatus, OrderStatus.RETURN_APPROVED, note, "admin");
+        } else if ("REJECT".equalsIgnoreCase(decision)) {
+            order.rejectReturn();
+            orderRepository.save(order);
+            recordHistory(order, previousStatus, OrderStatus.RETURN_REJECTED, note, "admin");
+        } else {
+            throw new IllegalArgumentException("decision must be APPROVE or REJECT");
+        }
+    }
+
+    /**
+     * Called by delivery-agent-service (via InternalDeliveryController) as an agent progresses a
+     * return pickup. Enforces RETURN_APPROVED -> RETURN_ASSIGNED -> RETURN_EN_ROUTE ->
+     * RETURN_COLLECTED in order. Reaching RETURN_COLLECTED immediately kicks off the refund —
+     * mirrors updateDeliveryStatus()'s shape exactly, just for the reverse (pickup) leg.
+     */
+    @Transactional
+    public void updateReturnPickupStatus(UUID orderId, OrderStatus newStatus, UUID returnAgentId, String returnAgentName) {
+        Order order = orderRepository.findById(orderId).orElseThrow(OrderNotFoundException::new);
+        OrderStatus previousStatus = order.getStatus();
+
+        boolean legal = switch (newStatus) {
+            case RETURN_ASSIGNED -> previousStatus == OrderStatus.RETURN_APPROVED;
+            case RETURN_EN_ROUTE -> previousStatus == OrderStatus.RETURN_ASSIGNED;
+            case RETURN_COLLECTED -> previousStatus == OrderStatus.RETURN_EN_ROUTE;
+            default -> false;
+        };
+        if (!legal) {
+            throw new InvalidReturnTransitionException();
+        }
+
+        switch (newStatus) {
+            case RETURN_ASSIGNED -> order.assignReturnAgent(returnAgentId, returnAgentName);
+            case RETURN_EN_ROUTE -> order.markReturnEnRoute();
+            case RETURN_COLLECTED -> order.markReturnCollected();
+            default -> throw new InvalidReturnTransitionException();
+        }
+        orderRepository.save(order);
+        recordHistory(order, previousStatus, newStatus, null, "delivery-agent");
+
+        if (newStatus == OrderStatus.RETURN_COLLECTED) {
+            initiateRefund(order, order.getCancelReason(), "system");
+        }
+    }
+
+    /** Payment-service confirmed the refund actually landed — the one true terminal hop for every return path. */
+    @Transactional
+    public void handleRefundCompleted(UUID orderId) {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null || order.getStatus() != OrderStatus.REFUND_INITIATED) {
+            return;
+        }
+
+        OrderStatus previousStatus = order.getStatus();
+        order.completeReturn();
+        orderRepository.save(order);
+        recordHistory(order, previousStatus, OrderStatus.RETURNED, null, "system");
+    }
+
+    /** Shared by both return paths: fires REFUND_INITIATED plus the order.returned event payment-service already consumes unchanged. */
+    private void initiateRefund(Order order, String reason, String changedBy) {
+        OrderStatus previousStatus = order.getStatus();
+        order.initiateRefund();
+        orderRepository.save(order);
+        recordHistory(order, previousStatus, OrderStatus.REFUND_INITIATED, reason, changedBy);
+
+        publish("Order", order.getId(), KafkaTopics.ORDER_RETURNED,
+                new OrderReturnedEvent(order.getId(), order.getUserId(), reason, order.getGrandTotal()));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReturnMessageResponse> listReturnMessages(UUID userId, UUID orderId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId).orElseThrow(OrderNotFoundException::new);
+        return returnMessageService.list(order.getId());
+    }
+
+    @Transactional
+    public ReturnMessageResponse postReturnMessage(UUID userId, UUID orderId, String content) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId).orElseThrow(OrderNotFoundException::new);
+        return returnMessageService.post(order, userId, ReturnSenderRole.CUSTOMER, content);
     }
 
     /**

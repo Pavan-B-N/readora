@@ -122,8 +122,8 @@ export function BookFormPage() {
   const handleCreateAuthor = async (name: string) => {
     setCreatingAuthor(true);
     try {
-      const result = await createAuthor({ name, slug: slugify(name), bio: null });
-      const newAuthor: Author = { id: result.id, name, slug: slugify(name), bio: null };
+      const result = await createAuthor({ name, slug: slugify(name), bio: null, photoUrl: null });
+      const newAuthor: Author = { id: result.id, name, slug: slugify(name), bio: null, photoUrl: null };
       setAuthors((prev) => [...prev, newAuthor]);
       set({ authorIds: [...form.authorIds, result.id] });
       showToast(`Author “${name}” added`);

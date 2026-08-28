@@ -31,6 +31,7 @@ export interface StoredMessage {
   role: 'USER' | 'ASSISTANT';
   content: string;
   createdAt: string;
+  bookIds: string[];
 }
 
 /** Most recent conversation first — used to find the one to resume on chat reopen. */
@@ -48,6 +49,14 @@ export async function getConversationMessages(conversationId: string): Promise<S
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
 
+/** The final SSE frame of a reply carries this prefix instead of reply text — see ChatService.BOOK_IDS_FRAME_PREFIX. */
+const BOOK_IDS_FRAME_PREFIX = '@@RDX_BOOK_IDS@@:';
+
+export interface StreamChatResult {
+  conversationId: string | null;
+  bookIds: string[];
+}
+
 /**
  * Streams an assistant reply token-by-token.
  *
@@ -56,15 +65,20 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
  *
  * @param onToken called for each chunk of text as it arrives
  * @param signal  lets the caller abort a stream in flight (e.g. the user closes the widget)
- * @returns the conversation id — the one passed in, or a newly created one when conversationId was null
+ * @returns the conversation id (the one passed in, or a newly created one when it was null) and
+ *          the book ids the backend found relevant to this reply
  */
 export async function streamChat(
   message: string,
   conversationId: string | null,
   onToken: (chunk: string) => void,
   signal?: AbortSignal,
-): Promise<string | null> {
+): Promise<StreamChatResult> {
   const { accessToken } = store.getState().auth;
+  // The book-search tools filter every candidate to what's actually purchasable at this store
+  // (see ChatClientConfig's system prompt) — without it, the assistant can only recommend from
+  // the whole catalogue, including books with no stock here and no virtual edition.
+  const { selectedId: storeId } = store.getState().store;
 
   const response = await fetch(`${BASE_URL}/api/v1/ai/chat`, {
     method: 'POST',
@@ -74,7 +88,7 @@ export async function streamChat(
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       'X-Correlation-Id': crypto.randomUUID(),
     },
-    body: JSON.stringify({ message, conversationId }),
+    body: JSON.stringify({ message, conversationId, storeId }),
     signal,
   });
 
@@ -87,6 +101,7 @@ export async function streamChat(
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  let bookIds: string[] = [];
 
   for (;;) {
     const { done, value } = await reader.read();
@@ -94,21 +109,39 @@ export async function streamChat(
 
     buffer += decoder.decode(value, { stream: true });
 
-    // SSE frames are separated by a blank line; each "data:" line carries one chunk.
+    // SSE frames are separated by a blank line. A single frame carries one "message", but when
+    // that message's payload contains its own newlines, the spec requires the sender to split it
+    // across multiple "data:" lines within the same frame — the receiver is expected to rejoin
+    // them with "\n" to recover the original text. A chunk like "\n\n- Core Java Syntax" (a very
+    // normal thing for a model to emit while writing a markdown list) arrives as three separate
+    // "data:" lines; calling onToken() once per line rather than once per frame would silently
+    // drop those newlines; instead of concatenating chunk text directly, so bullet points and
+    // paragraph breaks would vanish from the live-streamed text (while a reload rendered fine —
+    // the persisted message is the complete string with newlines intact, never round-tripped
+    // through this per-line reconstruction).
     const frames = buffer.split('\n\n');
     buffer = frames.pop() ?? '';
 
     for (const frame of frames) {
-      for (const line of frame.split('\n')) {
-        if (line.startsWith('data:')) {
-          // Take everything after "data:" verbatim. Do NOT strip a leading space here: Spring
-          // writes the payload with no separator space, so a token that is itself a space
-          // arrives as "data: " — stripping would silently delete every space in the reply.
-          onToken(line.slice(5));
+      const dataLines = frame.split('\n').filter((line) => line.startsWith('data:'));
+      if (dataLines.length === 0) continue;
+
+      // Do NOT strip a leading space here: Spring writes the payload with no separator space, so
+      // a token that is itself a space arrives as "data: " — stripping would silently delete
+      // every space in the reply.
+      const payload = dataLines.map((line) => line.slice(5)).join('\n');
+
+      if (payload.startsWith(BOOK_IDS_FRAME_PREFIX)) {
+        try {
+          bookIds = JSON.parse(payload.slice(BOOK_IDS_FRAME_PREFIX.length));
+        } catch {
+          // Best-effort — a malformed frame just means no carousel for this turn.
         }
+      } else {
+        onToken(payload);
       }
     }
   }
 
-  return resolvedConversationId;
+  return { conversationId: resolvedConversationId, bookIds };
 }

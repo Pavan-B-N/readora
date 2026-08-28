@@ -82,8 +82,8 @@ export function VirtualBookFormPage() {
   const handleCreateAuthor = async (name: string) => {
     setCreatingAuthor(true);
     try {
-      const result = await createAuthor({ name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), bio: null });
-      const newAuthor: Author = { id: result.id, name, slug: '', bio: null };
+      const result = await createAuthor({ name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), bio: null, photoUrl: null });
+      const newAuthor: Author = { id: result.id, name, slug: '', bio: null, photoUrl: null };
       setAuthors((prev) => [...prev, newAuthor]);
       set({ authorIds: [...form.authorIds, result.id] });
       showToast(`Author "${name}" added`);

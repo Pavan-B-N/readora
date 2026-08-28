@@ -57,10 +57,7 @@ public class PaymentService {
 
     /**
      * WALLET checkout already had its balance verified synchronously by commerce-service before
-     * the order was created, so it's safe to capture immediately here. COD is captured
-     * immediately too — this dummy provider's "capture" means "payment secured," and for Cash on
-     * Delivery that's true the moment the order is confirmed (the actual cash changes hands for
-     * real at delivery, a real-world step this service doesn't model). UPI has no real gateway —
+     * the order was created, so it's safe to capture immediately here. UPI has no real gateway —
      * it's simulated: authorize now, and {@link UpiSettlementJob} captures it a few seconds
      * later, entirely server-side over Kafka, so the frontend sees a genuine "pending, then
      * confirmed" flow rather than a fake client-side timer.
@@ -82,11 +79,6 @@ public class PaymentService {
             payment.capture();
             paymentRepository.save(payment);
             paymentAttemptRepository.save(new PaymentAttempt(payment, 1, payment.getStatus(), "dummy provider: auto-approved"));
-            publishCaptured(payment);
-        } else if (method == PaymentMethod.COD) {
-            payment.capture();
-            paymentRepository.save(payment);
-            paymentAttemptRepository.save(new PaymentAttempt(payment, 1, payment.getStatus(), "cash on delivery: confirmed, collected at delivery"));
             publishCaptured(payment);
         } else {
             paymentRepository.save(payment);
@@ -154,11 +146,36 @@ public class PaymentService {
         );
     }
 
+    /**
+     * Internal-only lookup — no ownership check. Safe only because the sole caller,
+     * InternalPaymentController, is reachable exclusively service-to-service (GatewaySecretFilter,
+     * not per-caller auth) and the calling service (commerce-service) has already verified the
+     * requesting user owns the order before asking for its payment details. The public endpoint
+     * (PaymentController) must never call this overload directly — see getByOrderId(orderId, callerId).
+     */
     @Transactional(readOnly = true)
     public PaymentResponse getByOrderId(UUID orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(PaymentNotFoundException::new);
+        return toResponse(payment);
+    }
 
+    /**
+     * Ownership-checked variant for the public /api/v1/payments/{orderId} endpoint. Without the
+     * ownership filter here, any authenticated user could view another user's payment amount,
+     * wallet-funded amount, method, and status just by passing an arbitrary order id. Failing with
+     * the same PaymentNotFoundException (404) for both "no such payment" and "not yours" means a
+     * caller can't distinguish the two by probing order ids.
+     */
+    @Transactional(readOnly = true)
+    public PaymentResponse getByOrderId(UUID orderId, UUID callerId) {
+        Payment payment = paymentRepository.findByOrderId(orderId)
+                .filter(p -> p.getUserId().equals(callerId))
+                .orElseThrow(PaymentNotFoundException::new);
+        return toResponse(payment);
+    }
+
+    private PaymentResponse toResponse(Payment payment) {
         return new PaymentResponse(
                 payment.getId(),
                 payment.getOrderId(),

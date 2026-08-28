@@ -271,7 +271,7 @@ public class CatalogService {
     @Transactional(readOnly = true)
     public List<CategoryResponse> getCategoryTree() {
         return categoryRepository.findAllByOrderByDisplayOrder().stream()
-                .map(c -> new CategoryResponse(c.getId(), c.getName(), c.getSlug(), List.of()))
+                .map(c -> new CategoryResponse(c.getId(), c.getName(), c.getSlug(), c.getDisplayOrder(), List.of()))
                 .toList();
     }
 

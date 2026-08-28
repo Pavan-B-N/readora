@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, ChevronRight, Package } from 'lucide-react';
 import { listOrders } from '@/api/orderApi';
-import type { OrderSummary } from '@/types/order';
+import type { OrderItemPreview, OrderSummary } from '@/types/order';
+import { useOrderStatusNotifications } from '@/hooks/useOrderStatusNotifications';
 import { Card } from '@/components/Card';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
@@ -12,16 +13,47 @@ import { ROUTES } from '@/constants/routes';
 import { statusVariant, displayStatus } from '@/utils/orderStatus';
 import styles from './OrdersPage.module.css';
 
+/** How many covers the collage shows before collapsing the rest into a "+N" chip. */
+const MAX_VISIBLE_COVERS = 3;
+
+function CoverCollage({ previews, itemCount }: { previews: OrderItemPreview[]; itemCount: number }) {
+  const visible = previews.slice(0, MAX_VISIBLE_COVERS);
+  const hiddenCount = itemCount - visible.length;
+
+  return (
+    <div className={styles.collage}>
+      {visible.map((item, i) => (
+        <span className={styles.cover} key={item.bookId} style={{ zIndex: visible.length - i }}>
+          {item.coverImageUrl ? <img src={item.coverImageUrl} alt="" /> : <BookOpen size={16} />}
+        </span>
+      ))}
+      {hiddenCount > 0 && (
+        <span className={styles.coverMore} style={{ zIndex: 0 }}>
+          +{hiddenCount}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function OrdersPage() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const refresh = () => listOrders(0, 20).then((result) => setOrders(result.content));
+
   useEffect(() => {
-    listOrders(0, 20)
-      .then((result) => setOrders(result.content))
-      .finally(() => setLoading(false));
+    refresh().finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A status push for any order on this page should update its badge immediately, not just tick
+  // up the bell's unread count.
+  useOrderStatusNotifications(
+    (notificationOrderId) => orders.some((o) => o.orderId === notificationOrderId),
+    refresh,
+  );
 
   return (
     <div>
@@ -45,30 +77,39 @@ export function OrdersPage() {
         </Card>
       ) : (
         <div className={styles.list}>
-          {orders.map((order) => (
-            <Link key={order.orderId} to={ROUTES.orderDetail(order.orderId)}>
-              <Card className={styles.card}>
-                <span className={styles.icon}>
-                  <Package size={17} />
-                </span>
-                <span className={styles.info}>
-                  <div className={styles.orderNumber}>{order.orderNumber}</div>
-                  <div className={styles.meta}>
-                    {new Date(order.placedAt).toLocaleDateString(undefined, {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </div>
-                </span>
-                <Badge variant={statusVariant(order.status)} dot>
-                  {displayStatus(order.status)}
-                </Badge>
-                <span className={styles.total}>₹{order.grandTotal}</span>
-                <ChevronRight size={16} className={styles.chevron} />
-              </Card>
-            </Link>
-          ))}
+          {orders.map((order) => {
+            const primaryTitle = order.itemPreviews[0]?.title ?? order.orderNumber;
+            const extraCount = order.itemCount - 1;
+
+            return (
+              <Link key={order.orderId} to={ROUTES.orderDetail(order.orderId)}>
+                <Card className={styles.card}>
+                  <CoverCollage previews={order.itemPreviews} itemCount={order.itemCount} />
+
+                  <span className={styles.info}>
+                    <div className={styles.title}>
+                      {primaryTitle}
+                      {extraCount > 0 && <span className={styles.extraCount}> + {extraCount} more</span>}
+                    </div>
+                    <div className={styles.meta}>
+                      {order.orderNumber} ·{' '}
+                      {new Date(order.placedAt).toLocaleDateString(undefined, {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </div>
+                  </span>
+
+                  <Badge variant={statusVariant(order.status)} dot>
+                    {displayStatus(order.status)}
+                  </Badge>
+                  <span className={styles.total}>₹{order.grandTotal}</span>
+                  <ChevronRight size={16} className={styles.chevron} />
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

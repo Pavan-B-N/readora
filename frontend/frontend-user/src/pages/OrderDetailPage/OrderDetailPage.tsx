@@ -1,21 +1,39 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BookOpen, Download, Loader2, RotateCcw, Truck, XCircle } from 'lucide-react';
+import { BookOpen, Loader2, RotateCcw, XCircle } from 'lucide-react';
 import { cancelOrder, getOrderDetail, returnOrder } from '@/api/orderApi';
 import type { OrderDetail } from '@/types/order';
+import { useOrderStatusNotifications } from '@/hooks/useOrderStatusNotifications';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
 import { Spinner } from '@/components/Spinner';
+import { ReturnChatPanel } from '@/components/ReturnChatPanel';
 import { ROUTES } from '@/constants/routes';
 import styles from './OrderDetailPage.module.css';
 
-const READABLE_STATUSES = new Set(['PAID', 'CONFIRMED', 'ASSIGNED', 'SHIPPED', 'DELIVERED']);
+// RETURN_REQUESTED is included here (not just the pre-return statuses) so the ebook "Read now"
+// button stays visible while a return is pending admin review, matching the backend — which also
+// doesn't revoke access until RETURN_APPROVED (see OrderItemRepository.findDistinctBookIdsByUserId).
+const READABLE_STATUSES = new Set(['PAID', 'CONFIRMED', 'ASSIGNED', 'SHIPPED', 'DELIVERED', 'RETURN_REQUESTED']);
+
+const RETURN_FAMILY_STATUSES = new Set([
+  'RETURN_REQUESTED',
+  'RETURN_REJECTED',
+  'RETURN_APPROVED',
+  'RETURN_ASSIGNED',
+  'RETURN_EN_ROUTE',
+  'RETURN_COLLECTED',
+  'REFUND_INITIATED',
+  'RETURNED',
+]);
 
 const POLL_INTERVAL_MS = 2000;
 
 const TRACKER_STEPS = ['Order placed', 'Assigned to agent', 'Out for delivery', 'Delivered'];
+
+const RETURN_TRACKER_STEPS = ['Requested', 'Approved', 'Agent assigned', 'On the way', 'Collected', 'Refunded'];
 
 /** null for statuses the tracker doesn't apply to (pre-confirmation, cancelled, payment failed). */
 function trackerStepIndex(status: string): number | null {
@@ -34,10 +52,40 @@ function trackerStepIndex(status: string): number | null {
   }
 }
 
+/** null for statuses the return tracker doesn't apply to (order was never returned, or the return was rejected). */
+function returnTrackerStepIndex(status: string): number | null {
+  switch (status) {
+    case 'RETURN_REQUESTED':
+      return 0;
+    case 'RETURN_APPROVED':
+      return 1;
+    case 'RETURN_ASSIGNED':
+      return 2;
+    case 'RETURN_EN_ROUTE':
+      return 3;
+    case 'RETURN_COLLECTED':
+      return 4;
+    case 'REFUND_INITIATED':
+    case 'RETURNED':
+      return 5;
+    default:
+      return null;
+  }
+}
+
 function statusVariant(status: string) {
   if (status === 'DELIVERED' || status === 'CONFIRMED' || status === 'PAID') return 'success' as const;
-  if (status === 'CANCELLED' || status === 'PAYMENT_FAILED' || status === 'RETURNED') return 'danger' as const;
+  if (status === 'CANCELLED' || status === 'PAYMENT_FAILED' || status === 'RETURNED' || status === 'RETURN_REJECTED') {
+    return 'danger' as const;
+  }
   if (status === 'ASSIGNED' || status === 'SHIPPED') return 'info' as const;
+  return 'warning' as const;
+}
+
+function paymentStatusVariant(status: string) {
+  if (status === 'CAPTURED') return 'success' as const;
+  if (status === 'FAILED') return 'danger' as const;
+  if (status === 'REFUNDED') return 'info' as const;
   return 'warning' as const;
 }
 
@@ -48,19 +96,19 @@ function prettyStatus(status: string) {
     .join(' ');
 }
 
-/** SHIPPED is stored as-is (see backend's OrderStatus javadoc) but reads as "Out for delivery" here. */
+/** A few statuses read awkwardly as plain title-cased enum names — everything else falls through to prettyStatus(). */
 function displayStatus(status: string) {
   if (status === 'SHIPPED') return 'Out for delivery';
+  if (status === 'RETURN_EN_ROUTE') return 'Agent on the way';
+  if (status === 'REFUND_INITIATED') return 'Refund in progress';
+  if (status === 'RETURN_ASSIGNED') return 'Agent assigned';
   return prettyStatus(status);
 }
 
-function DeliveryTracker({ status }: { status: string }) {
-  const currentIndex = trackerStepIndex(status);
-  if (currentIndex === null) return null;
-
+function Tracker({ steps, currentIndex }: { steps: string[]; currentIndex: number }) {
   return (
     <div className={styles.tracker}>
-      {TRACKER_STEPS.map((label, i) => {
+      {steps.map((label, i) => {
         const done = i < currentIndex;
         const current = i === currentIndex;
         return (
@@ -79,6 +127,19 @@ function DeliveryTracker({ status }: { status: string }) {
       })}
     </div>
   );
+}
+
+function DeliveryTracker({ status }: { status: string }) {
+  const currentIndex = trackerStepIndex(status);
+  if (currentIndex === null) return null;
+  return <Tracker steps={TRACKER_STEPS} currentIndex={currentIndex} />;
+}
+
+/** Only meaningful once a physical return has actually started (RETURN_REQUESTED or later) — null otherwise, e.g. RETURN_REJECTED has nothing further to track. */
+function ReturnTracker({ status }: { status: string }) {
+  const currentIndex = returnTrackerStepIndex(status);
+  if (currentIndex === null) return null;
+  return <Tracker steps={RETURN_TRACKER_STEPS} currentIndex={currentIndex} />;
 }
 
 export function OrderDetailPage() {
@@ -114,6 +175,10 @@ export function OrderDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.status]);
 
+  // A delivery-status push (e.g. "Out for delivery") should update this page immediately if it's
+  // already open, not just tick up the bell's unread count.
+  useOrderStatusNotifications((notificationOrderId) => notificationOrderId === orderId, reload);
+
   const onCancel = async () => {
     if (!orderId) return;
     setCancelling(true);
@@ -130,10 +195,14 @@ export function OrderDetailPage() {
 
   const onReturn = async () => {
     if (!orderId) return;
+    // Physical items need a human to sign off before anything happens; a virtual-only order has
+    // nothing to inspect, so it auto-approves and starts refunding right away — see
+    // OrderService.returnOrder()'s javadoc.
+    const needsReview = order?.items.some((item) => item.deliveryType === 'PHYSICAL') ?? false;
     setReturning(true);
     try {
       await returnOrder(orderId);
-      showToast('Return started — a refund is on its way');
+      showToast(needsReview ? "Return requested — we'll review it shortly" : 'Return started — a refund is on its way');
       reload();
     } catch {
       showToast('Could not return this order', 'error');
@@ -145,6 +214,11 @@ export function OrderDetailPage() {
   if (!order) return <Spinner />;
 
   const isSettlingUpi = order.status === 'PENDING_PAYMENT' && order.paymentMethod === 'UPI';
+  // An order's items can mix PHYSICAL and VIRTUAL editions — there's no single delivery type for
+  // the order as a whole, so every check below looks at the actual item lines instead of relying
+  // on order.deliveryType (which only ever reflects "has at least one physical item").
+  const hasPhysicalItem = order.items.some((item) => item.deliveryType === 'PHYSICAL');
+  const isInReturnFlow = RETURN_FAMILY_STATUSES.has(order.status);
 
   return (
     <div>
@@ -158,12 +232,11 @@ export function OrderDetailPage() {
             <Badge variant={statusVariant(order.status)} dot pulse={isSettlingUpi}>
               {displayStatus(order.status)}
             </Badge>
-            <Badge variant="neutral">
-              {order.deliveryType === 'VIRTUAL' ? <Download size={11} /> : <Truck size={11} />}
-              {order.deliveryType === 'VIRTUAL' ? 'Virtual' : 'Physical'}
-            </Badge>
-            {order.deliveryAgentName && (
+            {order.deliveryAgentName && !isInReturnFlow && (
               <Badge variant="neutral">Agent: {order.deliveryAgentName}</Badge>
+            )}
+            {order.returnAgentName && (
+              <Badge variant="neutral">Pickup agent: {order.returnAgentName}</Badge>
             )}
           </div>
           {isSettlingUpi && (
@@ -191,7 +264,7 @@ export function OrderDetailPage() {
 
       <div className={styles.layout}>
         <div className={styles.stack}>
-          {order.deliveryType === 'PHYSICAL' && (
+          {hasPhysicalItem && !isInReturnFlow && (
             <Card>
               <CardHeader title="Delivery tracking" />
               <DeliveryTracker status={order.status} />
@@ -200,6 +273,20 @@ export function OrderDetailPage() {
                   Delivered {new Date(order.deliveredAt).toLocaleString()}
                 </p>
               )}
+            </Card>
+          )}
+
+          {hasPhysicalItem && isInReturnFlow && order.status !== 'RETURN_REJECTED' && (
+            <Card>
+              <CardHeader title="Return tracking" />
+              <ReturnTracker status={order.status} />
+            </Card>
+          )}
+
+          {hasPhysicalItem && isInReturnFlow && (
+            <Card>
+              <CardHeader title="Return conversation" />
+              <ReturnChatPanel orderId={order.orderId} locked={order.status !== 'RETURN_REQUESTED'} />
             </Card>
           )}
 
@@ -290,10 +377,32 @@ export function OrderDetailPage() {
             Paid via {order.paymentMethod === 'UPI' ? 'UPI' : 'Wallet'}
             {Number(order.walletAmountUsed) > 0 && ` · ₹${order.walletAmountUsed} from wallet`}
           </div>
+
+          {order.payment && (
+            <div className={styles.transactionBox}>
+              <div className={styles.summaryRow}>
+                <span>Payment status</span>
+                <Badge variant={paymentStatusVariant(order.payment.status)} dot>
+                  {displayStatus(order.payment.status)}
+                </Badge>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>Transaction ID</span>
+                <span className={styles.transactionId}>{order.payment.transactionId}</span>
+              </div>
+              {order.payment.capturedAt && (
+                <div className={styles.summaryRow}>
+                  <span>Paid on</span>
+                  <span>{new Date(order.payment.capturedAt).toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
-            {order.deliveryType === 'VIRTUAL'
-              ? 'Digital delivery — no shipping required.'
-              : 'Cancellable within 48 hours, before a delivery agent is assigned.'}
+            {hasPhysicalItem
+              ? 'Cancellable within 48 hours, before a delivery agent is assigned.'
+              : 'Digital delivery — no shipping required.'}
           </p>
         </Card>
       </div>

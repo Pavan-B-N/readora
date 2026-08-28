@@ -1,5 +1,5 @@
 export type DeliveryType = 'PHYSICAL' | 'VIRTUAL';
-export type PaymentMethod = 'WALLET' | 'UPI' | 'COD';
+export type PaymentMethod = 'WALLET' | 'UPI';
 
 export interface ShippingAddressInput {
   recipientName: string;
@@ -35,6 +35,13 @@ export interface CheckoutResponse {
   placedAt: string;
 }
 
+/** Capped preview of an order's line items, for the order list's cover collage — see itemCount on OrderSummary for the true total. */
+export interface OrderItemPreview {
+  bookId: string;
+  title: string;
+  coverImageUrl: string | null;
+}
+
 export interface OrderSummary {
   orderId: string;
   orderNumber: string;
@@ -44,6 +51,18 @@ export interface OrderSummary {
   placedAt: string;
   cancellable: boolean;
   deliveredAt: string | null;
+  itemPreviews: OrderItemPreview[];
+  itemCount: number;
+}
+
+/** transactionId is the payment provider's own reference — there's no real external gateway behind this dummy provider. */
+export interface OrderPaymentInfo {
+  transactionId: string;
+  status: string;
+  amount: string;
+  walletAmountUsed: string;
+  authorizedAt: string | null;
+  capturedAt: string | null;
 }
 
 export interface OrderDetail {
@@ -75,6 +94,10 @@ export interface OrderDetail {
   placedAt: string;
   deliveryAgentName: string | null;
   deliveredAt: string | null;
+  /** null if payment-service hasn't recorded a payment for this order yet (e.g. right after checkout), or was unreachable. */
+  payment: OrderPaymentInfo | null;
+  /** Set once a return reaches RETURN_ASSIGNED or later — the agent collecting the return, distinct from deliveryAgentName above. */
+  returnAgentName: string | null;
 }
 
 export interface CancelOrderResponse {
@@ -87,4 +110,13 @@ export interface ReturnOrderResponse {
   orderId: string;
   status: string;
   returnedAt: string;
+}
+
+/** One message in the small admin<->customer chat that opens while a return sits at RETURN_REQUESTED. */
+export interface ReturnMessage {
+  id: string;
+  senderUserId: string;
+  senderRole: 'CUSTOMER' | 'ADMIN';
+  content: string;
+  createdAt: string;
 }

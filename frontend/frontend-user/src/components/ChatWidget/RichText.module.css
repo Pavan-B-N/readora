@@ -1,0 +1,21 @@
+.list {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.list li {
+  list-style: disc;
+}
+
+.link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

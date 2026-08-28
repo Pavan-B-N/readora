@@ -27,7 +27,7 @@ spring:
         - id: catalog-service
           uri: http://localhost:8083
           predicates:
-            - Path=/api/v1/books/**,/api/v1/categories/**,/api/v1/publishers/**,/api/v1/authors/**,/api/v1/stores/**,/api/v1/admin/books/**,/api/v1/admin/categories,/api/v1/admin/publishers,/api/v1/admin/authors,/api/v1/admin/reviews/**
+            - Path=/api/v1/books/**,/api/v1/categories/**,/api/v1/publishers/**,/api/v1/authors/**,/api/v1/stores/**,/api/v1/admin/books/**,/api/v1/admin/categories/**,/api/v1/admin/publishers/**,/api/v1/admin/authors/**,/api/v1/admin/reviews/**
         - id: commerce-service
           uri: http://localhost:8084
           predicates:
@@ -51,7 +51,7 @@ spring:
         - id: delivery-agent-service
           uri: http://localhost:8089
           predicates:
-            - Path=/api/v1/delivery/**
+            - Path=/api/v1/delivery/**,/api/v1/returns/**,/api/v1/admin/delivery/**
 
       globalcors:
         cors-configurations:

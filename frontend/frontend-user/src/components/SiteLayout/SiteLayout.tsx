@@ -32,6 +32,9 @@ export function SiteLayout() {
   // that re-fetches bare history from the server. Collapsing both to one key sidesteps that.
   const transitionKey = location.pathname.startsWith('/assistant') ? '/assistant' : location.pathname;
 
+  // Auth pages own their whole screen — no site chrome competing with the sign-in/sign-up flow.
+  const isAuthPage = location.pathname === ROUTES.login || location.pathname === ROUTES.register;
+
   // The store we're "delivering from" is resolved once here (preferred store for signed-in
   // callers, first active store otherwise) and shared via Redux — StoreSwitcher and HomePage
   // both read it rather than each independently calling listStores()/getMe().
@@ -55,66 +58,67 @@ export function SiteLayout() {
 
   return (
     <div className={styles.shell}>
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <Link to={ROUTES.home} className={styles.brand}>
-            <span className={styles.brandMark}>
-              <BookOpen size={17} />
-            </span>
-            <span className={styles.brandName}>Readora</span>
-          </Link>
-
-          <StoreSwitcher />
-
-          <SearchBar />
-
-          <nav className={styles.nav}>
-            <NavLink to={ROUTES.cart} className={navClass} aria-label="Cart">
-              <span className={styles.navIconWrap}>
-                <ShoppingCart size={18} />
-                {itemCount > 0 && <span className={styles.cartBadge}>{itemCount}</span>}
+      {!isAuthPage && (
+        <header className={styles.header}>
+          <div className={styles.headerInner}>
+            <Link to={ROUTES.home} className={styles.brand}>
+              <span className={styles.brandMark}>
+                <BookOpen size={17} />
               </span>
-              <span className={styles.navLabel}>Cart</span>
-            </NavLink>
+              <span className={styles.brandName}>Readora</span>
+            </Link>
 
-            {accessToken ? (
-              <>
-                <NotificationBell />
-                <NavLink to={ROUTES.wishlist} className={navClass} aria-label="Wishlist">
-                  <span className={styles.navIconWrap}>
-                    <Heart size={18} />
-                    {wishlistCount > 0 && <span className={styles.cartBadge}>{wishlistCount}</span>}
-                  </span>
-                  <span className={styles.navLabel}>Wishlist</span>
-                </NavLink>
-                <NavLink to={ROUTES.orders} className={navClass} aria-label="Orders">
-                  <Package size={18} />
-                  <span className={styles.navLabel}>Orders</span>
-                </NavLink>
-                <NavLink to={ROUTES.wallet} className={navClass} aria-label="Wallet">
-                  <Wallet size={18} />
-                  <span className={styles.navLabel}>Wallet</span>
-                </NavLink>
-                <NavLink to={ROUTES.profile} className={navClass} aria-label="Profile">
-                  <User size={18} />
-                  <span className={styles.navLabel}>Profile</span>
-                </NavLink>
-                <Tooltip label="Log out" placement="bottom">
-                  <button type="button" className={styles.navLink} onClick={onLogout} aria-label="Log out">
-                    <LogOut size={18} />
-                  </button>
-                </Tooltip>
-              </>
-            ) : (
-              <Link to={ROUTES.login} className={[styles.navLink, styles.signInLink].join(' ')}>
-                Sign in
-              </Link>
-            )}
-          </nav>
-        </div>
-      </header>
+            <StoreSwitcher />
 
-      <main className={styles.main}>
+            <SearchBar />
+
+            <nav className={styles.nav}>
+              {accessToken ? (
+                <>
+                  <NavLink to={ROUTES.cart} className={navClass} aria-label="Cart">
+                    <span className={styles.navIconWrap}>
+                      <ShoppingCart size={18} />
+                      {itemCount > 0 && <span className={styles.cartBadge}>{itemCount}</span>}
+                    </span>
+                    <span className={styles.navLabel}>Cart</span>
+                  </NavLink>
+                  <NotificationBell />
+                  <NavLink to={ROUTES.wishlist} className={navClass} aria-label="Wishlist">
+                    <span className={styles.navIconWrap}>
+                      <Heart size={18} />
+                      {wishlistCount > 0 && <span className={styles.cartBadge}>{wishlistCount}</span>}
+                    </span>
+                    <span className={styles.navLabel}>Wishlist</span>
+                  </NavLink>
+                  <NavLink to={ROUTES.orders} className={navClass} aria-label="Orders">
+                    <Package size={18} />
+                    <span className={styles.navLabel}>Orders</span>
+                  </NavLink>
+                  <NavLink to={ROUTES.wallet} className={navClass} aria-label="Wallet">
+                    <Wallet size={18} />
+                    <span className={styles.navLabel}>Wallet</span>
+                  </NavLink>
+                  <NavLink to={ROUTES.profile} className={navClass} aria-label="Profile">
+                    <User size={18} />
+                    <span className={styles.navLabel}>Profile</span>
+                  </NavLink>
+                  <Tooltip label="Log out" placement="bottom">
+                    <button type="button" className={styles.navLink} onClick={onLogout} aria-label="Log out">
+                      <LogOut size={18} />
+                    </button>
+                  </Tooltip>
+                </>
+              ) : (
+                <Link to={ROUTES.login} className={[styles.navLink, styles.signInLink].join(' ')}>
+                  Sign in
+                </Link>
+              )}
+            </nav>
+          </div>
+        </header>
+      )}
+
+      <main className={[styles.main, isAuthPage && styles.mainFullBleed].filter(Boolean).join(' ')}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={transitionKey}
@@ -128,7 +132,7 @@ export function SiteLayout() {
         </AnimatePresence>
       </main>
 
-      <ChatWidget />
+      {!isAuthPage && <ChatWidget />}
     </div>
   );
 }

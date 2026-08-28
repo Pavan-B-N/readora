@@ -5,6 +5,7 @@ import type {
   CheckoutResponse,
   OrderDetail,
   OrderSummary,
+  ReturnMessage,
   ReturnOrderResponse,
 } from '@/types/order';
 
@@ -34,5 +35,15 @@ export async function cancelOrder(orderId: string, reason?: string): Promise<Can
 
 export async function returnOrder(orderId: string, reason?: string): Promise<ReturnOrderResponse> {
   const response = await apiClient.post<ReturnOrderResponse>(`/api/v1/orders/${orderId}/return`, { reason });
+  return response.data;
+}
+
+export async function getReturnMessages(orderId: string): Promise<ReturnMessage[]> {
+  const response = await apiClient.get<ReturnMessage[]>(`/api/v1/orders/${orderId}/return/messages`);
+  return response.data;
+}
+
+export async function postReturnMessage(orderId: string, content: string): Promise<ReturnMessage> {
+  const response = await apiClient.post<ReturnMessage>(`/api/v1/orders/${orderId}/return/messages`, { content });
   return response.data;
 }

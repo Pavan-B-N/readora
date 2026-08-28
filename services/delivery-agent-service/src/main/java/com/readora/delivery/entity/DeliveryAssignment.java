@@ -32,6 +32,14 @@ public class DeliveryAssignment {
     @Column(name = "store_id", nullable = false)
     private UUID storeId;
 
+    /**
+     * Resolved once, when this row is created (see OrderEventsListener), from commerce-service's
+     * delivery-detail lookup — not kept live-synced. Lets the queue show an agent where a delivery
+     * is headed before they claim it, without an extra network round trip per queue render.
+     */
+    @Column(name = "destination_city")
+    private String destinationCity;
+
     @Column(name = "agent_id")
     private UUID agentId;
 
@@ -54,10 +62,11 @@ public class DeliveryAssignment {
     protected DeliveryAssignment() {
     }
 
-    public DeliveryAssignment(UUID orderId, String orderNumber, UUID storeId) {
+    public DeliveryAssignment(UUID orderId, String orderNumber, UUID storeId, String destinationCity) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
         this.storeId = storeId;
+        this.destinationCity = destinationCity;
     }
 
     @jakarta.persistence.PrePersist
@@ -95,6 +104,10 @@ public class DeliveryAssignment {
 
     public UUID getStoreId() {
         return storeId;
+    }
+
+    public String getDestinationCity() {
+        return destinationCity;
     }
 
     public UUID getAgentId() {

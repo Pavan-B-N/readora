@@ -5,11 +5,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, UserPlus } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { register as registerUser } from '@/redux/slices/authSlice';
-import { Card } from '@/components/Card';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
+import { AuthLayout } from '@/components/AuthLayout';
 import { ROUTES } from '@/constants/routes';
-import styles from '../LoginPage/LoginPage.module.css';
+import styles from '@/components/AuthLayout/AuthLayout.module.css';
 
 const registerSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -38,55 +38,53 @@ export function RegisterPage() {
   };
 
   return (
-    <div className={styles.page}>
-      <Card className={styles.card}>
-        <div>
-          <h1 className={styles.title}>Create your account</h1>
-          <p className={styles.subtitle}>Get ₹500 in your wallet when you sign up</p>
-        </div>
+    <AuthLayout>
+      <div>
+        <h1 className={styles.title}>Create your account</h1>
+        <p className={styles.subtitle}>Get ₹500 in your wallet when you sign up</p>
+      </div>
 
-        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-          <Input
-            label="Full name"
-            placeholder="Alice Nguyen"
-            error={errors.fullName?.message}
-            {...registerField('fullName')}
-          />
-          <Input
-            label="Email"
-            type="email"
-            autoComplete="username"
-            placeholder="you@example.com"
-            error={errors.email?.message}
-            {...registerField('email')}
-          />
-          <Input
-            label="Password"
-            type="password"
-            autoComplete="new-password"
-            hint="At least 10 characters"
-            placeholder="••••••••••"
-            error={errors.password?.message}
-            {...registerField('password')}
-          />
+      <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+        <Input
+          label="Full name"
+          placeholder="Alice Nguyen"
+          error={errors.fullName?.message}
+          {...registerField('fullName')}
+        />
+        <Input
+          label="Email"
+          type="email"
+          autoComplete="username"
+          placeholder="you@example.com"
+          error={errors.email?.message}
+          {...registerField('email')}
+        />
+        <Input
+          label="Password"
+          type="password"
+          autoComplete="new-password"
+          hint="At least 10 characters"
+          placeholder="••••••••••"
+          error={errors.password?.message}
+          {...registerField('password')}
+        />
 
-          {error && (
-            <div className={styles.formError}>
-              <AlertCircle size={15} />
-              {error}
-            </div>
-          )}
+        {error && (
+          <div className={styles.formError}>
+            <AlertCircle size={15} />
+            {error}
+          </div>
+        )}
 
-          <Button type="submit" disabled={status === 'loading'} block>
-            <UserPlus size={15} />
-            {status === 'loading' ? 'Creating account…' : 'Create account'}
-          </Button>
-        </form>
+        <Button type="submit" disabled={status === 'loading'} block>
+          <UserPlus size={15} />
+          {status === 'loading' ? 'Creating account…' : 'Create account'}
+        </Button>
+      </form>
 
-        <div className={styles.altAction}>
-          Already have an account? <Link to={ROUTES.login}>Sign in</Link>
-        </div>
-      </Card>
-    </div>
+      <div className={styles.altAction}>
+        Already have an account? <Link to={ROUTES.login}>Sign in</Link>
+      </div>
+    </AuthLayout>
   );
 }

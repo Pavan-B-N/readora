@@ -17,18 +17,21 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 
 /**
- * Deny-by-default for authentication. Additionally gates /api/v1/delivery/** on the
- * DELIVERY_AGENT role — same "prefix check in this filter" convention catalog-service uses for
- * /api/v1/admin/**. Identity and roles come from CurrentUserContext, populated by
- * JwtAuthenticationFilter after validating the caller's JWT.
+ * Deny-by-default for authentication. Additionally gates /api/v1/delivery/** and /api/v1/returns/**
+ * on the DELIVERY_AGENT role, and /api/v1/admin/** on the ADMIN role — same "prefix check in this
+ * filter" convention catalog-service uses. Identity and roles come from CurrentUserContext,
+ * populated by JwtAuthenticationFilter after validating the caller's JWT.
  */
 @Component
 public class UserContextFilter extends OncePerRequestFilter implements Ordered {
 
-    private static final String DELIVERY_PATH_PREFIX = "/api/v1/delivery/";
+    private static final List<String> DELIVERY_AGENT_PATH_PREFIXES = List.of("/api/v1/delivery/", "/api/v1/returns/");
     private static final String DELIVERY_AGENT_ROLE = "DELIVERY_AGENT";
+    private static final String ADMIN_PATH_PREFIX = "/api/v1/admin/";
+    private static final String ADMIN_ROLE = "ADMIN";
 
     private final SecurityProperties securityProperties;
     private final ObjectMapper objectMapper;
@@ -57,8 +60,14 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
             return;
         }
 
-        if (path.startsWith(DELIVERY_PATH_PREFIX) && !CurrentUserContext.hasRole(DELIVERY_AGENT_ROLE)) {
-            rejectForbidden(request, response);
+        boolean requiresDeliveryAgentRole = DELIVERY_AGENT_PATH_PREFIXES.stream().anyMatch(path::startsWith);
+        if (requiresDeliveryAgentRole && !CurrentUserContext.hasRole(DELIVERY_AGENT_ROLE)) {
+            rejectForbidden(request, response, DELIVERY_AGENT_ROLE);
+            return;
+        }
+
+        if (path.startsWith(ADMIN_PATH_PREFIX) && !CurrentUserContext.hasRole(ADMIN_ROLE)) {
+            rejectForbidden(request, response, ADMIN_ROLE);
             return;
         }
 
@@ -74,8 +83,8 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
         writeError(request, response, HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "This endpoint requires an authenticated caller.");
     }
 
-    private void rejectForbidden(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        writeError(request, response, HttpStatus.FORBIDDEN, "FORBIDDEN", "This endpoint requires the DELIVERY_AGENT role.");
+    private void rejectForbidden(HttpServletRequest request, HttpServletResponse response, String requiredRole) throws IOException {
+        writeError(request, response, HttpStatus.FORBIDDEN, "FORBIDDEN", "This endpoint requires the " + requiredRole + " role.");
     }
 
     private void writeError(

@@ -1,6 +1,7 @@
 package com.readora.payment.controller;
 
 import com.readora.payment.dto.PaymentResponse;
+import com.readora.payment.security.CurrentUserContext;
 import com.readora.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -27,15 +28,15 @@ public class PaymentController {
 
     @Operation(
             summary = "Get payment status for an order",
-            description = "Payments are created by consuming order.created off Kafka, not via a public POST — this is a read-only status lookup.",
+            description = "Payments are created by consuming order.created off Kafka, not via a public POST — this is a read-only status lookup, scoped to payments the caller owns.",
             tags = {"Payments"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Payment status returned"),
-            @ApiResponse(responseCode = "404", description = "No payment recorded for that order yet")
+            @ApiResponse(responseCode = "404", description = "No payment recorded for that order yet, or it belongs to another user")
     })
     @GetMapping("/{orderId}")
     public ResponseEntity<PaymentResponse> getByOrder(@PathVariable UUID orderId) {
-        return ResponseEntity.ok(paymentService.getByOrderId(orderId));
+        return ResponseEntity.ok(paymentService.getByOrderId(orderId, CurrentUserContext.require()));
     }
 }

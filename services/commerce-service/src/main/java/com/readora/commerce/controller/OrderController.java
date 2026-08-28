@@ -6,6 +6,8 @@ import com.readora.commerce.dto.CheckoutRequest;
 import com.readora.commerce.dto.CheckoutResponse;
 import com.readora.commerce.dto.OrderDetailResponse;
 import com.readora.commerce.dto.OrderSummaryResponse;
+import com.readora.commerce.dto.PostReturnMessageRequest;
+import com.readora.commerce.dto.ReturnMessageResponse;
 import com.readora.commerce.dto.ReturnOrderRequest;
 import com.readora.commerce.dto.ReturnOrderResponse;
 import com.readora.commerce.security.CurrentUserContext;
@@ -29,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Orders")
@@ -121,5 +124,34 @@ public class OrderController {
     @PostMapping("/{id}/return")
     public ResponseEntity<ReturnOrderResponse> returnOrder(@PathVariable UUID id, @RequestBody ReturnOrderRequest request) {
         return ResponseEntity.ok(orderService.returnOrder(CurrentUserContext.require(), id, request));
+    }
+
+    @Operation(
+            summary = "Get the return chat for an order",
+            description = "The small back-and-forth between the customer and an admin while a return sits at RETURN_REQUESTED. Always readable, even after the return is decided.",
+            tags = {"Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Messages returned (possibly empty)"),
+            @ApiResponse(responseCode = "404", description = "No such order, or it belongs to another user")
+    })
+    @GetMapping("/{id}/return/messages")
+    public ResponseEntity<List<ReturnMessageResponse>> returnMessages(@PathVariable UUID id) {
+        return ResponseEntity.ok(orderService.listReturnMessages(CurrentUserContext.require(), id));
+    }
+
+    @Operation(
+            summary = "Send a return chat message",
+            description = "Only accepted while the return is RETURN_REQUESTED — locked once an admin approves or rejects it.",
+            tags = {"Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Message sent"),
+            @ApiResponse(responseCode = "404", description = "No such order, or it belongs to another user"),
+            @ApiResponse(responseCode = "409", description = "The return isn't awaiting review anymore")
+    })
+    @PostMapping("/{id}/return/messages")
+    public ResponseEntity<ReturnMessageResponse> postReturnMessage(@PathVariable UUID id, @Valid @RequestBody PostReturnMessageRequest request) {
+        return ResponseEntity.ok(orderService.postReturnMessage(CurrentUserContext.require(), id, request.content()));
     }
 }

@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { listStores } from '@/api/catalogApi';
 import { getMe, updateProfile } from '@/api/userApi';
 import type { Store } from '@/types/catalog';
+import { pickDefaultStore } from '@/utils/store';
 import type { RootState } from '../store';
 
 interface StoreState {
@@ -19,8 +20,9 @@ const initialState: StoreState = {
 };
 
 // Resolves "the store we're delivering from" — the signed-in caller's preferred store, or the
-// first active store for anonymous callers. Every physical-book search requires this id, so
-// callers (StoreSwitcher, HomePage) must wait for `resolved` before searching the physical tab.
+// default store (see pickDefaultStore) for anonymous callers or ones with no preference set yet.
+// Every physical-book search requires this id, so callers (StoreSwitcher, HomePage) must wait for
+// `resolved` before searching the physical tab.
 export const initStore = createAsyncThunk<
   { stores: Store[]; selectedId: string | null },
   void,
@@ -29,10 +31,10 @@ export const initStore = createAsyncThunk<
   const stores = await listStores();
   const { accessToken } = getState().auth;
   if (!accessToken) {
-    return { stores, selectedId: stores[0]?.id ?? null };
+    return { stores, selectedId: pickDefaultStore(stores)?.id ?? null };
   }
   const me = await getMe();
-  return { stores, selectedId: me.preferredStoreId ?? stores[0]?.id ?? null };
+  return { stores, selectedId: me.preferredStoreId ?? pickDefaultStore(stores)?.id ?? null };
 });
 
 export const switchStore = createAsyncThunk<string, string, { state: RootState }>(

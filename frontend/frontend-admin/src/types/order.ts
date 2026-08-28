@@ -21,3 +21,12 @@ export interface AdminOrdersPage {
   totalElements: number;
   totalPages: number;
 }
+
+/** One message in the small admin<->customer chat that opens while a return sits at RETURN_REQUESTED. */
+export interface ReturnMessage {
+  id: string;
+  senderUserId: string;
+  senderRole: 'CUSTOMER' | 'ADMIN';
+  content: string;
+  createdAt: string;
+}

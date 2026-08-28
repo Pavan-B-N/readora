@@ -6,6 +6,11 @@ export async function getMe(): Promise<AgentMe> {
   return response.data;
 }
 
+export async function setDuty(onDuty: boolean): Promise<AgentMe> {
+  const response = await apiClient.put<AgentMe>('/api/v1/delivery/me/duty', { onDuty });
+  return response.data;
+}
+
 export async function getQueue(): Promise<Assignment[]> {
   const response = await apiClient.get<Assignment[]>('/api/v1/delivery/queue');
   return response.data;

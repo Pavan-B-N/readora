@@ -38,6 +38,12 @@
   font-family: ui-monospace, monospace;
 }
 
+.itemActions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 .form {
   display: flex;
   flex-direction: column;

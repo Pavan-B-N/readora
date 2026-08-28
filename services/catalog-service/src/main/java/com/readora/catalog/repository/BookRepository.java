@@ -18,6 +18,10 @@ public interface BookRepository extends JpaRepository<Book, UUID>, JpaSpecificat
     @Query("SELECT b FROM Book b WHERE b.embeddedAt IS NULL OR b.updatedAt > b.embeddedAt")
     Page<Book> findNeedingReembedding(Pageable pageable);
 
+    boolean existsByCategoryId(UUID categoryId);
+
+    boolean existsByAuthorsId(UUID authorId);
+
     /**
      * Bulk update, bypassing {@code @PreUpdate} — going through the entity would bump
      * {@code updatedAt} again on flush and make the book look stale as soon as it's marked

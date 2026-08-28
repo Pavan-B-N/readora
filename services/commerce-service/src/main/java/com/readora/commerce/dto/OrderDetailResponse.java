@@ -25,8 +25,19 @@ public record OrderDetailResponse(
         String currency,
         Instant placedAt,
         String deliveryAgentName,
-        Instant deliveredAt
+        Instant deliveredAt,
+        /** null when payment-service hasn't recorded a payment for this order yet, or was unreachable. */
+        PaymentInfo payment,
+        /** Set once a return reaches RETURN_ASSIGNED or later — the agent collecting the return, distinct from deliveryAgentName above. */
+        String returnAgentName
 ) {
+    /** transactionId is payment-service's own payment id — there's no real external gateway behind this dummy provider. */
+    public record PaymentInfo(
+            UUID transactionId, String status, BigDecimal amount, BigDecimal walletAmountUsed,
+            Instant authorizedAt, Instant capturedAt
+    ) {
+    }
+
     public record Item(
             UUID bookId, String title, String isbn13, int qty, BigDecimal unitPrice, BigDecimal lineTotal,
             String deliveryType

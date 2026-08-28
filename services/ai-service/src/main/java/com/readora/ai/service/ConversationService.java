@@ -36,7 +36,7 @@ public class ConversationService {
         conversationRepository.findByIdAndUserId(conversationId, userId).orElseThrow(ConversationNotFoundException::new);
 
         return messageRepository.findAllByConversationIdOrderByCreatedAt(conversationId).stream()
-                .map(m -> new MessageResponse(m.getRole().name(), m.getContent(), m.getCreatedAt()))
+                .map(m -> new MessageResponse(m.getRole().name(), m.getContent(), m.getCreatedAt(), m.getBookIds()))
                 .toList();
     }
 }

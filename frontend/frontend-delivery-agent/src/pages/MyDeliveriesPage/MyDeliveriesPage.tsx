@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Package, Truck, CheckCheck, ChevronRight } from 'lucide-react';
+import { MapPin, Package, Truck, CheckCheck, ChevronRight } from 'lucide-react';
 import { getMine, markDelivered, markOutForDelivery } from '@/api/deliveryApi';
 import { extractErrorMessage } from '@/api/client';
 import type { Assignment, AssignmentStatus } from '@/types/delivery';
@@ -71,10 +71,20 @@ export function MyDeliveriesPage() {
                   {a.orderNumber}
                   <ChevronRight size={14} className={styles.chevron} />
                 </span>
-                <Badge variant={statusVariant(a.status)} dot>
-                  {statusLabel(a.status)}
-                </Badge>
+                <span className={styles.metaRow}>
+                  <Badge variant={statusVariant(a.status)} dot>
+                    {statusLabel(a.status)}
+                  </Badge>
+                  {a.destinationCity && (
+                    <span className={styles.destination}>
+                      <MapPin size={11} />
+                      {a.destinationCity}
+                    </span>
+                  )}
+                </span>
               </Link>
+
+              <span className={styles.payout}>₹{a.payoutAmount}</span>
 
               <div className={styles.actions}>
                 {a.status === 'ASSIGNED' && (

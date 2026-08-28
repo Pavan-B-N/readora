@@ -1,5 +1,8 @@
 package com.readora.commerce.client;
 
+import com.readora.commerce.dto.BookCover;
+import com.readora.commerce.dto.BookCoverLookupRequest;
+import com.readora.commerce.dto.BookCoverLookupResponse;
 import com.readora.commerce.dto.BookInfo;
 import com.readora.commerce.dto.ReserveStockRequest;
 import com.readora.commerce.dto.ReserveStockResponse;
@@ -11,6 +14,8 @@ import com.readora.commerce.exception.ServiceException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -19,8 +24,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Direct service-to-service calls to catalog-service, bypassing api-gateway (as internal calls
@@ -35,6 +43,8 @@ import java.util.UUID;
  */
 @Component
 public class CatalogClient {
+
+    private static final Logger log = LoggerFactory.getLogger(CatalogClient.class);
 
     private final RestClient restClient;
 
@@ -99,6 +109,34 @@ public class CatalogClient {
                 .body(request)
                 .retrieve()
                 .body(VirtualEditionLookupResponse.class);
+    }
+
+    /**
+     * Best-effort, unlike the checkout-critical methods above: cover images are a display
+     * enrichment for the order list, not something that should block the page from loading if
+     * catalog-service is briefly unavailable — a missing thumbnail degrades gracefully, an order
+     * page that won't load doesn't.
+     */
+    public Map<UUID, String> getCoverImageUrls(List<UUID> bookIds) {
+        if (bookIds.isEmpty()) {
+            return Map.of();
+        }
+        try {
+            BookCoverLookupResponse response = restClient.post()
+                    .uri("/internal/books/covers")
+                    .body(new BookCoverLookupRequest(bookIds))
+                    .retrieve()
+                    .body(BookCoverLookupResponse.class);
+            if (response == null) {
+                return Map.of();
+            }
+            return response.items().stream()
+                    .filter(item -> item.coverImageUrl() != null)
+                    .collect(Collectors.toMap(BookCover::id, BookCover::coverImageUrl, (a, b) -> a));
+        } catch (Exception e) {
+            log.warn("Could not fetch cover images from catalog-service", e);
+            return Map.of();
+        }
     }
 
     private BookInfo getBookFallback(UUID bookId, UUID storeId, Throwable t) {

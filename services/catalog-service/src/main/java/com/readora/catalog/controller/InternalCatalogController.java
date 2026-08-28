@@ -1,5 +1,9 @@
 package com.readora.catalog.controller;
 
+import com.readora.catalog.dto.BookAvailabilityRequest;
+import com.readora.catalog.dto.BookAvailabilityResponse;
+import com.readora.catalog.dto.BookCoverLookupRequest;
+import com.readora.catalog.dto.BookCoverLookupResponse;
 import com.readora.catalog.dto.BookExportPage;
 import com.readora.catalog.dto.BookLookupRequest;
 import com.readora.catalog.dto.BookLookupResponse;
@@ -88,5 +92,32 @@ public class InternalCatalogController {
     @PostMapping("/books/lookup")
     public ResponseEntity<BookLookupResponse> lookupBooks(@RequestBody BookLookupRequest request) {
         return ResponseEntity.ok(internalCatalogService.lookupBooks(request.bookIds()));
+    }
+
+    @Operation(
+            summary = "Filter book ids down to ones actually purchasable at a store",
+            description = "Internal, service-to-service only. Called by ai-service's book-recommendation tools so "
+                    + "the assistant never recommends a title with no virtual edition and no stock at the caller's store.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "The subset of the requested ids that are actually purchasable")
+    })
+    @PostMapping("/books/availability")
+    public ResponseEntity<BookAvailabilityResponse> checkAvailability(@RequestBody BookAvailabilityRequest request) {
+        return ResponseEntity.ok(internalCatalogService.checkAvailability(request.bookIds(), request.storeId()));
+    }
+
+    @Operation(
+            summary = "Look up cover images for specific book ids",
+            description = "Internal, service-to-service only. Called by commerce-service to render book-cover thumbnails on the order list without duplicating cover-image storage.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Covers found for the requested ids (missing ids are silently omitted)")
+    })
+    @PostMapping("/books/covers")
+    public ResponseEntity<BookCoverLookupResponse> lookupCovers(@RequestBody BookCoverLookupRequest request) {
+        return ResponseEntity.ok(internalCatalogService.lookupCovers(request.bookIds()));
     }
 }

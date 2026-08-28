@@ -55,6 +55,7 @@ export function AssignmentDetailPage() {
         <Badge variant={assignment.status === 'DELIVERED' ? 'success' : 'info'} dot>
           {assignment.status === 'OUT_FOR_DELIVERY' ? 'Out for delivery' : assignment.status}
         </Badge>
+        <span className={styles.payout}>You'll earn ₹{assignment.payoutAmount}</span>
       </div>
 
       <div className={styles.layout}>

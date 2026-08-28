@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Check, MapPin, Search } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { switchStore } from '@/redux/slices/storeSlice';
+import { pickDefaultStore } from '@/utils/store';
 import styles from './StoreSwitcher.module.css';
 
 export function StoreSwitcher() {
@@ -30,7 +31,7 @@ export function StoreSwitcher() {
     }
   }, [open]);
 
-  const current = stores.find((s) => s.id === selectedId) ?? stores[0];
+  const current = stores.find((s) => s.id === selectedId) ?? pickDefaultStore(stores);
   if (!current) return null;
 
   const trimmedQuery = query.trim().toLowerCase();

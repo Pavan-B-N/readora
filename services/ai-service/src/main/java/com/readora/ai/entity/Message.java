@@ -12,8 +12,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -41,6 +44,11 @@ public class Message {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    /** Books the reply recommended — only ever populated on ASSISTANT messages, empty for USER ones. */
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "book_ids", columnDefinition = "text[]")
+    private List<String> bookIds = List.of();
+
     protected Message() {
     }
 
@@ -48,6 +56,13 @@ public class Message {
         this.conversation = conversation;
         this.role = role;
         this.content = content;
+    }
+
+    public Message(Conversation conversation, MessageRole role, String content, List<String> bookIds) {
+        this.conversation = conversation;
+        this.role = role;
+        this.content = content;
+        this.bookIds = bookIds;
     }
 
     @PrePersist
@@ -65,6 +80,11 @@ public class Message {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    /** Never null even if the column is — rows written before this field existed have NULL there. */
+    public List<String> getBookIds() {
+        return bookIds != null ? bookIds : List.of();
     }
 
     @Override

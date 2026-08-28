@@ -12,7 +12,9 @@ import type {
   Publisher,
   Review,
   Store,
+  UpdateAuthorRequest,
   UpdateBookRequest,
+  UpdateCategoryRequest,
   UpdateInventoryRequest,
   UpsertVirtualEditionRequest,
 } from '@/types/catalog';
@@ -24,6 +26,8 @@ export interface BookSearchParams {
   q?: string;
   categoryId?: string;
   virtualOnly?: boolean;
+  /** Required unless virtualOnly is true — the public catalogue search rejects a physical-inclusive query with no store. */
+  storeId?: string;
 }
 
 export async function listBooks(params: BookSearchParams): Promise<PageResponse<BookSummary>> {
@@ -56,6 +60,14 @@ export async function createCategory(request: CreateCategoryRequest): Promise<Id
   return response.data;
 }
 
+export async function updateCategory(id: string, request: UpdateCategoryRequest): Promise<void> {
+  await apiClient.put(`/api/v1/admin/categories/${id}`, request);
+}
+
+export async function deleteCategory(id: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/categories/${id}`);
+}
+
 export async function createPublisher(request: CreatePublisherRequest): Promise<IdResponse> {
   const response = await apiClient.post<IdResponse>('/api/v1/admin/publishers', request);
   return response.data;
@@ -64,6 +76,14 @@ export async function createPublisher(request: CreatePublisherRequest): Promise<
 export async function createAuthor(request: CreateAuthorRequest): Promise<IdResponse> {
   const response = await apiClient.post<IdResponse>('/api/v1/admin/authors', request);
   return response.data;
+}
+
+export async function updateAuthor(id: string, request: UpdateAuthorRequest): Promise<void> {
+  await apiClient.put(`/api/v1/admin/authors/${id}`, request);
+}
+
+export async function deleteAuthor(id: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/authors/${id}`);
 }
 
 export async function getBookForEdit(bookId: string): Promise<AdminBookDetail> {

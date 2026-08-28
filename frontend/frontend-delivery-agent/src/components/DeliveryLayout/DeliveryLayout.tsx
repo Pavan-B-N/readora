@@ -1,21 +1,41 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { ListChecks, LogOut, Package, Truck } from 'lucide-react';
-import { getMe } from '@/api/deliveryApi';
+import { ListChecks, LogOut, Package, RotateCcw, Truck } from 'lucide-react';
+import { getMe, setDuty } from '@/api/deliveryApi';
 import { useAppDispatch } from '@/redux/hooks';
 import { loggedOut } from '@/redux/slices/authSlice';
 import { ROUTES } from '@/constants/routes';
 import type { AgentMe } from '@/types/delivery';
 import styles from './DeliveryLayout.module.css';
 
+/** Shared with child route pages via <Outlet context> — lets the queue pages show "you're offline" instead of a generic empty state. */
+export interface DeliveryLayoutContext {
+  me: AgentMe | null;
+  reloadMe: () => void;
+}
+
 export function DeliveryLayout() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [me, setMe] = useState<AgentMe | null>(null);
+  const [togglingDuty, setTogglingDuty] = useState(false);
 
-  useEffect(() => {
+  const reloadMe = () => {
     getMe().then(setMe);
-  }, []);
+  };
+
+  useEffect(reloadMe, []);
+
+  const onToggleDuty = async () => {
+    if (!me) return;
+    setTogglingDuty(true);
+    try {
+      const updated = await setDuty(!me.onDuty);
+      setMe(updated);
+    } finally {
+      setTogglingDuty(false);
+    }
+  };
 
   const onLogout = () => {
     dispatch(loggedOut());
@@ -44,9 +64,29 @@ export function DeliveryLayout() {
             <Package size={15} />
             My deliveries
           </NavLink>
+          <NavLink to={ROUTES.returnQueue} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
+            <RotateCcw size={15} />
+            Return pickups
+          </NavLink>
+          <NavLink to={ROUTES.returnMine} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
+            <RotateCcw size={15} />
+            My returns
+          </NavLink>
         </nav>
 
         <div className={styles.agent}>
+          {me && (
+            <button
+              type="button"
+              className={[styles.dutyToggle, me.onDuty && styles.dutyToggleOn].filter(Boolean).join(' ')}
+              onClick={onToggleDuty}
+              disabled={togglingDuty}
+              aria-pressed={me.onDuty}
+            >
+              <span className={styles.dutyToggleDot} />
+              {me.onDuty ? 'On duty' : 'Off duty'}
+            </button>
+          )}
           {me && <span className={styles.agentName}>{me.name}</span>}
           <button type="button" className={styles.logoutButton} onClick={onLogout} aria-label="Log out">
             <LogOut size={15} />
@@ -55,7 +95,7 @@ export function DeliveryLayout() {
       </header>
 
       <main className={styles.content}>
-        <Outlet />
+        <Outlet context={{ me, reloadMe } satisfies DeliveryLayoutContext} />
       </main>
     </div>
   );

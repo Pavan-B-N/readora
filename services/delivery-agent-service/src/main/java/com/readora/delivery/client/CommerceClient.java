@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.delivery.dto.OrderDeliveryDetailResponse;
 import com.readora.delivery.dto.UpdateDeliveryStatusRequest;
+import com.readora.delivery.dto.UpdateReturnStatusRequest;
 import com.readora.delivery.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -53,6 +54,18 @@ public class CommerceClient {
             restClient.put()
                     .uri("/internal/orders/{id}/delivery-status", orderId)
                     .body(new UpdateDeliveryStatusRequest(status, deliveryAgentId, deliveryAgentName))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (Exception e) {
+            throw translate(e);
+        }
+    }
+
+    public void updateReturnStatus(UUID orderId, String status, UUID returnAgentId, String returnAgentName) {
+        try {
+            restClient.put()
+                    .uri("/internal/orders/{id}/return-status", orderId)
+                    .body(new UpdateReturnStatusRequest(status, returnAgentId, returnAgentName))
                     .retrieve()
                     .toBodilessEntity();
         } catch (Exception e) {

@@ -6,7 +6,6 @@ import { useAppSelector } from '@/redux/hooks';
 import { Tooltip } from '@/components/Tooltip';
 import { RichText } from './RichText';
 import { ChatBookCarousel } from './ChatBookCarousel';
-import { ChatBookPicker } from './ChatBookPicker';
 import { useChatSession } from './useChatSession';
 import { ROUTES } from '@/constants/routes';
 import styles from './ChatWidget.module.css';
@@ -24,8 +23,7 @@ export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, draft, setDraft, streaming, pickerBook, setPickerBook, send, reset, loadConversation } =
-    useChatSession(Boolean(accessToken));
+  const { messages, draft, setDraft, streaming, send, reset, loadConversation } = useChatSession(Boolean(accessToken));
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
@@ -81,13 +79,13 @@ export function ChatWidget() {
         </span>
         <span className={styles.headerActions}>
           {messages.length > 0 && (
-            <Tooltip label="New conversation">
+            <Tooltip label="New conversation" placement="bottom">
               <button type="button" className={styles.iconButton} onClick={reset} aria-label="New conversation">
                 <RotateCcw size={15} />
               </button>
             </Tooltip>
           )}
-          <Tooltip label="Open full page">
+          <Tooltip label="Open full page" placement="bottom">
             <button
               type="button"
               className={styles.iconButton}
@@ -100,7 +98,7 @@ export function ChatWidget() {
               <Maximize2 size={15} />
             </button>
           </Tooltip>
-          <Tooltip label="Close">
+          <Tooltip label="Close" placement="bottom">
             <button
               type="button"
               className={styles.iconButton}
@@ -165,7 +163,7 @@ export function ChatWidget() {
                     message.content
                   )}
                 </div>
-                {message.books && <ChatBookCarousel books={message.books} onSelect={setPickerBook} />}
+                {message.books && <ChatBookCarousel books={message.books} />}
               </div>
             );
           })
@@ -198,8 +196,6 @@ export function ChatWidget() {
           <Link to={ROUTES.login}>Sign in</Link> to chat with the assistant.
         </div>
       )}
-
-      <ChatBookPicker book={pickerBook} onClose={() => setPickerBook(null)} />
     </div>
   );
 }

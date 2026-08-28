@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { getConversationMessages, semanticSearch, streamChat } from '@/api/aiApi';
+import { getConversationMessages, streamChat } from '@/api/aiApi';
 import { getBookDetail } from '@/api/catalogApi';
 import { useAppSelector } from '@/redux/hooks';
 import type { BookDetail } from '@/types/catalog';
@@ -10,11 +10,6 @@ export interface ChatMessage {
   books?: BookDetail[];
 }
 
-// First tunable knob to revisit once there's real usage data: raise it if the carousel shows up
-// for clearly unrelated chit-chat, lower it if it's missing for genuine book questions.
-const BOOK_RELEVANCE_THRESHOLD = 0.5;
-const MAX_CAROUSEL_BOOKS = 5;
-
 /**
  * The send/stream/history logic shared by the chat widget and the full-page assistant — both are
  * just different shells around the same conversation session.
@@ -24,7 +19,6 @@ export function useChatSession(enabled: boolean) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState('');
   const [streaming, setStreaming] = useState(false);
-  const [pickerBook, setPickerBook] = useState<BookDetail | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const conversationIdRef = useRef<string | null>(null);
@@ -52,19 +46,25 @@ export function useChatSession(enabled: boolean) {
     }
     const history = await getConversationMessages(id);
     setMessages(history.map((m) => ({ role: m.role === 'USER' ? 'user' : 'assistant', content: m.content })));
+
+    // Reopening a conversation should show the same book carousels it did the first time —
+    // bookIds is persisted per assistant message (see ChatService.BOOK_IDS_FRAME_PREFIX), so this
+    // just fetches the same cards send() would have attached live.
+    history.forEach((m, index) => {
+      if (m.bookIds.length > 0) attachBooksByIds(index, m.bookIds, id);
+    });
   };
 
-  const attachBookResults = async (assistantIndex: number, forQuery: string) => {
+  const attachBooksByIds = async (assistantIndex: number, bookIds: string[], forConversationId: string | null) => {
     try {
-      const { items } = await semanticSearch(forQuery, MAX_CAROUSEL_BOOKS);
-      const relevant = items.filter((i) => i.score >= BOOK_RELEVANCE_THRESHOLD).slice(0, MAX_CAROUSEL_BOOKS);
-      if (relevant.length === 0) return;
-
       const books = await Promise.all(
-        relevant.map((i) => getBookDetail(i.bookId, storeId ?? undefined).catch(() => null)),
+        bookIds.map((bookId) => getBookDetail(bookId, storeId ?? undefined).catch(() => null)),
       );
       const found = books.filter((b): b is BookDetail => b !== null);
       if (found.length === 0) return;
+      // The conversation may have been switched away from while these lookups were in flight —
+      // attaching now would stamp the wrong conversation's messages at this index.
+      if (conversationIdRef.current !== forConversationId) return;
 
       setMessages((m) => {
         const next = [...m];
@@ -84,7 +84,7 @@ export function useChatSession(enabled: boolean) {
     // The assistant reply's eventual index — known up front since it's always the 2nd of the two
     // messages pushed below. Computed here rather than via a setMessages-updater trick, because
     // that call site needs to stay pure: React 18 StrictMode invokes updaters twice to check for
-    // exactly that, and a call with real side effects (attachBookResults' network requests) inside
+    // exactly that, and a call with real side effects (attachBooksByIds' network requests) inside
     // one fires twice in dev as a result.
     const assistantIndex = messages.length + 1;
 
@@ -100,7 +100,7 @@ export function useChatSession(enabled: boolean) {
     let accumulated = '';
 
     try {
-      const resolvedConversationId = await streamChat(
+      const { conversationId: resolvedConversationId, bookIds } = await streamChat(
         message,
         conversationIdRef.current,
         (chunk) => {
@@ -132,8 +132,8 @@ export function useChatSession(enabled: boolean) {
           }
           return next;
         });
-      } else {
-        attachBookResults(assistantIndex, message);
+      } else if (bookIds.length > 0) {
+        attachBooksByIds(assistantIndex, bookIds, resolvedConversationId);
       }
     } catch (error) {
       if ((error as Error).name === 'AbortError') return;
@@ -164,8 +164,6 @@ export function useChatSession(enabled: boolean) {
     draft,
     setDraft,
     streaming,
-    pickerBook,
-    setPickerBook,
     conversationId,
     send,
     reset,

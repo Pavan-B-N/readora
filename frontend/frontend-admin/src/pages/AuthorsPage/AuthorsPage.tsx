@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Users, Wand2 } from 'lucide-react';
-import { createAuthor, listAuthors } from '@/api/catalogApi';
+import { Pencil, Plus, Search, Trash2, Users, Wand2 } from 'lucide-react';
+import { createAuthor, deleteAuthor, listAuthors, updateAuthor } from '@/api/catalogApi';
+import { extractErrorMessage } from '@/api/client';
 import type { Author } from '@/types/catalog';
 import { slugify } from '@/utils/slugify';
 import { useToast } from '@/components/Toast';
@@ -21,12 +22,15 @@ export function AuthorsPage() {
   const [query, setQuery] = useState('');
 
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
   const [bio, setBio] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const reload = () => {
     setLoading(true);
@@ -46,11 +50,24 @@ export function AuthorsPage() {
     return q ? authors.filter((a) => a.name.toLowerCase().includes(q)) : authors;
   }, [authors, query]);
 
-  const openDialog = () => {
+  const openCreateDialog = () => {
+    setEditingId(null);
     setName('');
     setSlug('');
     setSlugTouched(false);
     setBio('');
+    setPhotoUrl('');
+    setErrors({});
+    setOpen(true);
+  };
+
+  const openEditDialog = (author: Author) => {
+    setEditingId(author.id);
+    setName(author.name);
+    setSlug(author.slug);
+    setSlugTouched(true);
+    setBio(author.bio ?? '');
+    setPhotoUrl(author.photoUrl ?? '');
     setErrors({});
     setOpen(true);
   };
@@ -64,14 +81,46 @@ export function AuthorsPage() {
 
     setSaving(true);
     try {
-      await createAuthor({ name: name.trim(), slug: slug.trim(), bio: bio.trim() || null });
-      showToast(`Author “${name.trim()}” created`);
+      if (editingId) {
+        await updateAuthor(editingId, {
+          name: name.trim(),
+          slug: slug.trim(),
+          bio: bio.trim() || null,
+          photoUrl: photoUrl.trim() || null,
+        });
+        showToast(`Author “${name.trim()}” updated`);
+      } else {
+        await createAuthor({
+          name: name.trim(),
+          slug: slug.trim(),
+          bio: bio.trim() || null,
+          photoUrl: photoUrl.trim() || null,
+        });
+        showToast(`Author “${name.trim()}” created`);
+      }
       setOpen(false);
       reload();
     } catch {
-      showToast('Failed to create author — the slug may already exist', 'error');
+      showToast(
+        editingId ? 'Failed to update author — the slug may already exist' : 'Failed to create author — the slug may already exist',
+        'error',
+      );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onDelete = async (author: Author) => {
+    if (!window.confirm(`Delete "${author.name}"? This can't be undone.`)) return;
+    setDeletingId(author.id);
+    try {
+      await deleteAuthor(author.id);
+      showToast(`Author “${author.name}” deleted`);
+      reload();
+    } catch (error) {
+      showToast(extractErrorMessage(error, 'Could not delete this author'), 'error');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -81,7 +130,7 @@ export function AuthorsPage() {
         title="Authors"
         subtitle={`${authors.length} author${authors.length === 1 ? '' : 's'} in the catalogue.`}
         actions={
-          <Button onClick={openDialog}>
+          <Button onClick={openCreateDialog}>
             <Plus size={15} />
             Add author
           </Button>
@@ -108,7 +157,7 @@ export function AuthorsPage() {
             description={query ? `Nothing matches “${query}”.` : 'Add the first author to get started.'}
             action={
               !query ? (
-                <Button size="sm" onClick={openDialog}>
+                <Button size="sm" onClick={openCreateDialog}>
                   <Plus size={14} />
                   Add author
                 </Button>
@@ -120,6 +169,26 @@ export function AuthorsPage() {
         <div className={styles.grid}>
           {filtered.map((a) => (
             <Card key={a.id} className={styles.authorCard}>
+              <span className={styles.cardActions}>
+                <Tooltip label="Edit">
+                  <Button variant="ghost" size="sm" iconOnly aria-label="Edit author" onClick={() => openEditDialog(a)}>
+                    <Pencil size={13} />
+                  </Button>
+                </Tooltip>
+                <Tooltip label="Delete">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    aria-label="Delete author"
+                    onClick={() => onDelete(a)}
+                    disabled={deletingId === a.id}
+                  >
+                    <Trash2 size={13} />
+                  </Button>
+                </Tooltip>
+              </span>
+
               {a.photoUrl ? (
                 <img className={styles.avatarPhoto} src={a.photoUrl} alt={a.name} />
               ) : (
@@ -134,7 +203,7 @@ export function AuthorsPage() {
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title="New author">
+      <Modal open={open} onClose={() => setOpen(false)} title={editingId ? 'Edit author' : 'New author'}>
         <div className={formStyles.form}>
           <Input
             label="Name"
@@ -171,6 +240,13 @@ export function AuthorsPage() {
               </Button>
             </Tooltip>
           </div>
+          <Input
+            label="Photo URL"
+            hint="Optional"
+            placeholder="https://…"
+            value={photoUrl}
+            onChange={(e) => setPhotoUrl(e.target.value)}
+          />
           <Textarea
             label="Bio"
             hint="Optional"
@@ -181,7 +257,7 @@ export function AuthorsPage() {
           />
           <Button onClick={onSubmit} disabled={saving} block>
             <Plus size={15} />
-            {saving ? 'Creating…' : 'Create author'}
+            {saving ? (editingId ? 'Saving…' : 'Creating…') : editingId ? 'Save changes' : 'Create author'}
           </Button>
         </div>
       </Modal>

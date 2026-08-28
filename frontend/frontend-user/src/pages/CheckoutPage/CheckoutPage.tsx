@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Check, Loader2, Lock, Plus, QrCode, Truck, Wallet as WalletIcon } from 'lucide-react';
+import { AlertTriangle, Check, Loader2, Lock, Plus, QrCode, Wallet as WalletIcon } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchCart, cartCleared } from '@/redux/slices/cartSlice';
 import { checkout, getOrderDetail } from '@/api/orderApi';
@@ -9,6 +9,7 @@ import { listStores } from '@/api/catalogApi';
 import type { Address, AddressRecipientType, MeResponse } from '@/types/user';
 import type { Store } from '@/types/catalog';
 import type { CheckoutRequest, PaymentMethod } from '@/types/order';
+import { pickDefaultStore } from '@/utils/store';
 import { useToast } from '@/components/Toast';
 import { Badge } from '@/components/Badge';
 import { Card, CardHeader } from '@/components/Card';
@@ -69,7 +70,7 @@ export function CheckoutPage() {
   useEffect(() => {
     dispatch(fetchCart());
     getMe().then(setMe);
-    listStores().then((stores) => setStore(stores[0] ?? null));
+    listStores().then((stores) => setStore(pickDefaultStore(stores)));
     listAddresses().then((list) => {
       setAddresses(list);
       const preferred = list.find((a) => a.isDefault) ?? list[0];
@@ -89,7 +90,6 @@ export function CheckoutPage() {
   const walletBalance = me ? Number(me.wallet.balance) : 0;
   const walletShort = pricing.grandTotal - walletBalance;
   const walletSufficient = walletShort <= 0;
-  const codAvailable = requiresShippingAddress;
 
   const openNewAddressForm = () => {
     setNewAddress({
@@ -200,7 +200,7 @@ export function CheckoutPage() {
     }
   };
 
-  /** WALLET and COD both resolve (near-)instantly server-side, so a single round trip is enough. */
+  /** WALLET resolves (near-)instantly server-side, so a single round trip is enough. */
   const onSubmit = async () => {
     setSubmitting(true);
     try {
@@ -216,7 +216,7 @@ export function CheckoutPage() {
         items: buildItems(),
       });
       dispatch(cartCleared());
-      showToast(paymentMethod === 'COD' ? 'Order placed — pay in cash on delivery' : 'Order placed');
+      showToast('Order placed');
       navigate(ROUTES.orderDetail(response.orderId));
     } catch (error) {
       handleCheckoutError(error);
@@ -433,20 +433,6 @@ export function CheckoutPage() {
                 <QrCode size={16} />
                 UPI
               </button>
-              <button
-                type="button"
-                className={[styles.paymentTab, paymentMethod === 'COD' && styles.paymentTabActive, !codAvailable && styles.paymentTabDisabled]
-                  .filter(Boolean)
-                  .join(' ')}
-                onClick={() =>
-                  codAvailable
-                    ? setPaymentMethod('COD')
-                    : showToast("Cash on Delivery isn't available for a virtual-only order", 'error')
-                }
-              >
-                <Truck size={16} />
-                Cash on Delivery
-              </button>
             </div>
 
             {paymentMethod === 'WALLET' && me && (
@@ -476,18 +462,6 @@ export function CheckoutPage() {
                     </Button>
                   </div>
                 )}
-              </div>
-            )}
-
-            {paymentMethod === 'COD' && (
-              <div className={styles.codPanel}>
-                <span className={styles.codIconWrap}>
-                  <Truck size={18} />
-                </span>
-                <div>
-                  <div className={styles.codTitle}>Pay ₹{pricing.grandTotal.toFixed(2)} in cash on delivery</div>
-                  <div className={styles.codHint}>Have the exact amount ready for the delivery agent.</div>
-                </div>
               </div>
             )}
 

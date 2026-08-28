@@ -1,33 +1,42 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--space-4);
 }
 
 .authorCard {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
 }
 
+.cardActions {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  gap: 2px;
+}
+
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   background: var(--color-primary-soft);
   color: var(--color-info);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xl);
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .avatarPhoto {
-  width: 40px;
-  height: 40px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;

@@ -133,3 +133,23 @@
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+.reviewModal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.reviewModalSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reviewModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

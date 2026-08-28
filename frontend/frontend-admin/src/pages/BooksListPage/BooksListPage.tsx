@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Search, BookOpen, Truck, Download, X, ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 import { listBooks, getCategoryTree } from '@/api/catalogApi';
+import { getMe } from '@/api/userApi';
 import type { BookSummary } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { useDebounced } from '@/hooks/useDebounced';
@@ -49,9 +50,21 @@ export function BooksListPage() {
   const debouncedFilters = useDebounced(filters);
 
   const [categories, setCategories] = useState<FlatCategory[]>([]);
+  // The physical catalogue is store-scoped (a customer shops one store at a time — see
+  // catalog-service's STORE_ID_REQUIRED), so the physical tab needs the admin's own assigned
+  // store before it can search at all. null-but-loaded means "no store assigned."
+  const [adminStoreId, setAdminStoreId] = useState<string | null>(null);
+  const [storeLoaded, setStoreLoaded] = useState(false);
 
   useEffect(() => {
     getCategoryTree().then((tree) => setCategories(flattenCategoryTree(tree)));
+  }, []);
+
+  useEffect(() => {
+    getMe().then((me) => {
+      setAdminStoreId(me.adminStoreId);
+      setStoreLoaded(true);
+    });
   }, []);
 
   // Keep the tab reflected in the URL even on a bare /books visit, so it's always shareable/refreshable.
@@ -65,6 +78,21 @@ export function BooksListPage() {
   }, [debouncedFilters, edition]);
 
   useEffect(() => {
+    // The physical tab can't search without a store — wait for getMe() to resolve rather than
+    // firing a request that catalog-service will just reject with STORE_ID_REQUIRED. The virtual
+    // tab ignores store entirely, so it doesn't need to wait.
+    if (edition === 'physical' && !storeLoaded) return;
+
+    // A genuinely unassigned admin has no physical catalogue to show — stop here rather than
+    // repeating the same STORE_ID_REQUIRED request with an undefined storeId.
+    if (edition === 'physical' && storeLoaded && !adminStoreId) {
+      setBooks([]);
+      setTotalPages(0);
+      setTotalElements(0);
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
 
@@ -74,6 +102,7 @@ export function BooksListPage() {
       q: debouncedFilters.q || undefined,
       categoryId: debouncedFilters.categoryId || undefined,
       virtualOnly: edition === 'virtual',
+      storeId: edition === 'physical' ? (adminStoreId ?? undefined) : undefined,
     })
       .then((result) => {
         if (cancelled) return;
@@ -88,7 +117,7 @@ export function BooksListPage() {
     return () => {
       cancelled = true;
     };
-  }, [page, debouncedFilters, edition]);
+  }, [page, debouncedFilters, edition, storeLoaded, adminStoreId]);
 
   const set = (patch: Partial<Filters>) => setFilters((f) => ({ ...f, ...patch }));
 
@@ -247,7 +276,15 @@ export function BooksListPage() {
           </tbody>
         </table>
 
-        {!loading && books.length === 0 && (
+        {!loading && edition === 'physical' && storeLoaded && !adminStoreId && (
+          <EmptyState
+            icon={BookOpen}
+            title="No store assigned"
+            description="Your admin account isn't assigned to a store, so there's no physical catalogue to show. Contact an owner to get one assigned."
+          />
+        )}
+
+        {!loading && books.length === 0 && !(edition === 'physical' && storeLoaded && !adminStoreId) && (
           <EmptyState
             icon={BookOpen}
             title="No books match these filters"

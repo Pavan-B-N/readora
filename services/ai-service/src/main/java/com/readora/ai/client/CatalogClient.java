@@ -95,6 +95,31 @@ public class CatalogClient {
         return response != null ? response.items() : List.of();
     }
 
+    /**
+     * Filters bookIds down to ones actually purchasable at storeId (virtual, or in stock at that
+     * store) — the enforcement point behind the book-recommendation tools' store guardrail. Fails
+     * closed on a catalog-service outage: an empty result means "recommend nothing" rather than
+     * risking a stale/wrong availability list, since silently falling back to "everything is
+     * available" would defeat the guardrail's whole purpose.
+     */
+    @CircuitBreaker(name = "catalog-service", fallbackMethod = "checkAvailabilityFallback")
+    public List<UUID> checkAvailability(List<UUID> bookIds, UUID storeId) {
+        if (bookIds.isEmpty()) {
+            return List.of();
+        }
+        AvailabilityResponse response = restClient.post()
+                .uri("/internal/books/availability")
+                .body(new AvailabilityRequest(bookIds, storeId))
+                .retrieve()
+                .body(AvailabilityResponse.class);
+
+        return response != null ? response.availableBookIds() : List.of();
+    }
+
+    private List<UUID> checkAvailabilityFallback(List<UUID> bookIds, UUID storeId, Throwable t) {
+        return List.of();
+    }
+
     private List<BookDoc> listBooksNeedingReembeddingFallback(int size, Throwable t) {
         throw translate(t);
     }
@@ -137,5 +162,11 @@ public class CatalogClient {
     }
 
     private record BookLookupResponse(List<BookDoc> items) {
+    }
+
+    private record AvailabilityRequest(List<UUID> bookIds, UUID storeId) {
+    }
+
+    private record AvailabilityResponse(List<UUID> availableBookIds) {
     }
 }

@@ -36,6 +36,8 @@ app:
     secret: ${GATEWAY_SECRET}
   commerce-service:
     base-url: http://localhost:8084
+  user-service:
+    base-url: http://localhost:8082
   security:
     public-routes:
       - /internal/**

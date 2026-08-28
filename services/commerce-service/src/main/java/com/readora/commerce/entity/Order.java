@@ -92,6 +92,17 @@ public class Order {
     private Instant deliveredAt;
 
     /**
+     * Snapshot of whichever agent claimed this order's RETURN pickup — separate from
+     * deliveryAgentId/deliveryAgentName above so approving a return doesn't overwrite the original
+     * forward-delivery agent's snapshot.
+     */
+    @Column(name = "return_agent_id")
+    private UUID returnAgentId;
+
+    @Column(name = "return_agent_name")
+    private String returnAgentName;
+
+    /**
      * Lets a store admin acknowledge a cancellation/return case with a note — the "way to act on
      * it" for return/refund visibility, since refunds themselves are fully automatic (dummy
      * payment provider, no manual approval gate) and there's no separate dispute-ticket entity.
@@ -171,17 +182,62 @@ public class Order {
 
     public boolean isCancellable() {
         boolean withinWindow = placedAt.isAfter(Instant.now().minus(java.time.Duration.ofHours(48)));
+        // DELIVERED already covers every return-family status too (a return only ever starts from
+        // DELIVERED, and none of the later return statuses go back to it), but listed explicitly
+        // rather than relying on that chain so this stays correct if the flow ever changes.
         boolean notAssignedOrBeyond = status != OrderStatus.ASSIGNED
                 && status != OrderStatus.SHIPPED
                 && status != OrderStatus.DELIVERED
-                && status != OrderStatus.CANCELLED;
+                && status != OrderStatus.CANCELLED
+                && status != OrderStatus.RETURN_REQUESTED
+                && status != OrderStatus.RETURN_REJECTED
+                && status != OrderStatus.RETURN_APPROVED
+                && status != OrderStatus.RETURN_ASSIGNED
+                && status != OrderStatus.RETURN_EN_ROUTE
+                && status != OrderStatus.RETURN_COLLECTED
+                && status != OrderStatus.REFUND_INITIATED
+                && status != OrderStatus.RETURNED;
         return withinWindow && notAssignedOrBeyond;
     }
 
-    public void returnOrder(String reason) {
-        this.status = OrderStatus.RETURNED;
+    /** Customer submitted a return request — awaiting either auto-advance (virtual) or admin review (physical). */
+    public void requestReturn(String reason) {
+        this.status = OrderStatus.RETURN_REQUESTED;
         this.cancelledAt = Instant.now();
         this.cancelReason = reason;
+    }
+
+    public void approveReturn() {
+        this.status = OrderStatus.RETURN_APPROVED;
+    }
+
+    public void rejectReturn() {
+        this.status = OrderStatus.RETURN_REJECTED;
+    }
+
+    /** A delivery agent has claimed this return's pickup. */
+    public void assignReturnAgent(UUID agentId, String agentName) {
+        this.status = OrderStatus.RETURN_ASSIGNED;
+        this.returnAgentId = agentId;
+        this.returnAgentName = agentName;
+    }
+
+    public void markReturnEnRoute() {
+        this.status = OrderStatus.RETURN_EN_ROUTE;
+    }
+
+    public void markReturnCollected() {
+        this.status = OrderStatus.RETURN_COLLECTED;
+    }
+
+    /** Refund kicked off with payment-service — see OrderService.handleRefundCompleted() for the terminal hop. */
+    public void initiateRefund() {
+        this.status = OrderStatus.REFUND_INITIATED;
+    }
+
+    /** Payment-service confirmed the refund actually completed — the one true terminal return state. */
+    public void completeReturn() {
+        this.status = OrderStatus.RETURNED;
     }
 
     /**
@@ -267,6 +323,14 @@ public class Order {
 
     public Instant getDeliveredAt() {
         return deliveredAt;
+    }
+
+    public UUID getReturnAgentId() {
+        return returnAgentId;
+    }
+
+    public String getReturnAgentName() {
+        return returnAgentName;
     }
 
     public Instant getAdminReviewedAt() {

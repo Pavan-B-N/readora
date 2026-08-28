@@ -34,10 +34,18 @@ public class Author {
     protected Author() {
     }
 
-    public Author(String name, String slug, String bio) {
+    public Author(String name, String slug, String bio, String photoUrl) {
         this.name = name;
         this.slug = slug;
         this.bio = bio;
+        this.photoUrl = photoUrl;
+    }
+
+    public void update(String name, String slug, String bio, String photoUrl) {
+        this.name = name;
+        this.slug = slug;
+        this.bio = bio;
+        this.photoUrl = photoUrl;
     }
 
     public UUID getId() {

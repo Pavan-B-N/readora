@@ -14,6 +14,7 @@ export interface CategoryNode {
   id: string;
   name: string;
   slug: string;
+  displayOrder: number;
   children: CategoryNode[];
 }
 
@@ -68,6 +69,8 @@ export interface CreateCategoryRequest {
   displayOrder: number;
 }
 
+export type UpdateCategoryRequest = CreateCategoryRequest;
+
 export interface CreatePublisherRequest {
   name: string;
   slug: string;
@@ -77,6 +80,14 @@ export interface CreateAuthorRequest {
   name: string;
   slug: string;
   bio: string | null;
+  photoUrl: string | null;
+}
+
+export interface UpdateAuthorRequest {
+  name: string;
+  slug: string;
+  bio: string | null;
+  photoUrl: string | null;
 }
 
 export interface CreateBookRequest {

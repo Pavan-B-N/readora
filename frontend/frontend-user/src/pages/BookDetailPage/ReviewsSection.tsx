@@ -25,7 +25,7 @@ export function ReviewsSection({ bookId }: { bookId: string }) {
   const reload = () => {
     setLoading(true);
     getReviews(bookId)
-      .then((page) => setReviews(page.items))
+      .then((page) => setReviews(page.items ?? []))
       .finally(() => setLoading(false));
   };
 

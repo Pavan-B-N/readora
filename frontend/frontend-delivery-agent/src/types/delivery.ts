@@ -5,6 +5,7 @@ export interface AgentMe {
   name: string;
   phone: string | null;
   storeId: string;
+  onDuty: boolean;
 }
 
 export interface Assignment {
@@ -17,6 +18,8 @@ export interface Assignment {
   assignedAt: string | null;
   outForDeliveryAt: string | null;
   deliveredAt: string | null;
+  destinationCity: string | null;
+  payoutAmount: string;
 }
 
 export interface OrderDeliveryDetail {
@@ -40,5 +43,26 @@ export interface OrderDeliveryDetail {
 
 export interface AssignmentDetail {
   assignment: Assignment;
+  order: OrderDeliveryDetail;
+}
+
+export type ReturnPickupStatus = 'UNASSIGNED' | 'ASSIGNED' | 'EN_ROUTE' | 'COLLECTED';
+
+export interface ReturnPickup {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  storeId: string;
+  status: ReturnPickupStatus;
+  createdAt: string;
+  assignedAt: string | null;
+  enRouteAt: string | null;
+  collectedAt: string | null;
+  destinationCity: string | null;
+  payoutAmount: string;
+}
+
+export interface ReturnPickupDetail {
+  pickup: ReturnPickup;
   order: OrderDeliveryDetail;
 }

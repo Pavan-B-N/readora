@@ -38,6 +38,12 @@ public class Category {
         this.displayOrder = displayOrder;
     }
 
+    public void update(String name, String slug, int displayOrder) {
+        this.name = name;
+        this.slug = slug;
+        this.displayOrder = displayOrder;
+    }
+
     public UUID getId() {
         return id;
     }

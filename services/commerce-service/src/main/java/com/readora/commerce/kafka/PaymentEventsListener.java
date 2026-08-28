@@ -3,6 +3,7 @@ package com.readora.commerce.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.commerce.dto.PaymentCapturedEvent;
 import com.readora.commerce.dto.PaymentFailedEvent;
+import com.readora.commerce.dto.RefundCompletedEvent;
 import com.readora.commerce.service.OrderService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -28,5 +29,12 @@ public class PaymentEventsListener {
     public void onPaymentFailed(String payload) throws Exception {
         PaymentFailedEvent event = objectMapper.readValue(payload, PaymentFailedEvent.class);
         orderService.handlePaymentFailed(event.orderId());
+    }
+
+    /** A return's refund actually completed on payment-service's side — the one true terminal hop to RETURNED. */
+    @KafkaListener(topics = KafkaTopics.REFUND_COMPLETED, groupId = "commerce-service")
+    public void onRefundCompleted(String payload) throws Exception {
+        RefundCompletedEvent event = objectMapper.readValue(payload, RefundCompletedEvent.class);
+        orderService.handleRefundCompleted(event.orderId());
     }
 }

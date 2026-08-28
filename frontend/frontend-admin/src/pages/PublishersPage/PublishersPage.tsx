@@ -85,20 +85,20 @@ export function PublishersPage() {
         }
       />
 
-      <Card>
-        <div className={styles.searchWrap}>
-          <Search size={15} className={styles.searchIcon} />
-          <input
-            className={styles.searchInput}
-            placeholder="Filter publishers…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
+      <div className={styles.searchWrap}>
+        <Search size={15} className={styles.searchIcon} />
+        <input
+          className={styles.searchInput}
+          placeholder="Filter publishers…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
 
-        {loading ? (
-          <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
-        ) : filtered.length === 0 ? (
+      {loading ? (
+        <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
+      ) : filtered.length === 0 ? (
+        <Card>
           <EmptyState
             icon={Building2}
             title={query ? 'No matches' : 'No publishers yet'}
@@ -112,22 +112,20 @@ export function PublishersPage() {
               ) : undefined
             }
           />
-        ) : (
-          <ul className={styles.list}>
-            {filtered.map((p) => (
-              <li className={styles.item} key={p.id}>
-                <span className={styles.itemIcon}>
-                  <Building2 size={15} />
-                </span>
-                <span className={styles.itemText}>
-                  <span className={styles.itemName}>{p.name}</span>
-                  <span className={styles.itemSlug}>/{p.slug}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className={styles.grid}>
+          {filtered.map((p) => (
+            <Card key={p.id} className={styles.publisherCard}>
+              <span className={styles.publisherIcon}>
+                <Building2 size={20} />
+              </span>
+              <span className={styles.publisherName}>{p.name}</span>
+              <span className={styles.publisherSlug}>/{p.slug}</span>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Modal open={open} onClose={() => setOpen(false)} title="New publisher">
         <div className={styles.form}>

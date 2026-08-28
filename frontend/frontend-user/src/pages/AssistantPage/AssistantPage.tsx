@@ -14,7 +14,6 @@ import {
 import { listConversations, type ConversationSummary } from '@/api/aiApi';
 import { RichText } from '@/components/ChatWidget/RichText';
 import { ChatBookCarousel } from '@/components/ChatWidget/ChatBookCarousel';
-import { ChatBookPicker } from '@/components/ChatWidget/ChatBookPicker';
 import { useChatSession } from '@/components/ChatWidget/useChatSession';
 import { Spinner } from '@/components/Spinner';
 import { ROUTES } from '@/constants/routes';
@@ -46,8 +45,7 @@ export function AssistantPage() {
   const [loadingList, setLoadingList] = useState(true);
   const [showJumpToBottom, setShowJumpToBottom] = useState(false);
 
-  const { messages, draft, setDraft, streaming, pickerBook, setPickerBook, conversationId, send, loadConversation } =
-    useChatSession(true);
+  const { messages, draft, setDraft, streaming, conversationId, send, loadConversation } = useChatSession(true);
 
   const currentTitle = useMemo(
     () => conversations.find((c) => c.conversationId === conversationId)?.title,
@@ -216,7 +214,7 @@ export function AssistantPage() {
                         message.content
                       )}
                     </div>
-                    {message.books && <ChatBookCarousel books={message.books} onSelect={setPickerBook} />}
+                    {message.books && <ChatBookCarousel books={message.books} />}
                   </div>
                 </div>
               );
@@ -252,8 +250,6 @@ export function AssistantPage() {
           </button>
         </div>
       </div>
-
-      <ChatBookPicker book={pickerBook} onClose={() => setPickerBook(null)} />
     </div>
   );
 }

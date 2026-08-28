@@ -1,13 +1,17 @@
 package com.readora.catalog.service;
 
+import com.readora.catalog.dto.BookAvailabilityResponse;
+import com.readora.catalog.dto.BookCoverLookupResponse;
 import com.readora.catalog.dto.BookExportItem;
 import com.readora.catalog.dto.BookExportPage;
 import com.readora.catalog.dto.BookLookupResponse;
 import com.readora.catalog.dto.VirtualEditionLookupResponse;
 import com.readora.catalog.entity.Author;
 import com.readora.catalog.entity.Book;
+import com.readora.catalog.entity.Inventory;
 import com.readora.catalog.entity.VirtualEdition;
 import com.readora.catalog.repository.BookRepository;
+import com.readora.catalog.repository.InventoryRepository;
 import com.readora.catalog.repository.VirtualEditionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,10 +32,16 @@ public class InternalCatalogService {
 
     private final BookRepository bookRepository;
     private final VirtualEditionRepository virtualEditionRepository;
+    private final InventoryRepository inventoryRepository;
 
-    public InternalCatalogService(BookRepository bookRepository, VirtualEditionRepository virtualEditionRepository) {
+    public InternalCatalogService(
+            BookRepository bookRepository,
+            VirtualEditionRepository virtualEditionRepository,
+            InventoryRepository inventoryRepository
+    ) {
         this.bookRepository = bookRepository;
         this.virtualEditionRepository = virtualEditionRepository;
+        this.inventoryRepository = inventoryRepository;
     }
 
     /**
@@ -82,6 +92,16 @@ public class InternalCatalogService {
         return new BookLookupResponse(items);
     }
 
+    /** Cover image lookup for the given book ids — used by commerce-service to render order-list thumbnails. */
+    @Transactional(readOnly = true)
+    public BookCoverLookupResponse lookupCovers(List<UUID> bookIds) {
+        List<BookCoverLookupResponse.Item> items = bookRepository.findAllById(bookIds).stream()
+                .map(book -> new BookCoverLookupResponse.Item(book.getId(), book.getCoverImageUrl()))
+                .toList();
+
+        return new BookCoverLookupResponse(items);
+    }
+
     /** Virtual-edition availability and pricing lookup for commerce-service's virtual checkout path. */
     @Transactional(readOnly = true)
     public VirtualEditionLookupResponse lookupVirtualEditions(List<UUID> bookIds) {
@@ -103,5 +123,40 @@ public class InternalCatalogService {
                 .toList();
 
         return new VirtualEditionLookupResponse(items);
+    }
+
+    /**
+     * Filters a candidate list down to what's actually purchasable right now — used by ai-service's
+     * book-recommendation tools so the assistant can never suggest a title the caller has no way to
+     * buy: one with a virtual edition is available regardless of store, and a physical-only book is
+     * available only when its (single, fixed — see the book/store model this class already assumes
+     * elsewhere) home store matches the caller's storeId and it actually has stock there.
+     */
+    @Transactional(readOnly = true)
+    public BookAvailabilityResponse checkAvailability(List<UUID> bookIds, UUID storeId) {
+        List<UUID> available = bookIds.stream().filter(id -> isAvailable(id, storeId)).toList();
+        return new BookAvailabilityResponse(available);
+    }
+
+    private boolean isAvailable(UUID bookId, UUID storeId) {
+        Optional<Book> book = bookRepository.findById(bookId).filter(Book::isActive);
+        if (book.isEmpty()) {
+            return false;
+        }
+
+        boolean hasVirtualEdition = virtualEditionRepository.findById(bookId).filter(VirtualEdition::isActive).isPresent();
+        if (hasVirtualEdition) {
+            return true;
+        }
+
+        boolean rightStore = book.get().getStore() != null
+                && storeId != null
+                && book.get().getStore().getId().equals(storeId);
+        if (!rightStore) {
+            return false;
+        }
+
+        Inventory inventory = inventoryRepository.findById(bookId).orElse(null);
+        return inventory != null && inventory.getAvailable() > 0;
     }
 }

@@ -9,5 +9,6 @@ export const ROUTES = {
   authors: '/authors',
   embeddings: '/embeddings',
   returns: '/returns',
+  deliveryAgents: '/delivery-agents',
   profile: '/profile',
 } as const;

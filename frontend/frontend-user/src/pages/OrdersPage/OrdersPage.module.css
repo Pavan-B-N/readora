@@ -17,16 +17,53 @@
   background: var(--color-surface-hover);
 }
 
-.icon {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-md);
+.collage {
+  display: flex;
+  flex-shrink: 0;
+  /* Room for the stack's overlap plus one cover's own width, so the card's flex layout reserves
+     space for the whole fanned-out group rather than just the last (fully overlapped) cover. */
+  padding-right: calc((var(--space-3)) * 2);
+}
+
+.cover {
+  width: 40px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-surface);
+  background: var(--color-surface-hover);
+  color: var(--color-text-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.cover:not(:first-child) {
+  margin-left: calc(var(--space-3) * -1);
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coverMore {
+  width: 40px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-surface);
   background: var(--color-surface-hover);
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
   flex-shrink: 0;
+  margin-left: calc(var(--space-3) * -1);
 }
 
 .info {
@@ -34,16 +71,24 @@
   min-width: 0;
 }
 
-.orderNumber {
+.title {
   font-weight: 600;
-  font-size: var(--font-size-sm);
-  font-family: ui-monospace, monospace;
+  font-size: var(--font-size-base);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.extraCount {
+  font-weight: 400;
+  color: var(--color-text-muted);
 }
 
 .meta {
   color: var(--color-text-subtle);
   font-size: var(--font-size-xs);
   margin-top: 2px;
+  font-family: ui-monospace, monospace;
 }
 
 .total {

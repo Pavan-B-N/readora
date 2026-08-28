@@ -1,5 +1,6 @@
 package com.readora.delivery.dto;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -12,6 +13,9 @@ public record AssignmentResponse(
         Instant createdAt,
         Instant assignedAt,
         Instant outForDeliveryAt,
-        Instant deliveredAt
+        Instant deliveredAt,
+        /** null if commerce-service couldn't be reached when this assignment was created — a display nicety, not required. */
+        String destinationCity,
+        BigDecimal payoutAmount
 ) {
 }

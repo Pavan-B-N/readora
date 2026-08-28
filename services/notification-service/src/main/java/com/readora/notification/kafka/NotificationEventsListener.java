@@ -52,6 +52,14 @@ public class NotificationEventsListener {
             case "PAYMENT_FAILED" -> new String[]{
                     "Payment failed", "Payment for order " + orderNumber + " failed. Check your wallet balance and try again."
             };
+            case "RETURN_REQUESTED" -> new String[]{"Return requested", "Your return request for order " + orderNumber + " has been submitted."};
+            case "RETURN_REJECTED" -> new String[]{"Return rejected", "Your return request for order " + orderNumber + " was rejected."};
+            case "RETURN_APPROVED" -> new String[]{"Return approved", "Your return for order " + orderNumber + " was approved — a pickup will be arranged."};
+            case "RETURN_ASSIGNED" -> new String[]{"Pickup agent assigned", "A delivery agent has been assigned to collect order " + orderNumber + "."};
+            case "RETURN_EN_ROUTE" -> new String[]{"Agent on the way", "An agent is on the way to collect order " + orderNumber + "."};
+            case "RETURN_COLLECTED" -> new String[]{"Book collected", "Order " + orderNumber + "'s return has been collected."};
+            case "REFUND_INITIATED" -> new String[]{"Refund in progress", "Your refund for order " + orderNumber + " is being processed."};
+            case "RETURNED" -> new String[]{"Return completed", "Order " + orderNumber + "'s return is complete and refunded."};
             default -> new String[]{"Order updated", "Order " + orderNumber + " is now " + status + "."};
         };
     }
