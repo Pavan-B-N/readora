@@ -21,6 +21,14 @@ import java.math.BigDecimal;
 @Service
 public class WalletEventService {
 
+    /** Order value at/above which a tier's cashback rate applies — checked highest-first. */
+    private static final BigDecimal[] CASHBACK_TIER_FLOORS = {
+            new BigDecimal("5000"), new BigDecimal("3000"), new BigDecimal("1500"), new BigDecimal("500"), BigDecimal.ZERO
+    };
+    private static final BigDecimal[] CASHBACK_TIER_RATES = {
+            new BigDecimal("0.05"), new BigDecimal("0.04"), new BigDecimal("0.03"), new BigDecimal("0.02"), new BigDecimal("0.01")
+    };
+
     private final WalletAccountRepository walletAccountRepository;
     private final WalletTransactionRepository walletTransactionRepository;
 
@@ -32,8 +40,14 @@ public class WalletEventService {
         this.walletTransactionRepository = walletTransactionRepository;
     }
 
+    /** Wallet debit (if wallet funded part of the order) and cashback credit are independent — both, either, or neither can apply to a given order. */
     @Transactional
     public void handlePaymentCaptured(PaymentCapturedEvent event) {
+        debitWalletIfUsedForPayment(event);
+        creditCashback(event);
+    }
+
+    private void debitWalletIfUsedForPayment(PaymentCapturedEvent event) {
         BigDecimal walletAmountUsed = event.walletAmountUsed();
         if (walletAmountUsed == null || walletAmountUsed.compareTo(BigDecimal.ZERO) <= 0) {
             return;
@@ -54,6 +68,51 @@ public class WalletEventService {
                 event.userId(), event.orderId(), walletAmountUsed.negate(), WalletTransactionType.REDEEMED,
                 wallet.getBalance(), idempotencyKey
         ));
+    }
+
+    /**
+     * Every captured payment earns cashback on the order's full amount — a separate idempotency
+     * namespace ("cashback:") from the wallet-debit record above ("payment:") so both can be
+     * recorded for the same paymentId without colliding on the unique idempotency key.
+     */
+    private void creditCashback(PaymentCapturedEvent event) {
+        String idempotencyKey = "cashback:" + event.paymentId();
+        if (walletTransactionRepository.existsByIdempotencyKey(idempotencyKey)) {
+            return;
+        }
+
+        BigDecimal cashbackAmount = calculateCashback(event.amount());
+        if (cashbackAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+
+        WalletAccount wallet = walletAccountRepository.findById(event.userId())
+                .orElseGet(() -> walletAccountRepository.save(new WalletAccount(event.userId())));
+
+        wallet.credit(cashbackAmount);
+        walletAccountRepository.save(wallet);
+
+        walletTransactionRepository.save(new WalletTransaction(
+                event.userId(), event.orderId(), cashbackAmount, WalletTransactionType.CASHBACK,
+                wallet.getBalance(), idempotencyKey
+        ));
+    }
+
+    /** Tiered 1%-5% cashback — bigger baskets earn a higher rate. Package-private so tests can hit it directly. */
+    static BigDecimal calculateCashback(BigDecimal orderAmount) {
+        if (orderAmount == null || orderAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        return orderAmount.multiply(cashbackRate(orderAmount)).setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+
+    private static BigDecimal cashbackRate(BigDecimal orderAmount) {
+        for (int i = 0; i < CASHBACK_TIER_FLOORS.length; i++) {
+            if (orderAmount.compareTo(CASHBACK_TIER_FLOORS[i]) >= 0) {
+                return CASHBACK_TIER_RATES[i];
+            }
+        }
+        return CASHBACK_TIER_RATES[CASHBACK_TIER_RATES.length - 1];
     }
 
     @Transactional

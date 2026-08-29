@@ -1,6 +1,7 @@
 package com.readora.user.controller;
 
 import com.readora.user.dto.AddressResponse;
+import com.readora.user.dto.BrowsingHistoryItemResponse;
 import com.readora.user.dto.CreateAddressRequest;
 import com.readora.user.dto.CreateAddressResponse;
 import com.readora.user.dto.MeResponse;
@@ -173,6 +174,33 @@ public class UserController {
     @DeleteMapping("/wishlist/{bookId}")
     public ResponseEntity<Void> removeFromWishlist(@PathVariable UUID bookId) {
         userService.removeFromWishlist(CurrentUserContext.require(), bookId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "List recently viewed books",
+            description = "The caller's last 20 viewed book ids, most-recently-viewed first. Just ids — the caller looks up display data via catalog-service's batch lookup.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Browsing history returned")
+    })
+    @GetMapping("/history")
+    public ResponseEntity<List<BrowsingHistoryItemResponse>> listBrowsingHistory() {
+        return ResponseEntity.ok(userService.listBrowsingHistory(CurrentUserContext.require()));
+    }
+
+    @Operation(
+            summary = "Record a book view",
+            description = "Idempotent upsert — viewing a book already in history just bumps it back to the top rather than duplicating it.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "View recorded")
+    })
+    @PutMapping("/history/{bookId}")
+    public ResponseEntity<Void> recordBookView(@PathVariable UUID bookId) {
+        userService.recordBookView(CurrentUserContext.require(), bookId);
         return ResponseEntity.noContent().build();
     }
 

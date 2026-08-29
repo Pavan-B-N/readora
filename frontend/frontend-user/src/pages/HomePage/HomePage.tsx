@@ -1,8 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Package, X, ChevronLeft, ChevronRight, SlidersHorizontal, Zap } from 'lucide-react';
-import { searchBooks, getCategoryTree, getRecommendations, getPurchasedBooks, getLibrary, listAuthors } from '@/api/catalogApi';
+import { BookOpen, Clock, Package, X, ChevronLeft, ChevronRight, SlidersHorizontal, Zap } from 'lucide-react';
+import {
+  searchBooks,
+  getCategoryTree,
+  getRecommendations,
+  getPurchasedBooks,
+  getLibrary,
+  getBooksByIds,
+  listAuthors,
+} from '@/api/catalogApi';
+import { getBrowsingHistory } from '@/api/userApi';
 import type { Author, BookSummary, CategoryNode, PurchasedBook } from '@/types/catalog';
 import { useDebounced } from '@/hooks/useDebounced';
 import { useAppSelector } from '@/redux/hooks';
@@ -61,6 +70,7 @@ export function HomePage() {
   const [recommendedIds, setRecommendedIds] = useState<Set<string>>(new Set());
   const [orders, setOrders] = useState<PurchasedBook[]>([]);
   const [ownedVirtualIds, setOwnedVirtualIds] = useState<Set<string>>(new Set());
+  const [recentlyViewed, setRecentlyViewed] = useState<BookSummary[]>([]);
 
   const [authors, setAuthors] = useState<Author[]>([]);
   const [authorId, setAuthorId] = useState('');
@@ -101,6 +111,25 @@ export function HomePage() {
     }
     getPurchasedBooks().then(setOrders);
     getLibrary().then((books) => setOwnedVirtualIds(new Set(books.map((b) => b.id))));
+  }, [accessToken]);
+
+  useEffect(() => {
+    if (!accessToken) {
+      setRecentlyViewed([]);
+      return;
+    }
+    getBrowsingHistory().then((history) => {
+      const ids = history.map((item) => item.bookId);
+      if (ids.length === 0) {
+        setRecentlyViewed([]);
+        return;
+      }
+      // The batch lookup doesn't guarantee it preserves order, so re-sort by view recency here.
+      getBooksByIds(ids).then((books) => {
+        const byId = new Map(books.map((book) => [book.id, book]));
+        setRecentlyViewed(ids.map((id) => byId.get(id)).filter((book): book is BookSummary => Boolean(book)));
+      });
+    });
   }, [accessToken]);
 
   useEffect(() => {
@@ -199,6 +228,24 @@ export function HomePage() {
                         </span>
                       }
                     />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!query && !categoryId && recentlyViewed.length > 0 && (
+          <div className={styles.rail}>
+            <div className={styles.railHeading}>
+              <Clock size={15} />
+              <h2 className={styles.railTitle}>Recently viewed</h2>
+            </div>
+            <div className={styles.railRowWrapper}>
+              <div className={styles.railRow}>
+                {recentlyViewed.map((book) => (
+                  <div className={styles.railCard} key={book.id}>
+                    <BookCard book={book} owned={ownedVirtualIds.has(book.id)} />
                   </div>
                 ))}
               </div>

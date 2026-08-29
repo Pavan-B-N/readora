@@ -1,5 +1,13 @@
 import { apiClient } from './client';
-import type { Address, CreateAddressRequest, MeResponse, UpdateProfileRequest, WalletResponse, WishlistItem } from '@/types/user';
+import type {
+  Address,
+  BrowsingHistoryItem,
+  CreateAddressRequest,
+  MeResponse,
+  UpdateProfileRequest,
+  WalletResponse,
+  WishlistItem,
+} from '@/types/user';
 
 export async function getMe(): Promise<MeResponse> {
   const response = await apiClient.get<MeResponse>('/api/v1/users/me');
@@ -58,4 +66,13 @@ export async function addToWishlist(bookId: string): Promise<void> {
 
 export async function removeFromWishlist(bookId: string): Promise<void> {
   await apiClient.delete(`/api/v1/users/me/wishlist/${bookId}`);
+}
+
+export async function getBrowsingHistory(): Promise<BrowsingHistoryItem[]> {
+  const response = await apiClient.get<BrowsingHistoryItem[]>('/api/v1/users/me/history');
+  return response.data;
+}
+
+export async function recordBookView(bookId: string): Promise<void> {
+  await apiClient.put(`/api/v1/users/me/history/${bookId}`);
 }

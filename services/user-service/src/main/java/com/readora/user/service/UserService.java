@@ -1,6 +1,7 @@
 package com.readora.user.service;
 
 import com.readora.user.dto.AddressResponse;
+import com.readora.user.dto.BrowsingHistoryItemResponse;
 import com.readora.user.dto.CreateAddressRequest;
 import com.readora.user.dto.CreateAddressResponse;
 import com.readora.user.dto.MeResponse;
@@ -10,6 +11,7 @@ import com.readora.user.dto.WalletBalanceResponse;
 import com.readora.user.dto.WalletResponse;
 import com.readora.user.dto.WishlistItemResponse;
 import com.readora.user.entity.Address;
+import com.readora.user.entity.BrowsingHistoryItem;
 import com.readora.user.entity.Coupon;
 import com.readora.user.entity.CouponRedemption;
 import com.readora.user.entity.UserProfile;
@@ -23,6 +25,7 @@ import com.readora.user.exception.CouponAlreadyRedeemedException;
 import com.readora.user.exception.CouponNotFoundException;
 import com.readora.user.exception.CouponNotRedeemableException;
 import com.readora.user.repository.AddressRepository;
+import com.readora.user.repository.BrowsingHistoryRepository;
 import com.readora.user.repository.CouponRedemptionRepository;
 import com.readora.user.repository.CouponRepository;
 import com.readora.user.repository.UserProfileRepository;
@@ -51,6 +54,7 @@ public class UserService {
     private final CouponRepository couponRepository;
     private final CouponRedemptionRepository couponRedemptionRepository;
     private final WishlistRepository wishlistRepository;
+    private final BrowsingHistoryRepository browsingHistoryRepository;
     private final BigDecimal signupBonus;
 
     public UserService(
@@ -61,6 +65,7 @@ public class UserService {
             CouponRepository couponRepository,
             CouponRedemptionRepository couponRedemptionRepository,
             WishlistRepository wishlistRepository,
+            BrowsingHistoryRepository browsingHistoryRepository,
             @Value("${app.wallet.signup-bonus}") BigDecimal signupBonus
     ) {
         this.userProfileRepository = userProfileRepository;
@@ -70,6 +75,7 @@ public class UserService {
         this.couponRepository = couponRepository;
         this.couponRedemptionRepository = couponRedemptionRepository;
         this.wishlistRepository = wishlistRepository;
+        this.browsingHistoryRepository = browsingHistoryRepository;
         this.signupBonus = signupBonus;
     }
 
@@ -93,6 +99,22 @@ public class UserService {
     @Transactional
     public void removeFromWishlist(UUID userId, UUID bookId) {
         wishlistRepository.findByUserIdAndBookId(userId, bookId).ifPresent(wishlistRepository::delete);
+    }
+
+    @Transactional(readOnly = true)
+    public List<BrowsingHistoryItemResponse> listBrowsingHistory(UUID userId) {
+        return browsingHistoryRepository.findTop20ByUserIdOrderByViewedAtDesc(userId).stream()
+                .map(item -> new BrowsingHistoryItemResponse(item.getBookId(), item.getViewedAt()))
+                .toList();
+    }
+
+    /** Upsert — viewing a book already in history bumps it back to the top instead of duplicating it. */
+    @Transactional
+    public void recordBookView(UUID userId, UUID bookId) {
+        BrowsingHistoryItem item = browsingHistoryRepository.findByUserIdAndBookId(userId, bookId)
+                .orElseGet(() -> new BrowsingHistoryItem(userId, bookId));
+        item.touch();
+        browsingHistoryRepository.save(item);
     }
 
     /**

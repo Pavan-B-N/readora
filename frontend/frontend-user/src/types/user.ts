@@ -70,3 +70,8 @@ export interface WishlistItem {
   bookId: string;
   addedAt: string;
 }
+
+export interface BrowsingHistoryItem {
+  bookId: string;
+  viewedAt: string;
+}

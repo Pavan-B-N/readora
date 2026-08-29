@@ -6,5 +6,6 @@ public enum WalletTransactionType {
     REDEEMED,
     REVERSED,
     TOPUP,
-    COUPON_REDEEMED
+    COUPON_REDEEMED,
+    CASHBACK
 }

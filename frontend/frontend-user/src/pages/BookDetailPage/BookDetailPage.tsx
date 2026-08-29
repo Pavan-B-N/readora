@@ -14,6 +14,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { getBookDetail, getLibrary, getRelatedBooks } from '@/api/catalogApi';
+import { recordBookView } from '@/api/userApi';
 import type { BookDetail, RelatedBook } from '@/types/catalog';
 import type { DeliveryType } from '@/types/cart';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -54,6 +55,11 @@ export function BookDetailPage() {
   useEffect(() => {
     if (accessToken) dispatch(fetchCart());
   }, [accessToken, dispatch]);
+
+  // Fire-and-forget — a failed history write shouldn't ever surface to the reader.
+  useEffect(() => {
+    if (accessToken && bookId) recordBookView(bookId).catch(() => {});
+  }, [accessToken, bookId]);
 
   // Whether the signed-in caller already owns this book's virtual edition — if so, there's
   // nothing left to sell them here; the purchase UI gives way to a "Read now" prompt instead.
