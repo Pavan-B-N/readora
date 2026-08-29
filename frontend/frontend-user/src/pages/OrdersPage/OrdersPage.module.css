@@ -1,20 +1,49 @@
 .list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
   margin-top: var(--space-5);
 }
 
 .card {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: var(--space-4);
-  transition: border-color var(--transition), background var(--transition);
+  transition: border-color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
+  height: 100%;
 }
 
 .card:hover {
   border-color: var(--color-border-strong);
   background: var(--color-surface-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.viewDetails {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
 }
 
 .collage {

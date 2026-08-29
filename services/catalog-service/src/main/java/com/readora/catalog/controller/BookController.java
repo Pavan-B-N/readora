@@ -179,6 +179,19 @@ public class BookController {
     }
 
     @Operation(
+            summary = "Check whether an ISBN is already in use",
+            description = "Lets the admin book form validate ISBN uniqueness live, before submitting. Public — no authentication required, same as the rest of this read-only surface.",
+            tags = {"Books"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "true if a book with this ISBN already exists")
+    })
+    @GetMapping("/check-isbn")
+    public ResponseEntity<Boolean> checkIsbn(@RequestParam String isbn) {
+        return ResponseEntity.ok(catalogService.existsByIsbn13(isbn));
+    }
+
+    @Operation(
             summary = "Read a virtual edition in-app",
             description = "Streams the virtual edition's file for in-app viewing only — never a downloadable link. Requires the caller to have purchased this book.",
             tags = {"Books"}

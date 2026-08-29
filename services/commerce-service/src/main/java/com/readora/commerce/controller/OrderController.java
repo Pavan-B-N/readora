@@ -113,16 +113,17 @@ public class OrderController {
 
     @Operation(
             summary = "Return a delivered order",
-            description = "Returns an order. Permitted only once it's DELIVERED and within 7 days of placement. Triggers an asynchronous refund off Kafka, same as cancellation.",
+            description = "Returns an order. Permitted only once it's DELIVERED and within 2 days of delivery, and requires a reason. Triggers an asynchronous refund off Kafka, same as cancellation.",
             tags = {"Orders"}
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Order returned, refund pending"),
+            @ApiResponse(responseCode = "400", description = "Missing return reason"),
             @ApiResponse(responseCode = "404", description = "No such order, or it belongs to another user"),
             @ApiResponse(responseCode = "409", description = "The order isn't delivered yet, or the return window has expired")
     })
     @PostMapping("/{id}/return")
-    public ResponseEntity<ReturnOrderResponse> returnOrder(@PathVariable UUID id, @RequestBody ReturnOrderRequest request) {
+    public ResponseEntity<ReturnOrderResponse> returnOrder(@PathVariable UUID id, @Valid @RequestBody ReturnOrderRequest request) {
         return ResponseEntity.ok(orderService.returnOrder(CurrentUserContext.require(), id, request));
     }
 

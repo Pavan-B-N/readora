@@ -211,10 +211,23 @@ export function ProfilePage() {
                   </div>
                 )}
 
-                {job.itemsSummary && (
-                  <div className={styles.itemsRow}>
-                    <BookOpen size={12} />
-                    <span className={styles.itemsSummary}>{job.itemsSummary}</span>
+                {job.items && job.items.length > 0 && (
+                  <div className={styles.itemsBlock}>
+                    <span className={styles.itemsLabel}>
+                      <BookOpen size={12} />
+                      Items
+                    </span>
+                    <ul className={styles.itemsList}>
+                      {job.items.slice(0, 2).map((item, i) => (
+                        <li key={i} className={styles.itemRow}>
+                          <span>{item.title}</span>
+                          <span className={styles.itemQty}>× {item.qty}</span>
+                        </li>
+                      ))}
+                      {job.items.length > 2 && (
+                        <li className={styles.itemsMore}>+{job.items.length - 2} more</li>
+                      )}
+                    </ul>
                   </div>
                 )}
               </Link>

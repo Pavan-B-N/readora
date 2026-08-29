@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Download, Minus, Plus, ShoppingCart, Trash2, Truck } from 'lucide-react';
+import { ArrowLeft, BookOpen, Download, Minus, Plus, ShoppingCart, Trash2, Truck } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchCart, updateCartItemQty } from '@/redux/slices/cartSlice';
 import { Card } from '@/components/Card';
@@ -8,7 +8,6 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Tooltip } from '@/components/Tooltip';
 import { EmptyState } from '@/components/EmptyState';
-import { Spinner } from '@/components/Spinner';
 import { ROUTES } from '@/constants/routes';
 import styles from './CartPage.module.css';
 
@@ -23,15 +22,45 @@ export function CartPage() {
     dispatch(fetchCart());
   }, [dispatch]);
 
+  const backButton = (
+    <div style={{ marginBottom: 'var(--space-2)' }}>
+      <Button variant="ghost" onClick={() => navigate(-1)}>
+        <ArrowLeft size={16} />
+        Back
+      </Button>
+    </div>
+  );
+
   if (status === 'loading' && items.length === 0) {
-    return <Spinner />;
+    return (
+      <div>
+        {backButton}
+        <div className={styles.layout}>
+          <Card>
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className={styles.item}>
+                <div className="skeletonPulse" style={{ width: 46, height: 66, borderRadius: 'var(--radius-sm)' }} />
+                <div className={styles.itemInfo}>
+                  <div className="skeletonPulse" style={{ width: '40%', height: 16, marginBottom: 8, borderRadius: 4 }} />
+                  <div className="skeletonPulse" style={{ width: '20%', height: 14, marginBottom: 12, borderRadius: 4 }} />
+                  <div className="skeletonPulse" style={{ width: 70, height: 20, borderRadius: 10 }} />
+                </div>
+                <div className="skeletonPulse" style={{ width: 80, height: 32, borderRadius: 16 }} />
+                <div className="skeletonPulse" style={{ width: 32, height: 32, borderRadius: 8 }} />
+              </div>
+            ))}
+          </Card>
+          <div className="skeletonPulse" style={{ height: 220, borderRadius: 'var(--radius-lg)' }} />
+        </div>
+      </div>
+    );
   }
 
   if (items.length === 0) {
     return (
       <div>
-        <h1>Your cart</h1>
-        <Card style={{ marginTop: 'var(--space-5)' }}>
+        {backButton}
+        <div style={{ marginTop: 'var(--space-10)' }}>
           <EmptyState
             icon={ShoppingCart}
             title="Your cart is empty"
@@ -43,14 +72,14 @@ export function CartPage() {
               </Button>
             }
           />
-        </Card>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
-      <h1>Your cart</h1>
+      {backButton}
       <div className={styles.layout}>
         <Card>
           {items.map((item) => (

@@ -67,18 +67,39 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+.railHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
 .railHeading {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   color: var(--color-info);
-  margin-bottom: var(--space-3);
 }
 
 .railTitle {
   font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text);
+}
+
+.railAction {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.railAction:hover {
+  text-decoration: underline;
 }
 
 .railRowWrapper {

@@ -21,19 +21,19 @@ class OrderTest {
     }
 
     @Test
-    void isReturnable_deliveredWithinSevenDays_isTrue() {
+    void isReturnable_deliveredWithinTwoDays_isTrue() {
         Order order = newOrder(DeliveryType.PHYSICAL);
         order.markDelivered();
-        ReflectionTestUtils.setField(order, "deliveredAt", Instant.now().minus(Duration.ofDays(3)));
+        ReflectionTestUtils.setField(order, "deliveredAt", Instant.now().minus(Duration.ofHours(36)));
 
         assertThat(order.isReturnable()).isTrue();
     }
 
     @Test
-    void isReturnable_deliveredMoreThanSevenDaysAgo_isFalse() {
+    void isReturnable_deliveredMoreThanTwoDaysAgo_isFalse() {
         Order order = newOrder(DeliveryType.PHYSICAL);
         order.markDelivered();
-        ReflectionTestUtils.setField(order, "deliveredAt", Instant.now().minus(Duration.ofDays(8)));
+        ReflectionTestUtils.setField(order, "deliveredAt", Instant.now().minus(Duration.ofDays(3)));
 
         assertThat(order.isReturnable()).isFalse();
     }

@@ -9,7 +9,7 @@ public record BookDetailResponse(
         UUID id,
         String isbn13,
         String title,
-        String subtitle,
+
         String description,
         List<AuthorRef> authors,
         CategoryRef category,

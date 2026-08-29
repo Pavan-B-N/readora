@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store, Undo2, Bike, Menu, X } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
@@ -44,12 +44,10 @@ export function AdminLayout() {
   }, []);
 
   useEffect(() => {
-    // Close sidebar on route change for mobile
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
-    // Prevent scrolling when drawer is open
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -63,12 +61,12 @@ export function AdminLayout() {
   return (
     <div className={styles.shell}>
       <header className={styles.mobileHeader}>
-        <div className={styles.mobileBrand}>
+        <Link to={ROUTES.books} className={styles.mobileBrand}>
           <span className={styles.brandMark}>
             <Library size={17} />
           </span>
           <span>Readora Admin</span>
-        </div>
+        </Link>
         <button
           className={styles.mobileMenuBtn}
           onClick={() => setMobileMenuOpen(true)}
@@ -85,14 +83,16 @@ export function AdminLayout() {
       />
 
       <aside className={[styles.sidebar, mobileMenuOpen && styles.sidebarOpen].filter(Boolean).join(' ')}>
-        <div className={styles.brand}>
-          <span className={styles.brandMark}>
-            <Library size={17} />
-          </span>
-          <span className={styles.brandText}>
-            <span className={styles.brandName}>Readora</span>
-            <span className={styles.brandRole}>Admin</span>
-          </span>
+        <div className={styles.brandContainer}>
+          <Link to={ROUTES.books} className={styles.brand}>
+            <span className={styles.brandMark}>
+              <Library size={17} />
+            </span>
+            <span className={styles.brandText}>
+              <span className={styles.brandName}>Readora</span>
+              <span className={styles.brandRole}>Admin</span>
+            </span>
+          </Link>
           <button
             className={styles.closeSidebarBtn}
             onClick={() => setMobileMenuOpen(false)}
@@ -102,14 +102,11 @@ export function AdminLayout() {
           </button>
         </div>
 
-        {storeName && (
-          <div className={styles.storeBadge}>
-            <Store size={13} />
-            {storeName}
-          </div>
-        )}
-
-        <NotificationBell />
+        <NotificationBell
+          navLinkClass={({ isActive }) =>
+            [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')
+          }
+        />
 
         {NAV_GROUPS.map((group) => (
           <nav className={styles.navGroup} key={group.label}>
@@ -129,15 +126,24 @@ export function AdminLayout() {
           </nav>
         ))}
 
-        <NavLink
-          to={ROUTES.profile}
-          className={({ isActive }) => [styles.footer, isActive && styles.footerActive].filter(Boolean).join(' ')}
-        >
-          <span className={styles.avatar}>{initials}</span>
-          <span className={styles.identity}>
-            <span className={styles.email}>{email}</span>
-          </span>
-        </NavLink>
+        <div className={styles.bottomSection}>
+          {storeName && (
+            <div className={styles.storeBadge}>
+              <Store size={13} />
+              {storeName}
+            </div>
+          )}
+
+          <NavLink
+            to={ROUTES.profile}
+            className={({ isActive }) => [styles.footer, isActive && styles.footerActive].filter(Boolean).join(' ')}
+          >
+            <span className={styles.avatar}>{initials}</span>
+            <span className={styles.identity}>
+              <span className={styles.email}>{email}</span>
+            </span>
+          </NavLink>
+        </div>
       </aside>
 
       <main className={styles.main}>

@@ -60,7 +60,24 @@ export function OrdersPage() {
       <h1>Your orders</h1>
 
       {loading ? (
-        <Spinner />
+        <div className={styles.list} style={{ marginTop: 'var(--space-5)' }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card className={styles.card} key={i}>
+              <div className={styles.cardHeader}>
+                <div className="skeletonPulse" style={{ width: 40, height: 52, borderRadius: 'var(--radius-sm)' }} />
+                <div className="skeletonPulse" style={{ width: 80, height: 24, borderRadius: 12 }} />
+              </div>
+              <span className={styles.info}>
+                <div className="skeletonPulse" style={{ width: '80%', height: 18, marginBottom: 8, borderRadius: 4 }} />
+                <div className="skeletonPulse" style={{ width: '40%', height: 14, borderRadius: 4 }} />
+              </span>
+              <div className={styles.cardFooter}>
+                <div className="skeletonPulse" style={{ width: 60, height: 20, borderRadius: 4 }} />
+                <div className="skeletonPulse" style={{ width: 50, height: 16, borderRadius: 4 }} />
+              </div>
+            </Card>
+          ))}
+        </div>
       ) : orders.length === 0 ? (
         <Card style={{ marginTop: 'var(--space-5)' }}>
           <EmptyState
@@ -84,7 +101,12 @@ export function OrdersPage() {
             return (
               <Link key={order.orderId} to={ROUTES.orderDetail(order.orderId)}>
                 <Card className={styles.card}>
-                  <CoverCollage previews={order.itemPreviews} itemCount={order.itemCount} />
+                  <div className={styles.cardHeader}>
+                    <CoverCollage previews={order.itemPreviews} itemCount={order.itemCount} />
+                    <Badge variant={statusVariant(order.status)} dot>
+                      {displayStatus(order.status)}
+                    </Badge>
+                  </div>
 
                   <span className={styles.info}>
                     <div className={styles.title}>
@@ -101,11 +123,12 @@ export function OrdersPage() {
                     </div>
                   </span>
 
-                  <Badge variant={statusVariant(order.status)} dot>
-                    {displayStatus(order.status)}
-                  </Badge>
-                  <span className={styles.total}>₹{order.grandTotal}</span>
-                  <ChevronRight size={16} className={styles.chevron} />
+                  <div className={styles.cardFooter}>
+                    <span className={styles.total}>₹{order.grandTotal}</span>
+                    <span className={styles.viewDetails}>
+                      View <ChevronRight size={14} />
+                    </span>
+                  </div>
                 </Card>
               </Link>
             );

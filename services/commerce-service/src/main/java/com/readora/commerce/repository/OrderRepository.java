@@ -21,5 +21,12 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     /** Store-scoped, for the admin returns view — mirrors AdminBookService's findByIdAndStoreId ownership pattern. */
     Page<Order> findAllByStoreIdAndStatusInOrderByPlacedAtDesc(UUID storeId, List<OrderStatus> statuses, Pageable pageable);
 
+    /** Pending = cancellations/returns that have not yet been reviewed by an admin. */
+    Page<Order> findAllByStoreIdAndStatusInAndAdminReviewedAtIsNullOrderByPlacedAtDesc(UUID storeId, List<OrderStatus> statuses, Pageable pageable);
+
+    /** Reviewed = cancellations/returns where an admin has already recorded a decision/note. */
+    Page<Order> findAllByStoreIdAndStatusInAndAdminReviewedAtIsNotNullOrderByPlacedAtDesc(UUID storeId, List<OrderStatus> statuses, Pageable pageable);
+
     Optional<Order> findByIdAndStoreId(UUID id, UUID storeId);
 }
+

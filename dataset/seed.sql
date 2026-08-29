@@ -353,7 +353,7 @@ CREATE TABLE IF NOT EXISTS catalog.books (
     id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     isbn13            varchar(13) NOT NULL UNIQUE,
     title             text NOT NULL,
-    subtitle          text,
+
     description       text,
     table_of_contents text,
     category_id       uuid,
@@ -1148,7 +1148,7 @@ INSERT INTO catalog.books (
     id,
     isbn13,
     title,
-    subtitle,
+
     description,
     table_of_contents,
     category_id,
@@ -1168,7 +1168,7 @@ SELECT
     gen_random_uuid(),
     b->>'isbn13',
     b->>'title',
-    b->>'subtitle',
+
     b->>'description',
     b->>'tableOfContents',
     c.id,

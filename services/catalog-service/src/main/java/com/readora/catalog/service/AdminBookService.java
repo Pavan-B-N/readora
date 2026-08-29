@@ -143,7 +143,7 @@ public class AdminBookService {
                 : null;
 
         return new AdminBookDetailResponse(
-                book.getId(), book.getIsbn13(), book.getTitle(), book.getSubtitle(), book.getDescription(),
+                book.getId(), book.getIsbn13(), book.getTitle(), book.getDescription(),
                 book.getTableOfContents(),
                 book.getCategory() != null ? book.getCategory().getId() : null,
                 book.getPublisher() != null ? book.getPublisher().getId() : null,
@@ -179,7 +179,7 @@ public class AdminBookService {
         UUID createdByUserId = CurrentUserContext.get().orElse(null);
 
         Book book = new Book(
-                request.isbn13(), request.title(), request.subtitle(), request.description(), category,
+                request.isbn13(), request.title(), request.description(), category,
                 publisher, store, request.language(), request.pageCount(), request.publishedOn(),
                 request.listPrice(), request.currency(), request.coverImageUrl(), createdByUserId
         );
@@ -207,7 +207,7 @@ public class AdminBookService {
                 : null;
 
         book.update(
-                request.title(), request.subtitle(), request.description(), request.tableOfContents(),
+                request.title(), request.description(), request.tableOfContents(),
                 category, publisher, request.language(), request.pageCount(),
                 request.publishedOn(), request.listPrice(), request.currency(), request.coverImageUrl(),
                 request.isActive()

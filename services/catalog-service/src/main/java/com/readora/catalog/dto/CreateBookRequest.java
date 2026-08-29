@@ -9,11 +9,14 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.URL;
+
 public record CreateBookRequest(
-        @NotBlank String isbn13,
+        @NotBlank @Size(min = 13, max = 13) String isbn13,
         @NotBlank String title,
-        String subtitle,
-        String description,
+
+        @NotBlank String description,
         String tableOfContents,
         UUID categoryId,
         UUID publisherId,
@@ -24,6 +27,6 @@ public record CreateBookRequest(
         LocalDate publishedOn,
         @NotNull BigDecimal listPrice,
         @NotBlank String currency,
-        String coverImageUrl
+        @URL String coverImageUrl
 ) {
 }

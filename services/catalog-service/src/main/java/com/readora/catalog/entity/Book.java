@@ -38,8 +38,6 @@ public class Book {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "subtitle")
-    private String subtitle;
 
     @Column(name = "description", columnDefinition = "text")
     private String description;
@@ -120,14 +118,13 @@ public class Book {
     }
 
     public Book(
-            String isbn13, String title, String subtitle, String description, Category category,
+            String isbn13, String title, String description, Category category,
             Publisher publisher, Store store, String language, Integer pageCount,
             LocalDate publishedOn, BigDecimal listPrice, String currency, String coverImageUrl,
             UUID createdByUserId
     ) {
         this.isbn13 = isbn13;
         this.title = title;
-        this.subtitle = subtitle;
         this.description = description;
         this.category = category;
         this.publisher = publisher;
@@ -168,13 +165,12 @@ public class Book {
      * current value for anything they don't intend to change.
      */
     public void update(
-            String title, String subtitle, String description, String tableOfContents,
+            String title, String description, String tableOfContents,
             Category category, Publisher publisher, String language,
             Integer pageCount, LocalDate publishedOn, BigDecimal listPrice, String currency,
             String coverImageUrl, boolean isActive
     ) {
         this.title = title;
-        this.subtitle = subtitle;
         this.description = description;
         this.tableOfContents = tableOfContents;
         this.category = category;
@@ -198,10 +194,6 @@ public class Book {
 
     public String getTitle() {
         return title;
-    }
-
-    public String getSubtitle() {
-        return subtitle;
     }
 
     public String getDescription() {

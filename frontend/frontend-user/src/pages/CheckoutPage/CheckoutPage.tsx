@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
+  ArrowLeft,
   BookOpen,
   Check,
   Loader2,
@@ -65,9 +66,6 @@ export function CheckoutPage() {
   const [upiElapsedSeconds, setUpiElapsedSeconds] = useState(0);
   const [upiTimedOut, setUpiTimedOut] = useState(false);
 
-  // StrictMode double-invokes effects in dev (mount → cleanup → mount) — without resetting to
-  // true on (re-)mount, the simulated cleanup would leave this permanently false, silently
-  // short-circuiting the UPI poll loop below before it ever ran a single iteration.
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
@@ -79,31 +77,27 @@ export function CheckoutPage() {
   useEffect(() => {
     dispatch(fetchCart());
     getMe().then(setMe);
-    listAddresses().then(setAddresses);
+    listAddresses().then((res) => {
+      setAddresses(res);
+      const defaultAddr = res.find((a) => a.isDefault);
+      if (defaultAddr) setSelectedAddressId(defaultAddr.id);
+      else if (res.length > 0) setSelectedAddressId(res[0].id);
+    });
   }, [dispatch]);
-
-  // Only ever pre-select an address that's actually eligible for delivery from the current
-  // store — waits for the store to resolve so it doesn't briefly default to an ineligible one.
-  useEffect(() => {
-    if (!store || addresses.length === 0) return;
-    const eligible = addresses.filter((a) => a.city === store.city);
-    const preferred = eligible.find((a) => a.isDefault) ?? eligible[0];
-    setSelectedAddressId(preferred?.id ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addresses, store?.id]);
 
   const pricing = useMemo(() => {
     const sub = Number(subtotal);
-    const shippingFee = !requiresShippingAddress ? 0 : sub >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_FEE;
-    const packagingFee = requiresShippingAddress ? PACKAGING_FEE : 0;
-    const taxAmount = Math.round(sub * TAX_RATE * 100) / 100;
-    const grandTotal = sub + shippingFee + packagingFee + taxAmount;
-    return { subtotal: sub, shippingFee, packagingFee, taxAmount, grandTotal };
+    let shippingFee = 0;
+    if (requiresShippingAddress) {
+      shippingFee = sub >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING_FEE;
+    }
+    const preTax = sub + shippingFee + PACKAGING_FEE;
+    const taxAmount = preTax * TAX_RATE;
+    return { subtotal: sub, shippingFee, packagingFee: PACKAGING_FEE, taxAmount, grandTotal: preTax + taxAmount };
   }, [subtotal, requiresShippingAddress]);
 
-  const walletBalance = me ? Number(me.wallet.balance) : 0;
-  const walletShort = pricing.grandTotal - walletBalance;
-  const walletSufficient = walletShort <= 0;
+  const walletSufficient = Boolean(me && me.wallet.balance >= pricing.grandTotal);
+  const walletShort = walletSufficient ? 0 : pricing.grandTotal - (me?.wallet.balance ?? 0);
 
   const openNewAddressForm = () => {
     setNewAddress({
@@ -158,67 +152,70 @@ export function CheckoutPage() {
           storeId: store.id,
           isDefault: addresses.length === 0,
         });
-        return {
-          id: saved.id,
-          label: newAddress.label,
-          recipientType: newAddress.recipientType,
-          recipientName: newAddress.recipientName.trim(),
-          recipientPhone: newAddress.recipientPhone.trim(),
-          line1: newAddress.line1.trim(),
-          line2: newAddress.line2.trim() || null,
-          city: store.city,
-          state: store.state,
-          postalCode: store.postalCode,
-          countryCode: store.countryCode,
-          storeId: store.id,
-          isDefault: saved.isDefault,
-        };
+        setAddresses((prev) => [...prev, saved]);
+        setNewAddress(null);
+        setSelectedAddressId(saved.id);
+        return saved;
+      } catch (err) {
+        showToast('Could not save address', 'error');
+        throw err;
       } finally {
         setAddingAddress(false);
       }
     }
 
-    const selected = addresses.find((a) => a.id === selectedAddressId);
-    if (!selected) {
-      showToast('Select a delivery address', 'error');
+    if (!selectedAddressId) {
+      showToast('Select or add a shipping address', 'error');
       return null;
     }
-    if (store && selected.city !== store.city) {
-      showToast(`That address isn't deliverable from ${store.name} — pick one in ${store.city}`, 'error');
+
+    const addr = addresses.find((a) => a.id === selectedAddressId);
+    if (!addr) {
+      showToast('Invalid address selected', 'error');
       return null;
     }
-    return selected;
+    if (store && addr.city !== store.city) {
+      showToast(`This address is outside ${store.name}'s delivery zone (${store.city})`, 'error');
+      return null;
+    }
+
+    return addr;
   };
 
-  const buildItems = () => items.map((item) => ({ bookId: item.bookId, qty: item.qty, deliveryType: item.deliveryType }));
+  const buildItems = () =>
+    items.map((i) => ({
+      bookId: i.bookId,
+      qty: i.qty,
+      deliveryType: i.deliveryType,
+    }));
 
-  const buildShippingAddressInput = (address: Address | null): CheckoutRequest['shippingAddress'] =>
-    address
-      ? {
-          recipientName: address.recipientName,
-          line1: address.line1,
-          line2: address.line2 ?? undefined,
-          city: address.city,
-          state: address.state,
-          postalCode: address.postalCode,
-          countryCode: address.countryCode,
-          phone: address.recipientPhone ?? undefined,
-        }
-      : null;
+  const buildShippingAddressInput = (address: Address | null) => {
+    if (!requiresShippingAddress || !address) return undefined;
+    return {
+      label: address.label,
+      recipientType: address.recipientType,
+      recipientName: address.recipientName,
+      recipientPhone: address.recipientPhone,
+      line1: address.line1,
+      line2: address.line2,
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode,
+      countryCode: address.countryCode,
+      storeId: address.storeId,
+    };
+  };
 
   const handleCheckoutError = (error: unknown) => {
-    const errorCode = (error as { response?: { data?: { errorCode?: string; message?: string } } })?.response?.data
-      ?.errorCode;
-    const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message;
-
-    if (errorCode === 'INSUFFICIENT_WALLET_BALANCE') {
-      showToast(message ?? 'Insufficient wallet balance', 'error');
-    } else {
-      showToast(message ?? 'Checkout failed', 'error');
+    let msg = 'Checkout failed';
+    if (error instanceof Error && error.message) {
+      msg = error.message;
+    } else if (typeof error === 'object' && error !== null && 'message' in error) {
+      msg = String((error as { message: unknown }).message);
     }
+    showToast(msg, 'error');
   };
 
-  /** WALLET resolves (near-)instantly server-side, so a single round trip is enough. */
   const onSubmit = async () => {
     setSubmitting(true);
     try {
@@ -228,13 +225,15 @@ export function CheckoutPage() {
         return;
       }
 
-      const response = await checkout({
+      const req: CheckoutRequest = {
         shippingAddress: buildShippingAddressInput(address),
         paymentMethod,
         items: buildItems(),
-      });
+      };
+
+      const response = await checkout(req);
       dispatch(cartCleared());
-      showToast('Order placed');
+      showToast('Order placed successfully!');
       navigate(ROUTES.orderDetail(response.orderId));
     } catch (error) {
       handleCheckoutError(error);
@@ -243,13 +242,6 @@ export function CheckoutPage() {
     }
   };
 
-  /**
-   * UPI has a real (simulated) settlement delay — the order is created immediately at
-   * PENDING_PAYMENT, and payment-service's UpiSettlementJob captures it a few seconds later,
-   * entirely server-side. So instead of guessing, this polls the order itself until its status
-   * actually moves — a genuine "waiting for payment," not a fake client-side timer — and auto-
-   * places (navigates to) the order the moment it resolves.
-   */
   const processUpiPayment = async () => {
     const trimmedUpiId = upiId.trim();
     if (!trimmedUpiId || !trimmedUpiId.includes('@')) {
@@ -313,10 +305,19 @@ export function CheckoutPage() {
     }
   };
 
+  const backButton = (
+    <div style={{ marginBottom: 'var(--space-2)' }}>
+      <Button variant="ghost" onClick={() => navigate(-1)}>
+        <ArrowLeft size={16} />
+        Back
+      </Button>
+    </div>
+  );
+
   if (items.length === 0) {
     return (
       <div>
-        <h1>Checkout</h1>
+        {backButton}
         <Card style={{ marginTop: 'var(--space-5)' }}>
           <EmptyState
             icon={ShoppingCart}
@@ -340,7 +341,7 @@ export function CheckoutPage() {
 
   return (
     <div>
-      <h1>Checkout</h1>
+      {backButton}
       <div className={styles.layout}>
         <div className={styles.form}>
           {requiresShippingAddress && (
@@ -536,10 +537,12 @@ export function CheckoutPage() {
                   onChange={(e) => setUpiId(e.target.value)}
                   disabled={upiWaiting}
                 />
-                <Button onClick={processUpiPayment} disabled={submitting || addingAddress || upiWaiting} block>
-                  <QrCode size={14} />
-                  {upiWaiting ? 'Waiting for payment…' : `Pay ₹${pricing.grandTotal.toFixed(2)} via UPI`}
-                </Button>
+                <div>
+                  <Button onClick={processUpiPayment} disabled={submitting || addingAddress || upiWaiting}>
+                    <QrCode size={14} />
+                    {upiWaiting ? 'Waiting for payment…' : `Pay ₹${pricing.grandTotal.toFixed(2)} via UPI`}
+                  </Button>
+                </div>
 
                 {upiWaiting && (
                   <div className={styles.upiWaiting}>

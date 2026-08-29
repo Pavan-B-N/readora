@@ -12,5 +12,6 @@ export const ROUTES = {
   returns: '/returns',
   returnDetail: (orderId: string) => `/returns/${orderId}`,
   deliveryAgents: '/delivery-agents',
+  notifications: '/notifications',
   profile: '/profile',
 } as const;

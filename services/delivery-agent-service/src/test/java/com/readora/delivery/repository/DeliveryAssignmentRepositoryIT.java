@@ -13,6 +13,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,11 +38,11 @@ class DeliveryAssignmentRepositoryIT {
     void duplicateOrderId_violatesTheRealUniqueConstraint() {
         UUID orderId = UUID.randomUUID();
         assignmentRepository.saveAndFlush(new DeliveryAssignment(
-                orderId, "ORD-1", UUID.randomUUID(), "Bengaluru", "Ravi Kumar", "9999999999", "[{\"title\":\"Clean Code\",\"qty\":1}]"
+                orderId, "ORD-1", UUID.randomUUID(), "Bengaluru", "Ravi Kumar", "9999999999", "[{\"title\":\"Clean Code\",\"qty\":1}]", new BigDecimal("40.00")
         ));
 
         assertThatThrownBy(() -> assignmentRepository.saveAndFlush(new DeliveryAssignment(
-                orderId, "ORD-2", UUID.randomUUID(), "Mumbai", "Asha Rao", "8888888888", "[{\"title\":\"The Pragmatic Programmer\",\"qty\":1}]"
+                orderId, "ORD-2", UUID.randomUUID(), "Mumbai", "Asha Rao", "8888888888", "[{\"title\":\"The Pragmatic Programmer\",\"qty\":1}]", new BigDecimal("40.00")
         ))).isInstanceOf(DataIntegrityViolationException.class);
     }
 
@@ -49,7 +50,7 @@ class DeliveryAssignmentRepositoryIT {
     void claim_persistsTheAgentAndAssignedStatusThroughARealRoundTrip() {
         UUID agentId = UUID.randomUUID();
         DeliveryAssignment assignment = assignmentRepository.saveAndFlush(
-                new DeliveryAssignment(UUID.randomUUID(), "ORD-3", UUID.randomUUID(), "Delhi", "Priya Singh", "7777777777", "[{\"title\":\"Clean Architecture\",\"qty\":2}]")
+                new DeliveryAssignment(UUID.randomUUID(), "ORD-3", UUID.randomUUID(), "Delhi", "Priya Singh", "7777777777", "[{\"title\":\"Clean Architecture\",\"qty\":2}]", new BigDecimal("40.00"))
         );
 
         assignment.claim(agentId);

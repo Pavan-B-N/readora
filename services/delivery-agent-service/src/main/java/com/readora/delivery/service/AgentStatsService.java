@@ -42,8 +42,8 @@ public class AgentStatsService {
         long completedDeliveries = assignmentRepository.countByAgentIdAndStatus(userId, DeliveryAssignmentStatus.DELIVERED);
         long completedReturnPickups = pickupRepository.countByAgentIdAndStatus(userId, ReturnPickupStatus.COLLECTED);
 
-        BigDecimal totalEarnings = DeliveryService.DELIVERY_PAYOUT.multiply(BigDecimal.valueOf(completedDeliveries))
-                .add(ReturnPickupService.PICKUP_PAYOUT.multiply(BigDecimal.valueOf(completedReturnPickups)));
+        BigDecimal totalEarnings = assignmentRepository.sumPayoutByAgentIdAndStatus(userId, DeliveryAssignmentStatus.DELIVERED)
+                .add(pickupRepository.sumPayoutByAgentIdAndStatus(userId, ReturnPickupStatus.COLLECTED));
 
         return new AgentStatsResponse((int) completedDeliveries, (int) completedReturnPickups, totalEarnings, "INR");
     }

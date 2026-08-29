@@ -6,7 +6,7 @@ public class OrderNotReturnableException extends ServiceException {
     public OrderNotReturnableException() {
         super(
                 "ORDER_NOT_RETURNABLE", HttpStatus.CONFLICT,
-                "This order isn't eligible for return — it must be delivered and within the 7-day return window"
+                "This order isn't eligible for return — it must be delivered and within the 2-day return window"
         );
     }
 }

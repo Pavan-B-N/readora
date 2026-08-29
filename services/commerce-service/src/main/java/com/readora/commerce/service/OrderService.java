@@ -573,7 +573,7 @@ public class OrderService {
 
         return new OrderDeliveryDetailResponse(
                 order.getId(), order.getOrderNumber(), order.getStatus().name(), order.getStoreId(),
-                addressDto, items, order.getPlacedAt()
+                addressDto, items, order.getGrandTotal(), order.getPlacedAt()
         );
     }
 

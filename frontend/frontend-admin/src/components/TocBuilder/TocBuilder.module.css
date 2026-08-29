@@ -1,11 +1,19 @@
 .topics {
-  padding: var(--space-3);
+  padding: 6px var(--space-3);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  min-height: 38px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface-raised);
+  transition: border-color var(--transition);
+  cursor: text;
+}
+
+.topics:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
 
 .topic {
@@ -34,19 +42,17 @@
 
 .topicInput {
   background: transparent;
-  border: 1px dashed var(--color-border-strong);
-  border-radius: var(--radius-pill);
+  border: none;
   color: var(--color-text);
   font-family: inherit;
-  font-size: var(--font-size-xs);
-  padding: 4px var(--space-3);
+  font-size: var(--font-size-sm);
+  padding: 2px 0;
   min-width: 150px;
+  flex: 1;
 }
 
 .topicInput:focus {
   outline: none;
-  border-color: var(--color-primary);
-  border-style: solid;
 }
 
 .topicInput::placeholder {

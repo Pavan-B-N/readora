@@ -6,6 +6,7 @@ import com.readora.user.dto.CreateAddressRequest;
 import com.readora.user.dto.CreateAddressResponse;
 import com.readora.user.dto.MeResponse;
 import com.readora.user.dto.RedeemCouponResponse;
+import com.readora.user.dto.SearchHistoryItemResponse;
 import com.readora.user.dto.UpdateProfileRequest;
 import com.readora.user.dto.WalletBalanceResponse;
 import com.readora.user.dto.WalletResponse;
@@ -14,6 +15,7 @@ import com.readora.user.entity.Address;
 import com.readora.user.entity.BrowsingHistoryItem;
 import com.readora.user.entity.Coupon;
 import com.readora.user.entity.CouponRedemption;
+import com.readora.user.entity.SearchHistoryItem;
 import com.readora.user.entity.UserProfile;
 import com.readora.user.entity.WalletAccount;
 import com.readora.user.entity.WalletTransaction;
@@ -28,6 +30,7 @@ import com.readora.user.repository.AddressRepository;
 import com.readora.user.repository.BrowsingHistoryRepository;
 import com.readora.user.repository.CouponRedemptionRepository;
 import com.readora.user.repository.CouponRepository;
+import com.readora.user.repository.SearchHistoryRepository;
 import com.readora.user.repository.UserProfileRepository;
 import com.readora.user.repository.WalletAccountRepository;
 import com.readora.user.repository.WalletTransactionRepository;
@@ -55,6 +58,7 @@ public class UserService {
     private final CouponRedemptionRepository couponRedemptionRepository;
     private final WishlistRepository wishlistRepository;
     private final BrowsingHistoryRepository browsingHistoryRepository;
+    private final SearchHistoryRepository searchHistoryRepository;
     private final BigDecimal signupBonus;
 
     public UserService(
@@ -66,6 +70,7 @@ public class UserService {
             CouponRedemptionRepository couponRedemptionRepository,
             WishlistRepository wishlistRepository,
             BrowsingHistoryRepository browsingHistoryRepository,
+            SearchHistoryRepository searchHistoryRepository,
             @Value("${app.wallet.signup-bonus}") BigDecimal signupBonus
     ) {
         this.userProfileRepository = userProfileRepository;
@@ -76,6 +81,7 @@ public class UserService {
         this.couponRedemptionRepository = couponRedemptionRepository;
         this.wishlistRepository = wishlistRepository;
         this.browsingHistoryRepository = browsingHistoryRepository;
+        this.searchHistoryRepository = searchHistoryRepository;
         this.signupBonus = signupBonus;
     }
 
@@ -115,6 +121,44 @@ public class UserService {
                 .orElseGet(() -> new BrowsingHistoryItem(userId, bookId));
         item.touch();
         browsingHistoryRepository.save(item);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SearchHistoryItemResponse> listSearchHistory(UUID userId) {
+        return searchHistoryRepository.findTop20ByUserIdOrderBySearchedAtDesc(userId).stream()
+                .map(item -> new SearchHistoryItemResponse(item.getQuery(), item.getSearchedAt()))
+                .toList();
+    }
+
+    /** Upsert — re-searching the same term (case-insensitively) bumps it back to the top instead of duplicating it. */
+    @Transactional
+    public void recordSearch(UUID userId, String query) {
+        String trimmed = query == null ? "" : query.trim();
+        if (trimmed.isEmpty()) {
+            return;
+        }
+        SearchHistoryItem item = searchHistoryRepository.findByUserIdAndQueryIgnoreCase(userId, trimmed)
+                .orElseGet(() -> new SearchHistoryItem(userId, trimmed));
+        item.touch();
+        searchHistoryRepository.save(item);
+    }
+
+    /** Internal, best-effort read for catalog-service's recommendation engine — capped at the stored top-20. */
+    @Transactional(readOnly = true)
+    public List<UUID> getRecentBookViewIds(UUID userId, int limit) {
+        return browsingHistoryRepository.findTop20ByUserIdOrderByViewedAtDesc(userId).stream()
+                .map(BrowsingHistoryItem::getBookId)
+                .limit(limit)
+                .toList();
+    }
+
+    /** Internal, best-effort read for catalog-service's recommendation engine — capped at the stored top-20. */
+    @Transactional(readOnly = true)
+    public List<String> getRecentSearchTerms(UUID userId, int limit) {
+        return searchHistoryRepository.findTop20ByUserIdOrderBySearchedAtDesc(userId).stream()
+                .map(SearchHistoryItem::getQuery)
+                .limit(limit)
+                .toList();
     }
 
     /**

@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { ListChecks, LogOut, Truck, UserCircle } from 'lucide-react';
 import { getMe, setDuty } from '@/api/deliveryApi';
+import { extractErrorMessage } from '@/api/client';
 import { useAppDispatch } from '@/redux/hooks';
 import { loggedOut } from '@/redux/slices/authSlice';
+import { useToast } from '@/components/Toast';
 import { ROUTES } from '@/constants/routes';
 import type { AgentMe } from '@/types/delivery';
 import styles from './DeliveryLayout.module.css';
@@ -17,6 +19,7 @@ export interface DeliveryLayoutContext {
 export function DeliveryLayout() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [me, setMe] = useState<AgentMe | null>(null);
   const [togglingDuty, setTogglingDuty] = useState(false);
 
@@ -32,6 +35,10 @@ export function DeliveryLayout() {
     try {
       const updated = await setDuty(!me.onDuty);
       setMe(updated);
+    } catch (error) {
+      // e.g. trying to go off duty with an active delivery/pickup still in progress — the
+      // backend is the source of truth here, this just surfaces its 409 message.
+      showToast(extractErrorMessage(error, 'Could not update duty status'), 'error');
     } finally {
       setTogglingDuty(false);
     }

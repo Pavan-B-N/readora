@@ -1,63 +1,59 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check, X } from 'lucide-react';
 import {
   createAuthor,
   createBook,
   getCategoryTree,
   listAuthors,
   upsertVirtualEdition,
+  checkIsbnExists,
 } from '@/api/catalogApi';
 import type { Author } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { useToast } from '@/components/Toast';
-import { Card, CardHeader } from '@/components/Card';
 import { Input, Textarea } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
-import { PageHeader } from '@/components/PageHeader';
 import { ROUTES } from '@/constants/routes';
 import styles from '../BookFormPage/BookFormPage.module.css';
 
 interface FormState {
   isbn13: string;
   title: string;
-  subtitle: string;
   description: string;
-  categoryId: string | null;
-  authorIds: string[];
+  categoryId: string;
   language: string;
+  authorIds: string[];
   coverImageUrl: string;
   fileUrl: string;
   price: string;
   currency: string;
 }
 
-const EMPTY_FORM: FormState = {
-  isbn13: '',
-  title: '',
-  subtitle: '',
-  description: '',
-  categoryId: null,
-  authorIds: [],
-  language: 'en',
-  coverImageUrl: '',
-  fileUrl: '',
-  price: '',
-  currency: 'INR',
-};
-
 export function VirtualBookFormPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-  const [submitting, setSubmitting] = useState(false);
+  const [form, setForm] = useState<FormState>({
+    isbn13: '',
+    title: '',
+    description: '',
+    categoryId: '',
+    language: 'en',
+    authorIds: [],
+    coverImageUrl: '',
+    fileUrl: '',
+    price: '',
+    currency: 'INR',
+  });
 
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [categories, setCategories] = useState<FlatCategory[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
   const [creatingAuthor, setCreatingAuthor] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [isbnChecking, setIsbnChecking] = useState(false);
 
   useEffect(() => {
     Promise.all([getCategoryTree(), listAuthors()]).then(([tree, auths]) => {
@@ -74,6 +70,17 @@ export function VirtualBookFormPage() {
       return next;
     });
   };
+
+  useEffect(() => {
+    if (form.isbn13.trim().length === 13) {
+      setIsbnChecking(true);
+      checkIsbnExists(form.isbn13.trim())
+        .then(exists => {
+          if (exists) setErrors(e => ({ ...e, isbn13: 'A book with this ISBN already exists' }));
+        })
+        .finally(() => setIsbnChecking(false));
+    }
+  }, [form.isbn13]);
 
   const handleCreateAuthor = async (name: string) => {
     setCreatingAuthor(true);
@@ -100,27 +107,34 @@ export function VirtualBookFormPage() {
     const next: Partial<Record<keyof FormState, string>> = {};
     if (form.isbn13.trim().length !== 13) next.isbn13 = 'ISBN-13 must be exactly 13 characters';
     if (!form.title.trim()) next.title = 'Title is required';
+    if (!form.description.trim()) next.description = 'Description is required';
     if (form.authorIds.length === 0) next.authorIds = 'Select at least one author';
+    if (form.coverImageUrl && !/^https?:\/\//.test(form.coverImageUrl)) next.coverImageUrl = 'Must be a valid URL starting with http:// or https://';
     if (!form.fileUrl.trim()) next.fileUrl = 'File URL is required';
     if (!form.price.trim()) next.price = 'Price is required';
     else if (Number.isNaN(Number(form.price))) next.price = 'Price must be a number';
     if (form.currency.trim().length !== 3) next.currency = 'Use a 3-letter currency code';
+    
+    // Don't override existing async ISBN error if it's there
+    if (errors.isbn13 && form.isbn13.trim().length === 13) {
+        next.isbn13 = errors.isbn13;
+    }
+
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
   const submit = async () => {
-    if (!validate()) return;
+    if (!validate() || errors.isbn13 || isbnChecking) return;
 
     setSubmitting(true);
     try {
       const book = await createBook({
         isbn13: form.isbn13.trim(),
         title: form.title.trim(),
-        subtitle: form.subtitle.trim() || null,
         description: form.description.trim() || null,
         tableOfContents: null,
-        categoryId: form.categoryId,
+        categoryId: form.categoryId || null,
         publisherId: null,
         storeId: null,
         authorIds: form.authorIds,
@@ -157,19 +171,9 @@ export function VirtualBookFormPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader
-        title="New virtual edition"
-        subtitle="Universally available — no physical store or stock involved."
-        actions={
-          <Button variant="secondary" onClick={() => navigate(ROUTES.books)}>
-            <ArrowLeft size={15} />
-            Back to catalog
-          </Button>
-        }
-      />
+      <div className={styles.formContainer} style={{ position: 'relative' }}>
 
-      <Card>
-        <CardHeader title="Book details" />
+        <h3 className={styles.sectionTitle}>Book details</h3>
         <div className={styles.form}>
           <div className={styles.row2}>
             <Input
@@ -191,19 +195,14 @@ export function VirtualBookFormPage() {
             />
           </div>
 
-          <Input
-            label="Subtitle"
-            placeholder="Optional"
-            value={form.subtitle}
-            onChange={(e) => set({ subtitle: e.target.value })}
-          />
-
           <Textarea
             label="Description"
+            required
             hint="Also powers semantic search"
             rows={4}
             placeholder="What is this book about?"
             value={form.description}
+            error={errors.description}
             onChange={(e) => set({ description: e.target.value })}
           />
 
@@ -213,7 +212,7 @@ export function VirtualBookFormPage() {
               placeholder="Search categories…"
               options={categoryOptions}
               value={form.categoryId}
-              onChange={(v) => set({ categoryId: v })}
+              onChange={(v) => set({ categoryId: v || '' })}
             />
             <Input
               label="Language"
@@ -241,13 +240,14 @@ export function VirtualBookFormPage() {
             label="Cover image URL"
             placeholder="https://…"
             value={form.coverImageUrl}
+            error={errors.coverImageUrl}
             onChange={(e) => set({ coverImageUrl: e.target.value })}
           />
         </div>
-      </Card>
+      </div>
 
-      <Card>
-        <CardHeader title="Virtual file & price" />
+      <div className={styles.formContainer}>
+        <h3 className={styles.sectionTitle}>Virtual file & price</h3>
         <div className={styles.form}>
           <Input
             label="File URL"
@@ -279,12 +279,19 @@ export function VirtualBookFormPage() {
 
           <p className={styles.fileMeta}>PDF only for now. File size is detected automatically when saved.</p>
 
-          <Button onClick={submit} disabled={submitting} block>
-            <Check size={15} />
-            {submitting ? 'Creating…' : 'Create virtual edition'}
-          </Button>
+          <div className={styles.stepFooter}>
+            <Button variant="secondary" onClick={() => navigate(ROUTES.books)}>
+              Cancel
+            </Button>
+            <div className={styles.footerRight}>
+              <Button onClick={submit} disabled={submitting || isbnChecking}>
+                <Check size={15} />
+                {submitting ? 'Creating…' : 'Create virtual edition'}
+              </Button>
+            </div>
+          </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

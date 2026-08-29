@@ -87,7 +87,36 @@ export function WalletPage() {
     }
   };
 
-  if (!wallet) return <Spinner />;
+  if (!wallet) {
+    return (
+      <div>
+        <h1>Wallet</h1>
+        <Card className={styles.balanceCard}>
+          <div className="skeletonPulse" style={{ width: 120, height: 16, marginBottom: 12, borderRadius: 4 }} />
+          <div className="skeletonPulse" style={{ width: 200, height: 48, marginBottom: 24, borderRadius: 8 }} />
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div className="skeletonPulse" style={{ width: 100, height: 36, borderRadius: 'var(--radius-pill)' }} />
+            <div className="skeletonPulse" style={{ width: 140, height: 36, borderRadius: 'var(--radius-pill)' }} />
+          </div>
+        </Card>
+        <Card>
+          <div className="skeletonPulse" style={{ width: 200, height: 24, marginBottom: 8, borderRadius: 4 }} />
+          <div className="skeletonPulse" style={{ width: 300, height: 16, marginBottom: 24, borderRadius: 4 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div>
+                  <div className="skeletonPulse" style={{ width: 140, height: 16, marginBottom: 6, borderRadius: 4 }} />
+                  <div className="skeletonPulse" style={{ width: 100, height: 12, borderRadius: 4 }} />
+                </div>
+                <div className="skeletonPulse" style={{ width: 60, height: 20, borderRadius: 4 }} />
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div>

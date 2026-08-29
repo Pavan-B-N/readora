@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Search, BookOpen, Truck, Download, X, ChevronLeft, ChevronRight, ImageOff, ChevronDown } from 'lucide-react';
-import { listBooks, getCategoryTree } from '@/api/catalogApi';
+import { listBooks, getCategoryTree, listAuthors } from '@/api/catalogApi';
 import { getMe } from '@/api/userApi';
-import type { BookSummary } from '@/types/catalog';
+import type { BookSummary, Author } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { useDebounced } from '@/hooks/useDebounced';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
-import { Select } from '@/components/Input';
+import { Combobox } from '@/components/Combobox';
 import { Badge } from '@/components/Badge';
 import { EmptyState } from '@/components/EmptyState';
 import { ROUTES } from '@/constants/routes';
@@ -19,11 +19,13 @@ const PAGE_SIZE = 15;
 interface Filters {
   q: string;
   categoryId: string;
+  authorId: string;
 }
 
 const EMPTY_FILTERS: Filters = {
   q: '',
   categoryId: '',
+  authorId: '',
 };
 
 export function BooksListPage() {
@@ -68,8 +70,13 @@ export function BooksListPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const [authors, setAuthors] = useState<Author[]>([]);
+
   useEffect(() => {
-    getCategoryTree().then((tree) => setCategories(flattenCategoryTree(tree)));
+    Promise.all([getCategoryTree(), listAuthors()]).then(([tree, auths]) => {
+      setCategories(flattenCategoryTree(tree));
+      setAuthors(auths);
+    });
   }, []);
 
   useEffect(() => {
@@ -113,6 +120,7 @@ export function BooksListPage() {
       size: PAGE_SIZE,
       q: debouncedFilters.q || undefined,
       categoryId: debouncedFilters.categoryId || undefined,
+      authorId: debouncedFilters.authorId || undefined,
       virtualOnly: edition === 'virtual',
       storeId: edition === 'physical' ? (adminStoreId ?? undefined) : undefined,
     })
@@ -142,8 +150,14 @@ export function BooksListPage() {
         label: categories.find((c) => c.id === filters.categoryId)?.label.replace(/^—\s*/, '') ?? 'Category',
       });
     }
+    if (filters.authorId) {
+      chips.push({
+        key: 'authorId',
+        label: authors.find((a) => a.id === filters.authorId)?.name ?? 'Author',
+      });
+    }
     return chips;
-  }, [filters, categories]);
+  }, [filters, categories, authors]);
 
   return (
     <div>
@@ -182,14 +196,27 @@ export function BooksListPage() {
             />
           </div>
 
-          <Select value={filters.categoryId} onChange={(e) => set({ categoryId: e.target.value })}>
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </Select>
+          <div style={{ width: 200 }}>
+            <Combobox
+              placeholder="Category…"
+              options={categories.map((c) => ({
+                value: c.id,
+                label: c.label.replace(/^(—\s*)+/, ''),
+                meta: c.depth > 0 ? 'sub' : undefined,
+              }))}
+              value={filters.categoryId || null}
+              onChange={(v) => set({ categoryId: v || '' })}
+            />
+          </div>
+
+          <div style={{ width: 200 }}>
+            <Combobox
+              placeholder="Author…"
+              options={authors.map((a) => ({ value: a.id, label: a.name }))}
+              value={filters.authorId || null}
+              onChange={(v) => set({ authorId: v || '' })}
+            />
+          </div>
 
           <div className={styles.dropdownWrap} ref={addMenuRef}>
             <Button onClick={() => setAddMenuOpen((prev) => !prev)}>

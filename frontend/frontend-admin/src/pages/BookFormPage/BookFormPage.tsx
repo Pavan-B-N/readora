@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, Info } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Info, X } from 'lucide-react';
 import { createAuthor, createBook, getCategoryTree, listAuthors, listPublishers, listStores } from '@/api/catalogApi';
 import type { Author, Publisher, Store } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
@@ -12,7 +12,6 @@ import { Input, Textarea } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
 import { Stepper, type Step } from '@/components/Stepper';
-import { PageHeader } from '@/components/PageHeader';
 import { TocBuilder, topicsToJson } from '@/components/TocBuilder';
 import { ROUTES } from '@/constants/routes';
 import styles from './BookFormPage.module.css';
@@ -26,7 +25,6 @@ const STEPS: Step[] = [
 interface FormState {
   isbn13: string;
   title: string;
-  subtitle: string;
   description: string;
   categoryId: string | null;
   publisherId: string | null;
@@ -43,7 +41,6 @@ interface FormState {
 const EMPTY_FORM: FormState = {
   isbn13: '',
   title: '',
-  subtitle: '',
   description: '',
   categoryId: null,
   publisherId: null,
@@ -141,16 +138,34 @@ export function BookFormPage() {
   const publisherOptions = useMemo(() => publishers.map((p) => ({ value: p.id, label: p.name })), [publishers]);
   const authorOptions = useMemo(() => authors.map((a) => ({ value: a.id, label: a.name })), [authors]);
 
+  const [isbnChecking, setIsbnChecking] = useState(false);
+
+  useEffect(() => {
+    if (form.isbn13.trim().length === 13) {
+      setIsbnChecking(true);
+      checkIsbnExists(form.isbn13.trim())
+        .then(exists => {
+          if (exists) setErrors(e => ({ ...e, isbn13: 'A book with this ISBN already exists' }));
+        })
+        .finally(() => setIsbnChecking(false));
+    }
+  }, [form.isbn13]);
+
   const validateStep = (index: number): boolean => {
-    const next: Partial<Record<keyof FormState, string>> = {};
+    const next: Partial<Record<keyof FormState | 'tableOfContents', string>> = {};
 
     if (index === 0) {
       if (form.isbn13.trim().length !== 13) next.isbn13 = 'ISBN-13 must be exactly 13 characters';
       if (!form.title.trim()) next.title = 'Title is required';
+      if (!form.description.trim()) next.description = 'Description is required';
       if (!form.listPrice.trim()) next.listPrice = 'Price is required';
       else if (Number.isNaN(Number(form.listPrice))) next.listPrice = 'Price must be a number';
       if (form.currency.trim().length !== 3) next.currency = 'Use a 3-letter currency code';
       if (!form.publishedOn) next.publishedOn = 'Published date is required';
+      
+      if (errors.isbn13 && form.isbn13.trim().length === 13) {
+        next.isbn13 = errors.isbn13;
+      }
     }
 
     if (index === 1) {
@@ -162,14 +177,17 @@ export function BookFormPage() {
       if (!form.categoryId) next.categoryId = 'Select a category';
       if (!form.publisherId) next.publisherId = 'Select a publisher';
       if (form.authorIds.length === 0) next.authorIds = 'Select at least one author';
-      if (!form.coverImageUrl.trim()) next.coverImageUrl = 'Cover image URL is required';
+      if (form.coverImageUrl && !/^https?:\/\//.test(form.coverImageUrl)) next.coverImageUrl = 'Must be a valid URL starting with http:// or https://';
+      else if (!form.coverImageUrl.trim()) next.coverImageUrl = 'Cover image URL is required';
     }
 
     if (index === 2) {
-      if (form.pageCount && !/^\d+$/.test(form.pageCount)) next.pageCount = 'Must be a whole number';
+      if (!form.pageCount.trim()) next.pageCount = 'Page count is required';
+      else if (!/^\d+$/.test(form.pageCount)) next.pageCount = 'Must be a whole number';
+      if (toc.length === 0) (next as any).tableOfContents = 'Table of contents is required';
     }
 
-    setErrors(next);
+    setErrors(next as any);
     return Object.keys(next).length === 0;
   };
 
@@ -193,7 +211,6 @@ export function BookFormPage() {
       const result = await createBook({
         isbn13: form.isbn13.trim(),
         title: form.title.trim(),
-        subtitle: form.subtitle.trim() || null,
         description: form.description.trim() || null,
         tableOfContents: topicsToJson(toc),
         categoryId: form.categoryId,
@@ -228,18 +245,8 @@ export function BookFormPage() {
 
   return (
     <div className={styles.page}>
-      <PageHeader
-        title="New physical book"
-        subtitle="Add a physical title to the catalogue in three steps."
-        actions={
-          <Button variant="secondary" onClick={() => navigate(ROUTES.books)}>
-            <ArrowLeft size={15} />
-            Back to catalog
-          </Button>
-        }
-      />
+      <div className={styles.formContainer}>
 
-      <Card>
         <Stepper steps={STEPS} current={step} furthestReached={furthest} onStepClick={setStep} />
 
         <div className={styles.stepBody}>
@@ -277,10 +284,11 @@ export function BookFormPage() {
 
               <Textarea
                 label="Description"
+                required
                 hint="Also powers semantic search"
                 rows={4}
-                placeholder="What is this book about?"
                 value={form.description}
+                error={errors.description}
                 onChange={(e) => set({ description: e.target.value })}
               />
 
@@ -401,6 +409,7 @@ export function BookFormPage() {
                 />
                 <Input
                   label="Page count"
+                  required
                   placeholder="320"
                   value={form.pageCount}
                   error={errors.pageCount}
@@ -418,13 +427,18 @@ export function BookFormPage() {
                     marginBottom: 'var(--space-2)',
                   }}
                 >
-                  Table of contents
+                  Table of contents <span style={{ color: 'var(--color-danger)' }}>*</span>
                   <span style={{ color: 'var(--color-text-subtle)', fontWeight: 400 }}>
                     {' '}
-                    — optional, improves search quality for non-fiction
+                    — improves search quality for non-fiction
                   </span>
                 </span>
                 <TocBuilder value={toc} onChange={setToc} />
+                {(errors as any).tableOfContents && (
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', marginTop: '4px' }}>
+                    {(errors as any).tableOfContents}
+                  </div>
+                )}
               </div>
 
               <div className={styles.divider} />
@@ -458,10 +472,14 @@ export function BookFormPage() {
         </div>
 
         <div className={styles.stepFooter}>
-          {step > 0 && (
+          {step > 0 ? (
             <Button variant="secondary" onClick={() => setStep(step - 1)}>
               <ArrowLeft size={15} />
               Back
+            </Button>
+          ) : (
+            <Button variant="secondary" onClick={() => navigate(ROUTES.books)}>
+              Cancel
             </Button>
           )}
           <div className={styles.footerRight}>
@@ -478,7 +496,7 @@ export function BookFormPage() {
             )}
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

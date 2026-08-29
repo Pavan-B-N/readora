@@ -11,6 +11,23 @@
   color: var(--color-text);
 }
 
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.skeletonPulse {
+  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: var(--color-surface-hover);
+  border-radius: var(--radius-md);
+}
+
+.skeletonBreadcrumb {
+  width: 150px;
+  height: 16px;
+  margin-bottom: var(--space-5);
+}
+
 .layout {
   display: grid;
   grid-template-columns: 300px 1fr;

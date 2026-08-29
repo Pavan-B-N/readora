@@ -80,6 +80,40 @@ public class AdminOrderService {
         return orders.map(order -> toSummary(order, refundStatuses.get(order.getId())));
     }
 
+    /**
+     * Pending = orders needing admin attention: RETURN_REQUESTED (must decide approve/reject)
+     * and CANCELLED (can optionally record a note). Excludes any row that already has adminReviewedAt set.
+     */
+    @Transactional(readOnly = true)
+    public Page<AdminOrderSummaryResponse> listPendingReturns(Pageable pageable) {
+        UUID storeId = resolveCallerStoreId();
+        List<OrderStatus> pendingStatuses = List.of(OrderStatus.CANCELLED, OrderStatus.RETURN_REQUESTED);
+        Page<Order> orders = orderRepository.findAllByStoreIdAndStatusInAndAdminReviewedAtIsNullOrderByPlacedAtDesc(
+                storeId, pendingStatuses, pageable);
+
+        List<UUID> orderIds = orders.getContent().stream().map(Order::getId).toList();
+        Map<UUID, RefundStatus> refundStatuses = paymentClient.getRefundStatuses(orderIds);
+
+        return orders.map(order -> toSummary(order, refundStatuses.get(order.getId())));
+    }
+
+    /**
+     * Reviewed = all return/cancellation statuses where an admin has already recorded a note/decision.
+     * Includes terminal outcomes (RETURNED, RETURN_REJECTED) and in-progress returns (RETURN_APPROVED,
+     * RETURN_ASSIGNED, etc.) that were acknowledged by an admin before the pickup flow began.
+     */
+    @Transactional(readOnly = true)
+    public Page<AdminOrderSummaryResponse> listReviewedReturns(Pageable pageable) {
+        UUID storeId = resolveCallerStoreId();
+        Page<Order> orders = orderRepository.findAllByStoreIdAndStatusInAndAdminReviewedAtIsNotNullOrderByPlacedAtDesc(
+                storeId, RETURN_STATUSES, pageable);
+
+        List<UUID> orderIds = orders.getContent().stream().map(Order::getId).toList();
+        Map<UUID, RefundStatus> refundStatuses = paymentClient.getRefundStatuses(orderIds);
+
+        return orders.map(order -> toSummary(order, refundStatuses.get(order.getId())));
+    }
+
     /** One return/cancellation case's full detail — backs the dedicated review page (not the list row). */
     @Transactional(readOnly = true)
     public AdminOrderSummaryResponse getReturn(UUID orderId) {

@@ -5,8 +5,10 @@ import com.readora.user.dto.BrowsingHistoryItemResponse;
 import com.readora.user.dto.CreateAddressRequest;
 import com.readora.user.dto.CreateAddressResponse;
 import com.readora.user.dto.MeResponse;
+import com.readora.user.dto.RecordSearchRequest;
 import com.readora.user.dto.RedeemCouponRequest;
 import com.readora.user.dto.RedeemCouponResponse;
+import com.readora.user.dto.SearchHistoryItemResponse;
 import com.readora.user.dto.TopUpRequest;
 import com.readora.user.dto.UpdateProfileRequest;
 import com.readora.user.dto.WalletBalanceResponse;
@@ -201,6 +203,33 @@ public class UserController {
     @PutMapping("/history/{bookId}")
     public ResponseEntity<Void> recordBookView(@PathVariable UUID bookId) {
         userService.recordBookView(CurrentUserContext.require(), bookId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "List recent searches",
+            description = "The caller's last 20 search terms, most-recent first.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Search history returned")
+    })
+    @GetMapping("/search-history")
+    public ResponseEntity<List<SearchHistoryItemResponse>> listSearchHistory() {
+        return ResponseEntity.ok(userService.listSearchHistory(CurrentUserContext.require()));
+    }
+
+    @Operation(
+            summary = "Record a search",
+            description = "Idempotent upsert — searching a term already in history just bumps it back to the top rather than duplicating it.",
+            tags = {"User"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Search recorded")
+    })
+    @PostMapping("/search-history")
+    public ResponseEntity<Void> recordSearch(@Valid @RequestBody RecordSearchRequest request) {
+        userService.recordSearch(CurrentUserContext.require(), request.query());
         return ResponseEntity.noContent().build();
     }
 

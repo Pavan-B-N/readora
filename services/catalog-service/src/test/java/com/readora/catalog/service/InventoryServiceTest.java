@@ -43,7 +43,7 @@ class InventoryServiceTest {
     }
 
     private Book activeBook(UUID id, String title, String isbn, BigDecimal price) {
-        Book book = new Book(isbn, title, null, null, null, null, null, "en", null, null, price, "INR", null, null);
+        Book book = new Book(isbn, title, null, null, null, null, "en", null, null, price, "INR", null, null);
         ReflectionTestUtils.setField(book, "id", id);
         return book;
     }
@@ -89,7 +89,7 @@ class InventoryServiceTest {
     @Test
     void reserve_bookInactive_throwsBookNotFound() {
         UUID bookId = UUID.randomUUID();
-        Book inactiveBook = new Book("9780000000000", "Discontinued Title", null, null, null, null, null, "en", null, null, BigDecimal.TEN, "INR", null, null);
+        Book inactiveBook = new Book("9780000000000", "Discontinued Title", null, null, null, null, "en", null, null, BigDecimal.TEN, "INR", null, null);
         inactiveBook.deactivate();
 
         when(bookRepository.findById(bookId)).thenReturn(Optional.of(inactiveBook));

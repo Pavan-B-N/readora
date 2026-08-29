@@ -35,6 +35,8 @@
   gap: var(--space-2);
   font-weight: 700;
   font-size: var(--font-size-base);
+  text-decoration: none;
+  color: inherit;
 }
 
 .mobileMenuBtn {
@@ -101,11 +103,19 @@
   }
 }
 
+.brandContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .brand {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: 0 var(--space-2);
+  text-decoration: none;
+  color: inherit;
 }
 
 .brandMark {
@@ -204,8 +214,14 @@
   color: var(--color-info);
 }
 
-.footer {
+.bottomSection {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.footer {
   border-top: 1px solid var(--color-border);
   padding-top: var(--space-4);
   display: flex;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, Clock, Package, X, ChevronLeft, ChevronRight, SlidersHorizontal, Zap } from 'lucide-react';
 import {
@@ -18,7 +18,9 @@ import { useAppSelector } from '@/redux/hooks';
 import { BookCard } from '@/components/BookCard';
 import { Button } from '@/components/Button';
 import { EmptyState } from '@/components/EmptyState';
+import { Spinner } from '@/components/Spinner';
 import { statusVariant, displayStatus } from '@/utils/orderStatus';
+import { ROUTES } from '@/constants/routes';
 import styles from './HomePage.module.css';
 
 const PAGE_SIZE = 18;
@@ -66,6 +68,7 @@ export function HomePage() {
   const [loading, setLoading] = useState(true);
 
   const [categories, setCategories] = useState<FlatCategory[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoryId, setCategoryId] = useState('');
   const [recommendedIds, setRecommendedIds] = useState<Set<string>>(new Set());
   const [orders, setOrders] = useState<PurchasedBook[]>([]);
@@ -81,7 +84,10 @@ export function HomePage() {
   const debouncedCategoryId = useDebounced(categoryId, 150);
 
   useEffect(() => {
-    getCategoryTree().then((tree) => setCategories(flatten(tree)));
+    getCategoryTree().then((tree) => {
+      setCategories(flatten(tree));
+      setCategoriesLoading(false);
+    });
     listAuthors().then(setAuthors);
   }, []);
 
@@ -182,41 +188,56 @@ export function HomePage() {
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <span className={styles.sidebarLabel}>Categories</span>
-        <button
-          type="button"
-          className={[styles.categoryButton, !categoryId && styles.categoryActive].filter(Boolean).join(' ')}
-          onClick={() => setCategoryId('')}
-        >
-          All books
-        </button>
-        {categories.map((c) => (
-          <button
-            type="button"
-            key={c.id}
-            className={[
-              styles.categoryButton,
-              c.depth > 0 && styles.categoryChild,
-              categoryId === c.id && styles.categoryActive,
-            ]
-              .filter(Boolean)
-              .join(' ')}
-            onClick={() => setCategoryId(c.id === categoryId ? '' : c.id)}
-          >
-            {c.name}
-          </button>
-        ))}
+        {categoriesLoading ? (
+          <div style={{ padding: 'var(--space-2)' }}>
+            <Spinner />
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              className={[styles.categoryButton, !categoryId && styles.categoryActive].filter(Boolean).join(' ')}
+              onClick={() => setCategoryId('')}
+            >
+              All books
+            </button>
+            {categories.map((c) => (
+              <button
+                type="button"
+                key={c.id}
+                className={[
+                  styles.categoryButton,
+                  c.depth > 0 && styles.categoryChild,
+                  categoryId === c.id && styles.categoryActive,
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() => setCategoryId(c.id === categoryId ? '' : c.id)}
+              >
+                {c.name}
+              </button>
+            ))}
+          </>
+        )}
       </aside>
 
       <div className={styles.content}>
         {!query && !categoryId && orders.length > 0 && (
           <div className={styles.rail}>
-            <div className={styles.railHeading}>
-              <Package size={15} />
-              <h2 className={styles.railTitle}>Your orders</h2>
+            <div className={styles.railHeaderRow}>
+              <div className={styles.railHeading}>
+                <Package size={15} />
+                <h2 className={styles.railTitle}>Your orders</h2>
+              </div>
+              {orders.length > 5 && (
+                <Link to={ROUTES.orders} className={styles.railAction}>
+                  View all <ChevronRight size={14} />
+                </Link>
+              )}
             </div>
             <div className={styles.railRowWrapper}>
               <div className={styles.railRow}>
-                {orders.map((item, i) => (
+                {orders.slice(0, 5).map((item, i) => (
                   <div className={styles.railCard} key={`${item.book.id}-${item.placedAt}-${i}`}>
                     <BookCard
                       book={item.book}
@@ -237,9 +258,11 @@ export function HomePage() {
 
         {!query && !categoryId && recentlyViewed.length > 0 && (
           <div className={styles.rail}>
-            <div className={styles.railHeading}>
-              <Clock size={15} />
-              <h2 className={styles.railTitle}>Recently viewed</h2>
+            <div className={styles.railHeaderRow}>
+              <div className={styles.railHeading}>
+                <Clock size={15} />
+                <h2 className={styles.railTitle}>Recently viewed</h2>
+              </div>
             </div>
             <div className={styles.railRowWrapper}>
               <div className={styles.railRow}>
@@ -253,11 +276,13 @@ export function HomePage() {
           </div>
         )}
 
-        <div className={styles.railHeading}>
-          <BookOpen size={15} />
-          <h2 className={styles.railTitle}>
-            {query ? `Results for “${query}”` : activeCategoryName ? activeCategoryName : 'Browse books'}
-          </h2>
+        <div className={styles.railHeaderRow}>
+          <div className={styles.railHeading}>
+            <BookOpen size={15} />
+            <h2 className={styles.railTitle}>
+              {query ? `Results for “${query}”` : activeCategoryName ? activeCategoryName : 'Browse books'}
+            </h2>
+          </div>
         </div>
 
         <div className={styles.resultsBar}>
@@ -362,7 +387,7 @@ export function HomePage() {
             </div>
           </div>
           <span className={styles.count}>
-            {loading ? 'Loading…' : `${totalElements} book${totalElements === 1 ? '' : 's'}`}
+            {loading ? null : `${totalElements} book${totalElements === 1 ? '' : 's'}`}
           </span>
         </div>
 

@@ -13,7 +13,7 @@ public record AdminBookDetailResponse(
         UUID id,
         String isbn13,
         String title,
-        String subtitle,
+
         String description,
         String tableOfContents,
         UUID categoryId,

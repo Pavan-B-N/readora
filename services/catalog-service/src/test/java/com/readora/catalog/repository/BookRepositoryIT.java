@@ -29,7 +29,7 @@ class BookRepositoryIT {
     private BookRepository bookRepository;
 
     private Book newBook(String isbn13, String title) {
-        return new Book(isbn13, title, null, null, null, null, null, "en", null, null, new BigDecimal("299.00"), "INR", null, null);
+        return new Book(isbn13, title, null, null, null, null, "en", null, null, new BigDecimal("299.00"), "INR", null, null);
     }
 
     @Test

@@ -95,7 +95,35 @@ export function BookDetailPage() {
     };
   }, [book]);
 
-  if (!book) return <Spinner />;
+  if (!book) {
+    return (
+      <div>
+        <div className={`${styles.skeletonPulse} ${styles.skeletonBreadcrumb}`} />
+        <div className={styles.layout}>
+          <div className={styles.coverColumn}>
+            <div className={`${styles.cover} ${styles.skeletonPulse}`} />
+          </div>
+          <div>
+            <div className={styles.skeletonPulse} style={{ height: 40, width: '70%', marginBottom: 12, borderRadius: 8 }} />
+            <div className={styles.skeletonPulse} style={{ height: 24, width: '40%', marginBottom: 24 }} />
+            
+            <div style={{ display: 'flex', gap: 8, marginBottom: 32 }}>
+              <div className={styles.skeletonPulse} style={{ height: 24, width: 80, borderRadius: 12 }} />
+              <div className={styles.skeletonPulse} style={{ height: 24, width: 80, borderRadius: 12 }} />
+              <div className={styles.skeletonPulse} style={{ height: 24, width: 120, borderRadius: 12 }} />
+            </div>
+
+            <div className={styles.skeletonPulse} style={{ height: 200, width: '100%', borderRadius: 12, marginBottom: 40 }} />
+            
+            <div style={{ display: 'flex', gap: 16 }}>
+              <div className={styles.skeletonPulse} style={{ height: 120, width: 250, borderRadius: 12 }} />
+              <div className={styles.skeletonPulse} style={{ height: 120, width: 250, borderRadius: 12 }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const onCopyLink = async () => {
     try {

@@ -75,3 +75,8 @@ export interface BrowsingHistoryItem {
   bookId: string;
   viewedAt: string;
 }
+
+export interface SearchHistoryItem {
+  query: string;
+  searchedAt: string;
+}

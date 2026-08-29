@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.catalog.client.CommerceClient;
+import com.readora.catalog.client.UserServiceClient;
 import com.readora.catalog.dto.AuthorResponse;
 import com.readora.catalog.dto.BookDetailResponse;
 import com.readora.catalog.dto.BookSuggestionResponse;
@@ -59,6 +60,7 @@ public class CatalogService {
     private final VirtualEditionRepository virtualEditionRepository;
     private final ReviewRepository reviewRepository;
     private final CommerceClient commerceClient;
+    private final UserServiceClient userServiceClient;
     private final ObjectMapper objectMapper;
 
     public CatalogService(
@@ -72,6 +74,7 @@ public class CatalogService {
             VirtualEditionRepository virtualEditionRepository,
             ReviewRepository reviewRepository,
             CommerceClient commerceClient,
+            UserServiceClient userServiceClient,
             ObjectMapper objectMapper
     ) {
         this.bookRepository = bookRepository;
@@ -84,6 +87,7 @@ public class CatalogService {
         this.virtualEditionRepository = virtualEditionRepository;
         this.reviewRepository = reviewRepository;
         this.commerceClient = commerceClient;
+        this.userServiceClient = userServiceClient;
         this.objectMapper = objectMapper;
     }
 
@@ -246,7 +250,7 @@ public class CatalogService {
                 : wrongStore ? "NOT_AVAILABLE_AT_STORE" : (available > 0 ? "IN_STOCK" : "OUT_OF_STOCK");
 
         return new BookDetailResponse(
-                book.getId(), book.getIsbn13(), book.getTitle(), book.getSubtitle(), book.getDescription(),
+                book.getId(), book.getIsbn13(), book.getTitle(), book.getDescription(),
                 authors, category, publisher, store, book.getPageCount(), book.getLanguage(),
                 book.getPublishedOn(), book.getListPrice(), book.getCurrency(), images,
                 new BookDetailResponse.Availability(availabilityStatus, wrongStore ? 0 : available),
@@ -265,6 +269,12 @@ public class CatalogService {
                 .map(RelatedBook::getRelatedBook)
                 .map(b -> new RelatedBookResponse(b.getId(), b.getTitle(), b.getListPrice(), b.getCoverImageUrl()))
                 .toList();
+    }
+
+    /** Lets the admin book form validate ISBN uniqueness live, before submitting. */
+    @Transactional(readOnly = true)
+    public boolean existsByIsbn13(String isbn13) {
+        return bookRepository.existsByIsbn13(isbn13);
     }
 
     /** Flat list — categories are deliberately 1D, no nesting. */
@@ -289,36 +299,64 @@ public class CatalogService {
                 .toList();
     }
 
+    private static final int PURCHASE_SIGNAL_WEIGHT = 3;
+    private static final int VIEW_SIGNAL_WEIGHT = 2;
+    private static final int SEARCH_SIGNAL_WEIGHT = 1;
+
     /**
-     * Recommends active books from the same categories as the caller's past purchases, excluding
-     * titles they already own. Best-effort: if commerce-service is unreachable or the caller has
-     * no purchase history, this returns an empty list rather than an error.
+     * Recommends active books from categories weighted by three signals — past purchases (heaviest),
+     * recently viewed books, and search terms matched against category names (lightest) — excluding
+     * titles the caller already owns or has viewed. Best-effort: any signal that can't be fetched
+     * (commerce-service or user-service unreachable) is simply dropped rather than failing the whole
+     * call, and a caller with no signal at all gets an empty list rather than an arbitrary guess.
      */
     @Transactional(readOnly = true)
     public List<BookSummaryResponse> getRecommendations(UUID userId, UUID storeId) {
         List<UUID> purchasedBookIds = commerceClient.getPurchasedBookIds(userId);
-        if (purchasedBookIds.isEmpty()) {
+        List<UUID> viewedBookIds = userServiceClient.getRecentBookViewIds(userId, 20);
+        List<String> searchTerms = userServiceClient.getRecentSearchTerms(userId, 20);
+
+        Set<UUID> excludeBookIds = new java.util.HashSet<>(purchasedBookIds);
+        excludeBookIds.addAll(viewedBookIds);
+
+        Map<UUID, Integer> categoryScores = new java.util.HashMap<>();
+        bookRepository.findAllById(purchasedBookIds)
+                .forEach(book -> addCategoryScore(categoryScores, book.getCategory(), PURCHASE_SIGNAL_WEIGHT));
+        bookRepository.findAllById(viewedBookIds)
+                .forEach(book -> addCategoryScore(categoryScores, book.getCategory(), VIEW_SIGNAL_WEIGHT));
+
+        if (!searchTerms.isEmpty()) {
+            List<Category> allCategories = categoryRepository.findAll();
+            for (String term : searchTerms) {
+                String lowerTerm = term.toLowerCase();
+                allCategories.stream()
+                        .filter(c -> c.getName() != null && c.getName().toLowerCase().contains(lowerTerm))
+                        .forEach(c -> addCategoryScore(categoryScores, c, SEARCH_SIGNAL_WEIGHT));
+            }
+        }
+
+        if (categoryScores.isEmpty()) {
             return List.of();
         }
 
-        Set<UUID> categoryIds = bookRepository.findAllById(purchasedBookIds).stream()
-                .map(Book::getCategory)
-                .filter(java.util.Objects::nonNull)
-                .map(Category::getId)
-                .collect(Collectors.toSet());
-        if (categoryIds.isEmpty()) {
-            return List.of();
-        }
+        List<Book> candidates = bookRepository
+                .findAll(BookSpecifications.forRecommendations(categoryScores.keySet(), excludeBookIds, storeId), PageRequest.of(0, 30))
+                .getContent();
 
-        return bookRepository
-                .findAll(
-                        BookSpecifications.forRecommendations(categoryIds, Set.copyOf(purchasedBookIds), storeId),
-                        PageRequest.of(0, 10)
-                )
-                .getContent()
-                .stream()
+        return candidates.stream()
+                .sorted(java.util.Comparator.comparingInt(
+                        (Book book) -> book.getCategory() == null ? 0 : categoryScores.getOrDefault(book.getCategory().getId(), 0)
+                ).reversed())
+                .limit(10)
                 .map(book -> book.getStore() == null ? toVirtualSummary(book) : toSummary(book))
                 .toList();
+    }
+
+    private void addCategoryScore(Map<UUID, Integer> scores, Category category, int weight) {
+        if (category == null) {
+            return;
+        }
+        scores.merge(category.getId(), weight, Integer::sum);
     }
 
     /**

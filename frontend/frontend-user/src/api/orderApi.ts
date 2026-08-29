@@ -33,7 +33,7 @@ export async function cancelOrder(orderId: string, reason?: string): Promise<Can
   return response.data;
 }
 
-export async function returnOrder(orderId: string, reason?: string): Promise<ReturnOrderResponse> {
+export async function returnOrder(orderId: string, reason: string): Promise<ReturnOrderResponse> {
   const response = await apiClient.post<ReturnOrderResponse>(`/api/v1/orders/${orderId}/return`, { reason });
   return response.data;
 }

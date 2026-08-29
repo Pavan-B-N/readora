@@ -13,12 +13,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
 import java.util.UUID;
 
 @Component
 public class OrderEventsListener {
 
     private static final Logger log = LoggerFactory.getLogger(OrderEventsListener.class);
+
+    /**
+     * Payout scales with order value and item count instead of a flat rate — base fee, plus up to
+     * a capped bonus for higher-value orders (proxy for distance/risk, since this build has no
+     * geo-distance data), plus a small per-extra-item handling bonus. A pickup pays a bit less
+     * than a full delivery since it's the simpler leg.
+     */
+    private static final BigDecimal DELIVERY_BASE_PAYOUT = new BigDecimal("25.00");
+    private static final BigDecimal PICKUP_BASE_PAYOUT = new BigDecimal("20.00");
+    private static final BigDecimal VALUE_BONUS_RATE = new BigDecimal("0.05");
+    private static final BigDecimal VALUE_BONUS_CAP = new BigDecimal("40.00");
+    private static final BigDecimal ITEM_BONUS_PER_EXTRA = new BigDecimal("3.00");
+    private static final BigDecimal ITEM_BONUS_CAP = new BigDecimal("15.00");
 
     private final DeliveryAssignmentRepository assignmentRepository;
     private final ReturnPickupAssignmentRepository returnPickupRepository;
@@ -66,7 +82,8 @@ public class OrderEventsListener {
         DeliveryDetailSnapshot snapshot = resolveSnapshot(event.orderId());
         assignmentRepository.save(new DeliveryAssignment(
                 event.orderId(), event.orderNumber(), event.storeId(), snapshot.destinationCity(),
-                snapshot.recipientName(), snapshot.recipientPhone(), snapshot.itemsJson()
+                snapshot.recipientName(), snapshot.recipientPhone(), snapshot.itemsJson(),
+                computePayout(DELIVERY_BASE_PAYOUT, snapshot.grandTotal(), snapshot.itemCount())
         ));
     }
 
@@ -82,12 +99,22 @@ public class OrderEventsListener {
         DeliveryDetailSnapshot snapshot = resolveSnapshot(event.orderId());
         returnPickupRepository.save(new ReturnPickupAssignment(
                 event.orderId(), event.orderNumber(), event.storeId(), snapshot.destinationCity(),
-                snapshot.recipientName(), snapshot.recipientPhone(), snapshot.itemsJson()
+                snapshot.recipientName(), snapshot.recipientPhone(), snapshot.itemsJson(),
+                computePayout(PICKUP_BASE_PAYOUT, snapshot.grandTotal(), snapshot.itemCount())
         ));
     }
 
-    private record DeliveryDetailSnapshot(String destinationCity, String recipientName, String recipientPhone, String itemsJson) {
-        static final DeliveryDetailSnapshot EMPTY = new DeliveryDetailSnapshot(null, null, null, null);
+    private record DeliveryDetailSnapshot(
+            String destinationCity, String recipientName, String recipientPhone, String itemsJson,
+            BigDecimal grandTotal, int itemCount
+    ) {
+        static final DeliveryDetailSnapshot EMPTY = new DeliveryDetailSnapshot(null, null, null, null, null, 0);
+    }
+
+    private BigDecimal computePayout(BigDecimal basePayout, BigDecimal grandTotal, int itemCount) {
+        BigDecimal valueBonus = grandTotal == null ? BigDecimal.ZERO : grandTotal.multiply(VALUE_BONUS_RATE).min(VALUE_BONUS_CAP);
+        BigDecimal itemBonus = ITEM_BONUS_PER_EXTRA.multiply(BigDecimal.valueOf(Math.max(0, itemCount - 1))).min(ITEM_BONUS_CAP);
+        return basePayout.add(valueBonus).add(itemBonus).setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -103,10 +130,10 @@ public class OrderEventsListener {
             String recipientPhone = detail.shippingAddress() != null ? detail.shippingAddress().phone() : null;
             // Field names match OrderDeliveryDetailResponse.Item exactly, so this round-trips
             // cleanly through ItemSnapshot on the read side with no manual mapping.
-            String itemsJson = detail.items() == null || detail.items().isEmpty()
-                    ? null
-                    : objectMapper.writeValueAsString(detail.items());
-            return new DeliveryDetailSnapshot(city, recipientName, recipientPhone, itemsJson);
+            List<OrderDeliveryDetailResponse.Item> items = detail.items();
+            String itemsJson = items == null || items.isEmpty() ? null : objectMapper.writeValueAsString(items);
+            int itemCount = items == null ? 0 : items.stream().mapToInt(OrderDeliveryDetailResponse.Item::qty).sum();
+            return new DeliveryDetailSnapshot(city, recipientName, recipientPhone, itemsJson, detail.grandTotal(), itemCount);
         } catch (Exception e) {
             log.warn("Could not resolve delivery detail snapshot for order {}", orderId, e);
             return DeliveryDetailSnapshot.EMPTY;

@@ -4,6 +4,7 @@ import type {
   BrowsingHistoryItem,
   CreateAddressRequest,
   MeResponse,
+  SearchHistoryItem,
   UpdateProfileRequest,
   WalletResponse,
   WishlistItem,
@@ -75,4 +76,13 @@ export async function getBrowsingHistory(): Promise<BrowsingHistoryItem[]> {
 
 export async function recordBookView(bookId: string): Promise<void> {
   await apiClient.put(`/api/v1/users/me/history/${bookId}`);
+}
+
+export async function getSearchHistory(): Promise<SearchHistoryItem[]> {
+  const response = await apiClient.get<SearchHistoryItem[]>('/api/v1/users/me/search-history');
+  return response.data;
+}
+
+export async function recordSearch(query: string): Promise<void> {
+  await apiClient.post('/api/v1/users/me/search-history', { query });
 }

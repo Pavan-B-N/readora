@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ShoppingCart, User, Package, Wallet, LogOut, BookOpen, Heart, Library } from 'lucide-react';
@@ -22,6 +22,18 @@ export function SiteLayout() {
   const { accessToken } = useAppSelector((state) => state.auth);
   const itemCount = useAppSelector((state) => state.cart.itemCount);
   const wishlistCount = useAppSelector((state) => Object.keys(state.wishlist.ids).length);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
 
   // AssistantPage owns switching between conversations itself (via the conversationId route
   // param, without remounting — see its loadConversation guard). Keying the transition on the
@@ -96,27 +108,50 @@ export function SiteLayout() {
                     </span>
                     <span className={styles.navLabel}>Wishlist</span>
                   </NavLink>
-                  <NavLink to={ROUTES.orders} className={navClass} aria-label="Orders">
-                    <Package size={18} />
-                    <span className={styles.navLabel}>Orders</span>
-                  </NavLink>
-                  <NavLink to={ROUTES.library} className={navClass} aria-label="Library">
-                    <Library size={18} />
-                    <span className={styles.navLabel}>Library</span>
-                  </NavLink>
-                  <NavLink to={ROUTES.wallet} className={navClass} aria-label="Wallet">
-                    <Wallet size={18} />
-                    <span className={styles.navLabel}>Wallet</span>
-                  </NavLink>
-                  <NavLink to={ROUTES.profile} className={navClass} aria-label="Profile">
-                    <User size={18} />
-                    <span className={styles.navLabel}>Profile</span>
-                  </NavLink>
-                  <Tooltip label="Log out" placement="bottom">
-                    <button type="button" className={styles.navLink} onClick={onLogout} aria-label="Log out">
-                      <LogOut size={18} />
+                  <div className={styles.profileMenuWrap} ref={menuRef}>
+                    <button 
+                      type="button" 
+                      className={[styles.navLink, menuOpen && styles.profileMenuActive].filter(Boolean).join(' ')}
+                      onClick={() => setMenuOpen(!menuOpen)}
+                      aria-label="Profile menu"
+                    >
+                      <User size={18} />
+                      <span className={styles.navLabel}>Profile</span>
                     </button>
-                  </Tooltip>
+                    <AnimatePresence>
+                      {menuOpen && (
+                        <motion.div
+                          className={styles.profileMenu}
+                          initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
+                          transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
+                        >
+                          <Link to={ROUTES.profile} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                            <User size={15} />
+                            Your Profile
+                          </Link>
+                          <Link to={ROUTES.orders} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                            <Package size={15} />
+                            Orders
+                          </Link>
+                          <Link to={ROUTES.library} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                            <Library size={15} />
+                            Library
+                          </Link>
+                          <Link to={ROUTES.wallet} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                            <Wallet size={15} />
+                            Wallet
+                          </Link>
+                          <div className={styles.menuDivider} />
+                          <button type="button" className={styles.menuItem} onClick={() => { setMenuOpen(false); onLogout(); }}>
+                            <LogOut size={15} />
+                            Log out
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </>
               ) : (
                 <Link to={ROUTES.login} className={[styles.navLink, styles.signInLink].join(' ')}>
@@ -129,7 +164,7 @@ export function SiteLayout() {
       )}
 
       <main
-        className={[styles.main, isAuthPage && styles.mainFullBleed, isReaderPage && styles.mainWide]
+        className={[styles.main, isAuthPage && styles.mainFullBleed]
           .filter(Boolean)
           .join(' ')}
       >

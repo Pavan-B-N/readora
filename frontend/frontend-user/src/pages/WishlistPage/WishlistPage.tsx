@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Heart } from 'lucide-react';
+import { ArrowLeft, BookOpen, Heart } from 'lucide-react';
 import { getBooksByIds, getLibrary } from '@/api/catalogApi';
 import type { BookSummary } from '@/types/catalog';
 import { useAppSelector } from '@/redux/hooks';
@@ -39,12 +39,25 @@ export function WishlistPage() {
 
   return (
     <div>
-      <h1>Your wishlist</h1>
+      <div style={{ marginBottom: 'var(--space-2)' }}>
+        <Button variant="ghost" onClick={() => navigate(-1)}>
+          <ArrowLeft size={16} />
+          Back
+        </Button>
+      </div>
 
       {loading ? (
-        <Spinner />
+        <div className={styles.grid}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} key={i}>
+              <div className="shimmer" style={{ aspectRatio: '2 / 3', borderRadius: 'var(--radius-md)' }} />
+              <div className="shimmer" style={{ height: '10px', width: '85%', borderRadius: 'var(--radius-sm)' }} />
+              <div className="shimmer" style={{ height: '10px', width: '55%', borderRadius: 'var(--radius-sm)' }} />
+            </div>
+          ))}
+        </div>
       ) : books.length === 0 ? (
-        <Card style={{ marginTop: 'var(--space-5)' }}>
+        <div style={{ marginTop: 'var(--space-10)' }}>
           <EmptyState
             icon={Heart}
             title="Your wishlist is empty"
@@ -56,7 +69,7 @@ export function WishlistPage() {
               </Button>
             }
           />
-        </Card>
+        </div>
       ) : (
         <div className={styles.grid}>
           {books.map((book) => (

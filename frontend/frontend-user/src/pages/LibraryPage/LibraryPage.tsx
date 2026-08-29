@@ -17,7 +17,24 @@ export function LibraryPage() {
     getLibrary().then(setBooks);
   }, []);
 
-  if (books === null) return <Spinner />;
+  if (books === null) {
+    return (
+      <div>
+        <h1>My library</h1>
+        <p className={styles.subtitle}>Every virtual edition you own, ready to read in-app.</p>
+        <div className={styles.grid}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className={styles.card}>
+              <div className="shimmer" style={{ aspectRatio: '2 / 3', width: '100%', borderRadius: 'var(--radius-md)' }} />
+              <div className="shimmer" style={{ height: 14, width: '80%', borderRadius: 4, marginTop: 12 }} />
+              <div className="shimmer" style={{ height: 12, width: '60%', borderRadius: 4, marginTop: 4 }} />
+              <div className="shimmer" style={{ height: 12, width: '40%', borderRadius: 4, marginTop: 8 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

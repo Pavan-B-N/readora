@@ -10,6 +10,8 @@ import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
 import { Spinner } from '@/components/Spinner';
 import { ReturnChatPanel } from '@/components/ReturnChatPanel';
+import { Modal } from '@/components/Modal';
+import { Textarea } from '@/components/Input';
 import { ROUTES } from '@/constants/routes';
 import styles from './OrderDetailPage.module.css';
 
@@ -149,6 +151,9 @@ export function OrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [returning, setReturning] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [returnReason, setReturnReason] = useState('');
+  const [returnReasonError, setReturnReasonError] = useState('');
   const pollRef = useRef<number | null>(null);
 
   const reload = () => {
@@ -193,15 +198,27 @@ export function OrderDetailPage() {
     }
   };
 
-  const onReturn = async () => {
+  const onOpenReturnModal = () => {
+    setReturnReason('');
+    setReturnReasonError('');
+    setReturnModalOpen(true);
+  };
+
+  const onSubmitReturn = async () => {
     if (!orderId) return;
+    const trimmedReason = returnReason.trim();
+    if (!trimmedReason) {
+      setReturnReasonError('Tell us why you’re returning this order');
+      return;
+    }
     // Physical items need a human to sign off before anything happens; a virtual-only order has
     // nothing to inspect, so it auto-approves and starts refunding right away — see
     // OrderService.returnOrder()'s javadoc.
     const needsReview = order?.items.some((item) => item.deliveryType === 'PHYSICAL') ?? false;
     setReturning(true);
     try {
-      await returnOrder(orderId);
+      await returnOrder(orderId, trimmedReason);
+      setReturnModalOpen(false);
       showToast(needsReview ? "Return requested — we'll review it shortly" : 'Return started — a refund is on its way');
       reload();
     } catch {
@@ -211,7 +228,44 @@ export function OrderDetailPage() {
     }
   };
 
-  if (!order) return <Spinner />;
+  if (!order) {
+    return (
+      <div>
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <div className="skeletonPulse" style={{ width: 140, height: 28, marginBottom: 8, borderRadius: 4 }} />
+            <div className="skeletonPulse" style={{ width: 220, height: 16, marginBottom: 12, borderRadius: 4 }} />
+            <div className="skeletonPulse" style={{ width: 100, height: 24, borderRadius: 12 }} />
+          </div>
+        </div>
+        <div className={styles.layout}>
+          <div className={styles.stack}>
+            <Card>
+              <div className="skeletonPulse" style={{ width: 160, height: 20, marginBottom: 24, borderRadius: 4 }} />
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} style={{ display: 'flex', gap: 16, marginBottom: i === 0 ? 16 : 0, paddingBottom: i === 0 ? 16 : 0, borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none' }}>
+                  <div className="skeletonPulse" style={{ width: 46, height: 66, borderRadius: 4 }} />
+                  <div style={{ flex: 1 }}>
+                    <div className="skeletonPulse" style={{ width: '40%', height: 16, marginBottom: 8, borderRadius: 4 }} />
+                    <div className="skeletonPulse" style={{ width: '20%', height: 14, marginBottom: 8, borderRadius: 4 }} />
+                    <div className="skeletonPulse" style={{ width: 60, height: 20, borderRadius: 10 }} />
+                  </div>
+                </div>
+              ))}
+            </Card>
+          </div>
+          <div className={styles.stack}>
+            <Card>
+              <div className="skeletonPulse" style={{ width: 120, height: 20, marginBottom: 16, borderRadius: 4 }} />
+              <div className="skeletonPulse" style={{ width: '100%', height: 14, marginBottom: 8, borderRadius: 4 }} />
+              <div className="skeletonPulse" style={{ width: '100%', height: 14, marginBottom: 8, borderRadius: 4 }} />
+              <div className="skeletonPulse" style={{ width: '60%', height: 14, borderRadius: 4 }} />
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isSettlingUpi = order.status === 'PENDING_PAYMENT' && order.paymentMethod === 'UPI';
   // An order's items can mix PHYSICAL and VIRTUAL editions — there's no single delivery type for
@@ -248,7 +302,7 @@ export function OrderDetailPage() {
         </div>
         <div className={styles.headerActions}>
           {order.returnable && (
-            <Button variant="secondary" onClick={onReturn} disabled={returning}>
+            <Button variant="secondary" onClick={onOpenReturnModal} disabled={returning}>
               <RotateCcw size={15} />
               {returning ? 'Starting return…' : 'Return order'}
             </Button>
@@ -417,6 +471,26 @@ export function OrderDetailPage() {
           </p>
         </Card>
       </div>
+
+      <Modal open={returnModalOpen} onClose={() => setReturnModalOpen(false)} title="Return this order" width={420}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <Textarea
+            label="Reason for return"
+            required
+            rows={3}
+            placeholder="e.g. Item arrived damaged, wrong book, changed my mind…"
+            value={returnReason}
+            error={returnReasonError}
+            onChange={(e) => {
+              setReturnReason(e.target.value);
+              if (returnReasonError) setReturnReasonError('');
+            }}
+          />
+          <Button onClick={onSubmitReturn} disabled={returning} block>
+            {returning ? 'Starting return…' : 'Submit return request'}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -51,6 +52,10 @@ public class DeliveryAssignment {
     @Column(name = "items_json")
     private String itemsJson;
 
+    /** Snapshotted at creation from the order's value and item count — see OrderEventsListener. */
+    @Column(name = "payout_amount")
+    private BigDecimal payoutAmount;
+
     @Column(name = "agent_id")
     private UUID agentId;
 
@@ -75,7 +80,7 @@ public class DeliveryAssignment {
 
     public DeliveryAssignment(
             UUID orderId, String orderNumber, UUID storeId, String destinationCity,
-            String recipientName, String recipientPhone, String itemsJson
+            String recipientName, String recipientPhone, String itemsJson, BigDecimal payoutAmount
     ) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
@@ -84,6 +89,7 @@ public class DeliveryAssignment {
         this.recipientName = recipientName;
         this.recipientPhone = recipientPhone;
         this.itemsJson = itemsJson;
+        this.payoutAmount = payoutAmount;
     }
 
     @jakarta.persistence.PrePersist
@@ -137,6 +143,10 @@ public class DeliveryAssignment {
 
     public String getItemsJson() {
         return itemsJson;
+    }
+
+    public BigDecimal getPayoutAmount() {
+        return payoutAmount;
     }
 
     public UUID getAgentId() {

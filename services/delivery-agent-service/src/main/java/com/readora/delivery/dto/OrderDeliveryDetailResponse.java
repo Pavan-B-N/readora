@@ -2,6 +2,7 @@ package com.readora.delivery.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +16,7 @@ public record OrderDeliveryDetailResponse(
         UUID storeId,
         ShippingAddress shippingAddress,
         List<Item> items,
+        BigDecimal grandTotal,
         Instant placedAt
 ) {
     public record ShippingAddress(

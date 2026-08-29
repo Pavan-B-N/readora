@@ -54,6 +54,43 @@ public class AdminOrderController {
     }
 
     @Operation(
+            summary = "List pending returns/cancellations — optimised for the default admin view",
+            description = "Returns only RETURN_REQUESTED and CANCELLED orders where adminReviewedAt IS NULL, " +
+                    "i.e. cases that still need admin attention. Skips the heavier full list so most " +
+                    "page loads transfer significantly less data.",
+            tags = {"Admin Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paginated pending list returned"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an admin, or has no store assignment")
+    })
+    @GetMapping("/pending")
+    public ResponseEntity<Page<AdminOrderSummaryResponse>> listPendingReturns(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(adminOrderService.listPendingReturns(PageRequest.of(page, size)));
+    }
+
+    @Operation(
+            summary = "List reviewed returns/cancellations",
+            description = "Returns only rows where adminReviewedAt IS NOT NULL — the full history of " +
+                    "cases an admin already acted on. Loaded lazily on the 'Reviewed' tab.",
+            tags = {"Admin Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paginated reviewed list returned"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an admin, or has no store assignment")
+    })
+    @GetMapping("/reviewed")
+    public ResponseEntity<Page<AdminOrderSummaryResponse>> listReviewedReturns(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(adminOrderService.listReviewedReturns(PageRequest.of(page, size)));
+    }
+
+    @Operation(
             summary = "One return/cancellation case's full detail",
             description = "Backs the dedicated review page — same fields as the list row, fetched directly by id so a refresh or a shared link still works.",
             tags = {"Admin Orders"}

@@ -6,10 +6,12 @@ import com.readora.catalog.exception.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -65,6 +67,36 @@ public class UserServiceClient {
         } catch (Exception e) {
             log.warn("Could not fetch display name from user-service for review authoring", e);
             return null;
+        }
+    }
+
+    /** Best-effort — recommendations degrade to fewer signals rather than failing if user-service is unreachable. */
+    public List<UUID> getRecentBookViewIds(UUID userId, int limit) {
+        try {
+            List<UUID> response = restClient.get()
+                    .uri("/internal/profiles/{userId}/recent-book-views?limit={limit}", userId, limit)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<UUID>>() {
+                    });
+            return response != null ? response : List.of();
+        } catch (Exception e) {
+            log.warn("Could not fetch recent book views from user-service for recommendations", e);
+            return List.of();
+        }
+    }
+
+    /** Best-effort — recommendations degrade to fewer signals rather than failing if user-service is unreachable. */
+    public List<String> getRecentSearchTerms(UUID userId, int limit) {
+        try {
+            List<String> response = restClient.get()
+                    .uri("/internal/profiles/{userId}/recent-searches?limit={limit}", userId, limit)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<String>>() {
+                    });
+            return response != null ? response : List.of();
+        } catch (Exception e) {
+            log.warn("Could not fetch recent search terms from user-service for recommendations", e);
+            return List.of();
         }
     }
 }

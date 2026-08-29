@@ -10,8 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Internal")
@@ -36,5 +38,37 @@ public class InternalProfileController {
     @GetMapping("/{userId}/display-name")
     public ResponseEntity<DisplayNameResponse> getDisplayName(@PathVariable UUID userId) {
         return ResponseEntity.ok(new DisplayNameResponse(userService.getDisplayName(userId)));
+    }
+
+    @Operation(
+            summary = "Get a user's recently viewed book ids",
+            description = "Internal, service-to-service only — protected by the shared gateway secret. Called by catalog-service to weight recommendations by browsing history.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Recent book view ids returned, most-recent first")
+    })
+    @GetMapping("/{userId}/recent-book-views")
+    public ResponseEntity<List<UUID>> getRecentBookViews(
+            @PathVariable UUID userId,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        return ResponseEntity.ok(userService.getRecentBookViewIds(userId, limit));
+    }
+
+    @Operation(
+            summary = "Get a user's recent search terms",
+            description = "Internal, service-to-service only — protected by the shared gateway secret. Called by catalog-service to weight recommendations by search history.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Recent search terms returned, most-recent first")
+    })
+    @GetMapping("/{userId}/recent-searches")
+    public ResponseEntity<List<String>> getRecentSearches(
+            @PathVariable UUID userId,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        return ResponseEntity.ok(userService.getRecentSearchTerms(userId, limit));
     }
 }

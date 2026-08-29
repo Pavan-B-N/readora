@@ -1,6 +1,7 @@
 .layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 800px) 320px;
+  justify-content: center;
   gap: var(--space-5);
   align-items: start;
   margin-top: var(--space-5);

@@ -29,7 +29,7 @@ public class ReturnPickupService {
 
     private static final Logger log = LoggerFactory.getLogger(ReturnPickupService.class);
 
-    /** Flat, mock payout per pickup — this is a portfolio simulation, not a real payout engine. */
+    /** Fallback only, for rows created before payout became a per-assignment snapshot (see V4__payout_amount.sql). */
     public static final BigDecimal PICKUP_PAYOUT = new BigDecimal("40.00");
 
     private final DeliveryAgentRepository agentRepository;
@@ -142,7 +142,8 @@ public class ReturnPickupService {
         return new ReturnPickupResponse(
                 p.getId(), p.getOrderId(), p.getOrderNumber(), p.getStoreId(), p.getStatus().name(),
                 p.getCreatedAt(), p.getAssignedAt(), p.getEnRouteAt(), p.getCollectedAt(),
-                p.getDestinationCity(), p.getRecipientName(), p.getRecipientPhone(), parseItems(p.getItemsJson()), PICKUP_PAYOUT
+                p.getDestinationCity(), p.getRecipientName(), p.getRecipientPhone(), parseItems(p.getItemsJson()),
+                p.getPayoutAmount() != null ? p.getPayoutAmount() : PICKUP_PAYOUT
         );
     }
 

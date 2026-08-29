@@ -25,6 +25,7 @@ export interface BookSearchParams {
   size: number;
   q?: string;
   categoryId?: string;
+  authorId?: string;
   virtualOnly?: boolean;
   /** Required unless virtualOnly is true — the public catalogue search rejects a physical-inclusive query with no store. */
   storeId?: string;
@@ -88,6 +89,11 @@ export async function deleteAuthor(id: string): Promise<void> {
 
 export async function getBookForEdit(bookId: string): Promise<AdminBookDetail> {
   const response = await apiClient.get<AdminBookDetail>(`/api/v1/admin/books/${bookId}`);
+  return response.data;
+}
+
+export async function checkIsbnExists(isbn: string): Promise<boolean> {
+  const response = await apiClient.get<boolean>(`/api/v1/books/check-isbn?isbn=${isbn}`);
   return response.data;
 }
 

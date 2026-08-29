@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, MapPin, Pencil, Plus, Star, Trash2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Check, MapPin, Pencil, Plus, Star, Trash2, X } from 'lucide-react';
 import { addAddress, deleteAddress, getMe, listAddresses, setDefaultAddress, updateProfile } from '@/api/userApi';
 import { listStores } from '@/api/catalogApi';
 import type { Address, AddressLabel, AddressRecipientType, MeResponse } from '@/types/user';
@@ -37,6 +38,7 @@ function emptyForm(recipientName: string, recipientPhone: string): AddressForm {
 }
 
 export function ProfilePage() {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const [me, setMe] = useState<MeResponse | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -165,23 +167,26 @@ export function ProfilePage() {
 
   return (
     <div>
-      <h1>Profile</h1>
+      <div style={{ marginBottom: 'var(--space-2)' }}>
+        <Button variant="ghost" onClick={() => navigate(-1)}>
+          <ArrowLeft size={16} />
+          Back
+        </Button>
+      </div>
 
       <div className={styles.layout}>
         <div className={styles.stack}>
-          <Card>
+          <div className={styles.section}>
             {me && (
               <>
-                <CardHeader
-                  title="Personal info"
-                  actions={
-                    !editingProfile && (
-                      <Button variant="ghost" size="sm" iconOnly aria-label="Edit profile" onClick={openProfileEdit}>
-                        <Pencil size={14} />
-                      </Button>
-                    )
-                  }
-                />
+                <div className={styles.sectionHeader}>
+                  <h2 className={styles.sectionTitle}>Personal info</h2>
+                  {!editingProfile && (
+                    <Button variant="ghost" size="sm" iconOnly aria-label="Edit profile" onClick={openProfileEdit}>
+                      <Pencil size={14} />
+                    </Button>
+                  )}
+                </div>
                 <div className={styles.identity}>
                   <span className={styles.avatar}>{initials}</span>
                   <span className={styles.identityText}>
@@ -239,21 +244,21 @@ export function ProfilePage() {
                 )}
               </>
             )}
-          </Card>
+          </div>
 
-          <Card>
-            <CardHeader
-              title="Addresses"
-              subtitle={`${addresses.length} saved`}
-              actions={
-                !formOpen && (
-                  <Button variant="secondary" size="sm" onClick={openForm}>
-                    <Plus size={14} />
-                    Add new
-                  </Button>
-                )
-              }
-            />
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <h2 className={styles.sectionTitle}>Addresses</h2>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>{addresses.length} saved</span>
+              </div>
+              {!formOpen && (
+                <Button variant="secondary" size="sm" onClick={openForm}>
+                  <Plus size={14} />
+                  Add new
+                </Button>
+              )}
+            </div>
             {addresses.length === 0 && !formOpen ? (
               <EmptyState
                 icon={MapPin}
@@ -313,19 +318,17 @@ export function ProfilePage() {
                 </div>
               ))
             )}
-          </Card>
+          </div>
         </div>
 
         {formOpen && (
-          <Card>
-            <CardHeader
-              title="Add address"
-              actions={
-                <Button variant="ghost" size="sm" iconOnly aria-label="Cancel" onClick={() => setFormOpen(false)}>
-                  <X size={15} />
-                </Button>
-              }
-            />
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>Add address</h2>
+              <Button variant="ghost" size="sm" iconOnly aria-label="Cancel" onClick={() => setFormOpen(false)}>
+                <X size={15} />
+              </Button>
+            </div>
             <div className={styles.form}>
               {store && (
                 <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
@@ -409,7 +412,7 @@ export function ProfilePage() {
                 {saving ? 'Adding…' : 'Add address'}
               </Button>
             </div>
-          </Card>
+          </div>
         )}
       </div>
     </div>

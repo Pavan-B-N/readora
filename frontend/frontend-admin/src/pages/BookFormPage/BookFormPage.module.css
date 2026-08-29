@@ -3,6 +3,34 @@
   flex-direction: column;
   gap: var(--space-5);
   max-width: 900px;
+  margin: var(--space-6) auto var(--space-8);
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.closePageBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: var(--space-2);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background var(--transition), color var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closePageBtn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
 }
 
 .form {

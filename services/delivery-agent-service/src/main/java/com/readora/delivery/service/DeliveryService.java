@@ -9,12 +9,15 @@ import com.readora.delivery.dto.ItemSnapshot;
 import com.readora.delivery.entity.DeliveryAgent;
 import com.readora.delivery.entity.DeliveryAssignment;
 import com.readora.delivery.entity.DeliveryAssignmentStatus;
+import com.readora.delivery.entity.ReturnPickupStatus;
 import com.readora.delivery.exception.AgentNotFoundException;
 import com.readora.delivery.exception.AssignmentAlreadyClaimedException;
 import com.readora.delivery.exception.AssignmentNotFoundException;
+import com.readora.delivery.exception.CannotGoOffDutyException;
 import com.readora.delivery.exception.InvalidAssignmentTransitionException;
 import com.readora.delivery.repository.DeliveryAgentRepository;
 import com.readora.delivery.repository.DeliveryAssignmentRepository;
+import com.readora.delivery.repository.ReturnPickupAssignmentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -29,22 +32,25 @@ public class DeliveryService {
 
     private static final Logger log = LoggerFactory.getLogger(DeliveryService.class);
 
-    /** Flat, mock payout per delivery — this is a portfolio simulation, not a real payout engine. */
+    /** Fallback only, for rows created before payout became a per-assignment snapshot (see V4__payout_amount.sql). */
     public static final BigDecimal DELIVERY_PAYOUT = new BigDecimal("40.00");
 
     private final DeliveryAgentRepository agentRepository;
     private final DeliveryAssignmentRepository assignmentRepository;
+    private final ReturnPickupAssignmentRepository pickupRepository;
     private final CommerceClient commerceClient;
     private final ObjectMapper objectMapper;
 
     public DeliveryService(
             DeliveryAgentRepository agentRepository,
             DeliveryAssignmentRepository assignmentRepository,
+            ReturnPickupAssignmentRepository pickupRepository,
             CommerceClient commerceClient,
             ObjectMapper objectMapper
     ) {
         this.agentRepository = agentRepository;
         this.assignmentRepository = assignmentRepository;
+        this.pickupRepository = pickupRepository;
         this.commerceClient = commerceClient;
         this.objectMapper = objectMapper;
     }
@@ -59,12 +65,28 @@ public class DeliveryService {
         return toMeResponse(agent);
     }
 
+    /**
+     * Going online is always allowed. Going offline is blocked while the agent has a
+     * claimed-but-not-finished delivery or pickup — otherwise they could clock out mid-job and
+     * leave a customer's order stranded with nobody responsible for finishing it.
+     */
     @Transactional
     public AgentMeResponse setOnDuty(UUID userId, boolean onDuty) {
         DeliveryAgent agent = requireAgent(userId);
+        if (!onDuty && hasActiveWork(userId)) {
+            throw new CannotGoOffDutyException();
+        }
         agent.setOnDuty(onDuty);
         agentRepository.save(agent);
         return toMeResponse(agent);
+    }
+
+    private boolean hasActiveWork(UUID agentId) {
+        boolean hasActiveDelivery = assignmentRepository.findAllByAgentIdOrderByCreatedAtDesc(agentId).stream()
+                .anyMatch(a -> a.getStatus() == DeliveryAssignmentStatus.ASSIGNED || a.getStatus() == DeliveryAssignmentStatus.OUT_FOR_DELIVERY);
+        boolean hasActivePickup = pickupRepository.findAllByAgentIdOrderByCreatedAtDesc(agentId).stream()
+                .anyMatch(p -> p.getStatus() == ReturnPickupStatus.ASSIGNED || p.getStatus() == ReturnPickupStatus.EN_ROUTE);
+        return hasActiveDelivery || hasActivePickup;
     }
 
     /**
@@ -159,7 +181,8 @@ public class DeliveryService {
         return new AssignmentResponse(
                 a.getId(), a.getOrderId(), a.getOrderNumber(), a.getStoreId(), a.getStatus().name(),
                 a.getCreatedAt(), a.getAssignedAt(), a.getOutForDeliveryAt(), a.getDeliveredAt(),
-                a.getDestinationCity(), a.getRecipientName(), a.getRecipientPhone(), parseItems(a.getItemsJson()), DELIVERY_PAYOUT
+                a.getDestinationCity(), a.getRecipientName(), a.getRecipientPhone(), parseItems(a.getItemsJson()),
+                a.getPayoutAmount() != null ? a.getPayoutAmount() : DELIVERY_PAYOUT
         );
     }
 

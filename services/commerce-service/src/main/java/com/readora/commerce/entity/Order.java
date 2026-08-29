@@ -245,7 +245,7 @@ public class Order {
      * it) and virtual (instant on payment capture) orders — no more approximating from placedAt.
      */
     public boolean isReturnable() {
-        boolean withinWindow = deliveredAt != null && deliveredAt.isAfter(Instant.now().minus(java.time.Duration.ofDays(7)));
+        boolean withinWindow = deliveredAt != null && deliveredAt.isAfter(Instant.now().minus(java.time.Duration.ofDays(2)));
         return status == OrderStatus.DELIVERED && withinWindow;
     }
 

@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
@@ -52,6 +53,10 @@ public class ReturnPickupAssignment {
     @Column(name = "items_json")
     private String itemsJson;
 
+    /** Snapshotted at creation from the order's value and item count — see OrderEventsListener. */
+    @Column(name = "payout_amount")
+    private BigDecimal payoutAmount;
+
     @Column(name = "agent_id")
     private UUID agentId;
 
@@ -79,7 +84,7 @@ public class ReturnPickupAssignment {
 
     public ReturnPickupAssignment(
             UUID orderId, String orderNumber, UUID storeId, String destinationCity,
-            String recipientName, String recipientPhone, String itemsJson
+            String recipientName, String recipientPhone, String itemsJson, BigDecimal payoutAmount
     ) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
@@ -88,6 +93,7 @@ public class ReturnPickupAssignment {
         this.recipientName = recipientName;
         this.recipientPhone = recipientPhone;
         this.itemsJson = itemsJson;
+        this.payoutAmount = payoutAmount;
     }
 
     @jakarta.persistence.PrePersist
@@ -142,6 +148,10 @@ public class ReturnPickupAssignment {
 
     public String getItemsJson() {
         return itemsJson;
+    }
+
+    public BigDecimal getPayoutAmount() {
+        return payoutAmount;
     }
 
     public UUID getAgentId() {
