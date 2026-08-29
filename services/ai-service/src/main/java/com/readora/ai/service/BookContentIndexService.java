@@ -141,7 +141,9 @@ public class BookContentIndexService {
         return found.stream().map(Document::getText).toList();
     }
 
-    private List<String> extractChunks(byte[] pdfBytes) throws Exception {
+    // Package-private (not private) so BookContentIndexServiceTest can exercise the chunking
+    // policy directly, without needing a real PDF or the PgVectorStore built in init().
+    List<String> extractChunks(byte[] pdfBytes) throws Exception {
         String text;
         try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfBytes))) {
             text = new PDFTextStripper().getText(document);
@@ -177,7 +179,7 @@ public class BookContentIndexService {
     }
 
     /** Splits on whitespace where possible so a piece rarely cuts a word in half; falls back to a hard cut if a single "word" is itself absurdly long. */
-    private List<String> splitIntoChunkSizedPieces(String text) {
+    List<String> splitIntoChunkSizedPieces(String text) {
         if (text.length() <= CHUNK_SIZE) {
             return List.of(text);
         }

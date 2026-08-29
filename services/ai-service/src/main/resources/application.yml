@@ -15,11 +15,16 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         default_schema: ai
     show-sql: true
+
+  flyway:
+    schemas: ai
+    baseline-on-migrate: true
+    baseline-version: 1
 
   kafka:
     bootstrap-servers: localhost:9092
@@ -53,7 +58,7 @@ spring:
         schema-name: ai
         table-name: vector_store
         dimensions: 1536
-        initialize-schema: true
+        initialize-schema: false
 
     mcp:
       client:

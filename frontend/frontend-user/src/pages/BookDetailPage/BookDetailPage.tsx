@@ -7,6 +7,7 @@ import {
   Download,
   Minus,
   Plus,
+  Share2,
   ShoppingCart,
   Truck,
   User,
@@ -64,7 +65,40 @@ export function BookDetailPage() {
     getLibrary().then((books) => setOwnedBookIds(new Set(books.map((b) => b.id))));
   }, [accessToken]);
 
+  // Keeps the browser tab and any share sheet that reads the live DOM (rather than a crawler
+  // hitting the server-rendered OG tags in server.mjs) in sync with the book being viewed.
+  useEffect(() => {
+    if (!book) return;
+    const previousTitle = document.title;
+    document.title = `${book.title} — Readora`;
+
+    const descriptionTag = document.querySelector('meta[name="description"]');
+    const previousDescription = descriptionTag?.getAttribute('content') ?? null;
+    if (descriptionTag) {
+      descriptionTag.setAttribute(
+        'content',
+        book.description ?? `${book.title} by ${book.authors.map((a) => a.name).join(', ')} — available now on Readora.`,
+      );
+    }
+
+    return () => {
+      document.title = previousTitle;
+      if (descriptionTag && previousDescription !== null) {
+        descriptionTag.setAttribute('content', previousDescription);
+      }
+    };
+  }, [book]);
+
   if (!book) return <Spinner />;
+
+  const onCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      showToast('Link copied to clipboard');
+    } catch {
+      showToast('Could not copy link', 'error');
+    }
+  };
 
   const inStock = book.availability.status === 'IN_STOCK';
   const notAvailableAtStore = book.availability.status === 'NOT_AVAILABLE_AT_STORE';
@@ -151,7 +185,18 @@ export function BookDetailPage() {
         </div>
 
         <div>
-          <h1 className={styles.title}>{book.title}</h1>
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>{book.title}</h1>
+            <button
+              type="button"
+              className={styles.shareButton}
+              onClick={onCopyLink}
+              aria-label="Copy link to this book"
+              title="Copy link"
+            >
+              <Share2 size={15} />
+            </button>
+          </div>
           {book.subtitle && <p className={styles.subtitle}>{book.subtitle}</p>}
           <p className={styles.authors}>
             by <span className={styles.authorName}>{book.authors.map((a) => a.name).join(', ')}</span>

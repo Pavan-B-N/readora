@@ -15,11 +15,16 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         default_schema: payments
     show-sql: true
+
+  flyway:
+    schemas: payments
+    baseline-on-migrate: true
+    baseline-version: 1
 
   kafka:
     bootstrap-servers: localhost:9092
