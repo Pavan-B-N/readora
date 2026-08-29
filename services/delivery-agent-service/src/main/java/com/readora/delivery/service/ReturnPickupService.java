@@ -1,6 +1,8 @@
 package com.readora.delivery.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.delivery.client.CommerceClient;
+import com.readora.delivery.dto.ItemSnapshot;
 import com.readora.delivery.dto.ReturnPickupDetailResponse;
 import com.readora.delivery.dto.ReturnPickupResponse;
 import com.readora.delivery.entity.DeliveryAgent;
@@ -12,6 +14,8 @@ import com.readora.delivery.exception.ReturnPickupAlreadyClaimedException;
 import com.readora.delivery.exception.ReturnPickupNotFoundException;
 import com.readora.delivery.repository.DeliveryAgentRepository;
 import com.readora.delivery.repository.ReturnPickupAssignmentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,21 +27,26 @@ import java.util.UUID;
 @Service
 public class ReturnPickupService {
 
+    private static final Logger log = LoggerFactory.getLogger(ReturnPickupService.class);
+
     /** Flat, mock payout per pickup — this is a portfolio simulation, not a real payout engine. */
-    private static final BigDecimal PICKUP_PAYOUT = new BigDecimal("40.00");
+    public static final BigDecimal PICKUP_PAYOUT = new BigDecimal("40.00");
 
     private final DeliveryAgentRepository agentRepository;
     private final ReturnPickupAssignmentRepository pickupRepository;
     private final CommerceClient commerceClient;
+    private final ObjectMapper objectMapper;
 
     public ReturnPickupService(
             DeliveryAgentRepository agentRepository,
             ReturnPickupAssignmentRepository pickupRepository,
-            CommerceClient commerceClient
+            CommerceClient commerceClient,
+            ObjectMapper objectMapper
     ) {
         this.agentRepository = agentRepository;
         this.pickupRepository = pickupRepository;
         this.commerceClient = commerceClient;
+        this.objectMapper = objectMapper;
     }
 
     private DeliveryAgent requireAgent(UUID userId) {
@@ -133,7 +142,20 @@ public class ReturnPickupService {
         return new ReturnPickupResponse(
                 p.getId(), p.getOrderId(), p.getOrderNumber(), p.getStoreId(), p.getStatus().name(),
                 p.getCreatedAt(), p.getAssignedAt(), p.getEnRouteAt(), p.getCollectedAt(),
-                p.getDestinationCity(), PICKUP_PAYOUT
+                p.getDestinationCity(), p.getRecipientName(), p.getRecipientPhone(), parseItems(p.getItemsJson()), PICKUP_PAYOUT
         );
+    }
+
+    /** Defensive: a parse failure (missing data, or a row written before this format existed) degrades to an empty list, never a 500. */
+    private List<ItemSnapshot> parseItems(String itemsJson) {
+        if (itemsJson == null || itemsJson.isBlank()) {
+            return List.of();
+        }
+        try {
+            return List.of(objectMapper.readValue(itemsJson, ItemSnapshot[].class));
+        } catch (Exception e) {
+            log.warn("Could not parse stored items JSON: {}", itemsJson, e);
+            return List.of();
+        }
     }
 }

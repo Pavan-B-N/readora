@@ -63,9 +63,11 @@ public class OrderEventsListener {
             return;
         }
 
-        assignmentRepository.save(
-                new DeliveryAssignment(event.orderId(), event.orderNumber(), event.storeId(), resolveDestinationCity(event.orderId()))
-        );
+        DeliveryDetailSnapshot snapshot = resolveSnapshot(event.orderId());
+        assignmentRepository.save(new DeliveryAssignment(
+                event.orderId(), event.orderNumber(), event.storeId(), snapshot.destinationCity(),
+                snapshot.recipientName(), snapshot.recipientPhone(), snapshot.itemsJson()
+        ));
     }
 
     private void onReturnApproved(OrderStatusChangedEvent event) {
@@ -77,23 +79,37 @@ public class OrderEventsListener {
             return;
         }
 
-        returnPickupRepository.save(
-                new ReturnPickupAssignment(event.orderId(), event.orderNumber(), event.storeId(), resolveDestinationCity(event.orderId()))
-        );
+        DeliveryDetailSnapshot snapshot = resolveSnapshot(event.orderId());
+        returnPickupRepository.save(new ReturnPickupAssignment(
+                event.orderId(), event.orderNumber(), event.storeId(), snapshot.destinationCity(),
+                snapshot.recipientName(), snapshot.recipientPhone(), snapshot.itemsJson()
+        ));
+    }
+
+    private record DeliveryDetailSnapshot(String destinationCity, String recipientName, String recipientPhone, String itemsJson) {
+        static final DeliveryDetailSnapshot EMPTY = new DeliveryDetailSnapshot(null, null, null, null);
     }
 
     /**
-     * Best-effort, resolved once here rather than on every queue read — a missing city is a
-     * cosmetic gap (the agent just won't see a destination preview until they open the detail
-     * page), not worth failing assignment creation over if commerce-service is briefly down.
+     * Best-effort, resolved once here rather than on every queue read — a missing value is a
+     * cosmetic gap (the agent just won't see it until they open the detail page, which fetches
+     * commerce-service live), not worth failing assignment creation over if it's briefly down.
      */
-    private String resolveDestinationCity(UUID orderId) {
+    private DeliveryDetailSnapshot resolveSnapshot(UUID orderId) {
         try {
             OrderDeliveryDetailResponse detail = commerceClient.getDeliveryDetail(orderId);
-            return detail.shippingAddress() != null ? detail.shippingAddress().city() : null;
+            String city = detail.shippingAddress() != null ? detail.shippingAddress().city() : null;
+            String recipientName = detail.shippingAddress() != null ? detail.shippingAddress().recipientName() : null;
+            String recipientPhone = detail.shippingAddress() != null ? detail.shippingAddress().phone() : null;
+            // Field names match OrderDeliveryDetailResponse.Item exactly, so this round-trips
+            // cleanly through ItemSnapshot on the read side with no manual mapping.
+            String itemsJson = detail.items() == null || detail.items().isEmpty()
+                    ? null
+                    : objectMapper.writeValueAsString(detail.items());
+            return new DeliveryDetailSnapshot(city, recipientName, recipientPhone, itemsJson);
         } catch (Exception e) {
-            log.warn("Could not resolve destination city for order {}", orderId, e);
-            return null;
+            log.warn("Could not resolve delivery detail snapshot for order {}", orderId, e);
+            return DeliveryDetailSnapshot.EMPTY;
         }
     }
 }

@@ -1,9 +1,7 @@
 export const ROUTES = {
   login: '/login',
-  queue: '/queue',
-  mine: '/mine',
+  orders: '/orders',
+  profile: '/profile',
   assignmentDetail: (id: string) => `/assignments/${id}`,
-  returnQueue: '/returns/queue',
-  returnMine: '/returns/mine',
   returnPickupDetail: (id: string) => `/returns/${id}`,
 } as const;

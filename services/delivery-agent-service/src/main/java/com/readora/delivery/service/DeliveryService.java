@@ -1,9 +1,11 @@
 package com.readora.delivery.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.delivery.client.CommerceClient;
 import com.readora.delivery.dto.AgentMeResponse;
 import com.readora.delivery.dto.AssignmentDetailResponse;
 import com.readora.delivery.dto.AssignmentResponse;
+import com.readora.delivery.dto.ItemSnapshot;
 import com.readora.delivery.entity.DeliveryAgent;
 import com.readora.delivery.entity.DeliveryAssignment;
 import com.readora.delivery.entity.DeliveryAssignmentStatus;
@@ -13,6 +15,8 @@ import com.readora.delivery.exception.AssignmentNotFoundException;
 import com.readora.delivery.exception.InvalidAssignmentTransitionException;
 import com.readora.delivery.repository.DeliveryAgentRepository;
 import com.readora.delivery.repository.DeliveryAssignmentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,21 +27,26 @@ import java.util.UUID;
 @Service
 public class DeliveryService {
 
+    private static final Logger log = LoggerFactory.getLogger(DeliveryService.class);
+
     /** Flat, mock payout per delivery — this is a portfolio simulation, not a real payout engine. */
-    private static final BigDecimal DELIVERY_PAYOUT = new BigDecimal("40.00");
+    public static final BigDecimal DELIVERY_PAYOUT = new BigDecimal("40.00");
 
     private final DeliveryAgentRepository agentRepository;
     private final DeliveryAssignmentRepository assignmentRepository;
     private final CommerceClient commerceClient;
+    private final ObjectMapper objectMapper;
 
     public DeliveryService(
             DeliveryAgentRepository agentRepository,
             DeliveryAssignmentRepository assignmentRepository,
-            CommerceClient commerceClient
+            CommerceClient commerceClient,
+            ObjectMapper objectMapper
     ) {
         this.agentRepository = agentRepository;
         this.assignmentRepository = assignmentRepository;
         this.commerceClient = commerceClient;
+        this.objectMapper = objectMapper;
     }
 
     private DeliveryAgent requireAgent(UUID userId) {
@@ -150,8 +159,21 @@ public class DeliveryService {
         return new AssignmentResponse(
                 a.getId(), a.getOrderId(), a.getOrderNumber(), a.getStoreId(), a.getStatus().name(),
                 a.getCreatedAt(), a.getAssignedAt(), a.getOutForDeliveryAt(), a.getDeliveredAt(),
-                a.getDestinationCity(), DELIVERY_PAYOUT
+                a.getDestinationCity(), a.getRecipientName(), a.getRecipientPhone(), parseItems(a.getItemsJson()), DELIVERY_PAYOUT
         );
+    }
+
+    /** Defensive: a parse failure (missing data, or a row written before this format existed) degrades to an empty list, never a 500. */
+    private List<ItemSnapshot> parseItems(String itemsJson) {
+        if (itemsJson == null || itemsJson.isBlank()) {
+            return List.of();
+        }
+        try {
+            return List.of(objectMapper.readValue(itemsJson, ItemSnapshot[].class));
+        } catch (Exception e) {
+            log.warn("Could not parse stored items JSON: {}", itemsJson, e);
+            return List.of();
+        }
     }
 
     private AgentMeResponse toMeResponse(DeliveryAgent agent) {

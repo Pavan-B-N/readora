@@ -159,56 +159,58 @@ export function EmbeddingsPage() {
               description="Once you run a full re-embed, each run is recorded here with its duration and outcome."
             />
           ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Books</th>
-                  <th>Duration</th>
-                  <th>Queued</th>
-                  <th>Detail</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map((job) => (
-                  <tr key={job.id} className={styles.row} onClick={() => navigate(ROUTES.embeddingJobDetail(job.id))}>
-                    <td>
-                      <Badge
-                        variant={statusVariant(job.status)}
-                        dot
-                        pulse={job.status === 'RUNNING' || job.status === 'QUEUED'}
-                      >
-                        {job.status.charAt(0) + job.status.slice(1).toLowerCase()}
-                      </Badge>
-                    </td>
-                    <td className={styles.numeric}>
-                      {job.status === 'RUNNING'
-                        ? `${job.processedBooks} / ${job.totalBooks || '?'}`
-                        : job.status === 'COMPLETED'
-                          ? job.totalBooks
-                          : job.totalBooks || '—'}
-                    </td>
-                    <td className={styles.numeric}>{formatDuration(job)}</td>
-                    <td className={styles.mono}>{new Date(job.queuedAt).toLocaleString()}</td>
-                    <td>
-                      {job.errorMessage ? (
-                        <span className={styles.errorCell} title={job.errorMessage}>
-                          {job.errorMessage}
-                        </span>
-                      ) : job.currentBookTitle ? (
-                        <span className={styles.mono}>{job.currentBookTitle}</span>
-                      ) : (
-                        <span className={styles.mono}>—</span>
-                      )}
-                    </td>
-                    <td>
-                      <ChevronRight size={15} className={styles.chevron} />
-                    </td>
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Books</th>
+                    <th>Duration</th>
+                    <th>Queued</th>
+                    <th>Detail</th>
+                    <th />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {jobs.map((job) => (
+                    <tr key={job.id} className={styles.row} onClick={() => navigate(ROUTES.embeddingJobDetail(job.id))}>
+                      <td>
+                        <Badge
+                          variant={statusVariant(job.status)}
+                          dot
+                          pulse={job.status === 'RUNNING' || job.status === 'QUEUED'}
+                        >
+                          {job.status.charAt(0) + job.status.slice(1).toLowerCase()}
+                        </Badge>
+                      </td>
+                      <td className={styles.numeric}>
+                        {job.status === 'RUNNING'
+                          ? `${job.processedBooks} / ${job.totalBooks || '?'}`
+                          : job.status === 'COMPLETED'
+                            ? job.totalBooks
+                            : job.totalBooks || '—'}
+                      </td>
+                      <td className={styles.numeric}>{formatDuration(job)}</td>
+                      <td className={styles.mono}>{new Date(job.queuedAt).toLocaleString()}</td>
+                      <td>
+                        {job.errorMessage ? (
+                          <span className={styles.errorCell} title={job.errorMessage}>
+                            {job.errorMessage}
+                          </span>
+                        ) : job.currentBookTitle ? (
+                          <span className={styles.mono}>{job.currentBookTitle}</span>
+                        ) : (
+                          <span className={styles.mono}>—</span>
+                        )}
+                      </td>
+                      <td>
+                        <ChevronRight size={15} className={styles.chevron} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </Card>
       </div>

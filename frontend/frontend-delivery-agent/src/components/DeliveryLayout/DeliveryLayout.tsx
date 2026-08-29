@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { ListChecks, LogOut, Package, RotateCcw, Truck } from 'lucide-react';
+import { ListChecks, LogOut, Truck, UserCircle } from 'lucide-react';
 import { getMe, setDuty } from '@/api/deliveryApi';
 import { useAppDispatch } from '@/redux/hooks';
 import { loggedOut } from '@/redux/slices/authSlice';
@@ -56,21 +56,13 @@ export function DeliveryLayout() {
         </div>
 
         <nav className={styles.nav}>
-          <NavLink to={ROUTES.queue} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
+          <NavLink to={ROUTES.orders} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
             <ListChecks size={15} />
-            Queue
+            Orders
           </NavLink>
-          <NavLink to={ROUTES.mine} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
-            <Package size={15} />
-            My deliveries
-          </NavLink>
-          <NavLink to={ROUTES.returnQueue} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
-            <RotateCcw size={15} />
-            Return pickups
-          </NavLink>
-          <NavLink to={ROUTES.returnMine} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
-            <RotateCcw size={15} />
-            My returns
+          <NavLink to={ROUTES.profile} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
+            <UserCircle size={15} />
+            Profile
           </NavLink>
         </nav>
 

@@ -1,5 +1,6 @@
 package com.readora.delivery.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.delivery.client.CommerceClient;
 import com.readora.delivery.dto.AssignmentResponse;
 import com.readora.delivery.entity.DeliveryAgent;
@@ -45,11 +46,11 @@ class DeliveryServiceTest {
 
     @BeforeEach
     void setUp() {
-        deliveryService = new DeliveryService(agentRepository, assignmentRepository, commerceClient);
+        deliveryService = new DeliveryService(agentRepository, assignmentRepository, commerceClient, new ObjectMapper());
     }
 
     private DeliveryAssignment newAssignment(UUID id) {
-        DeliveryAssignment assignment = new DeliveryAssignment(UUID.randomUUID(), "ORD-1", storeId, "Bengaluru");
+        DeliveryAssignment assignment = new DeliveryAssignment(UUID.randomUUID(), "ORD-1", storeId, "Bengaluru", "Ravi Kumar", "9999999999", "[{\"title\":\"Clean Code\",\"qty\":1}]");
         ReflectionTestUtils.setField(assignment, "id", id);
         return assignment;
     }
@@ -99,7 +100,7 @@ class DeliveryServiceTest {
     void claim_assignmentAtAnotherStore_isTreatedAsNotFound() {
         DeliveryAgent agent = new DeliveryAgent(userId, "Agent Smith", "9999999999", storeId);
         UUID assignmentId = UUID.randomUUID();
-        DeliveryAssignment assignmentAtOtherStore = new DeliveryAssignment(UUID.randomUUID(), "ORD-2", UUID.randomUUID(), "Mumbai");
+        DeliveryAssignment assignmentAtOtherStore = new DeliveryAssignment(UUID.randomUUID(), "ORD-2", UUID.randomUUID(), "Mumbai", "Asha Rao", "8888888888", "[{\"title\":\"The Pragmatic Programmer\",\"qty\":1}]");
         ReflectionTestUtils.setField(assignmentAtOtherStore, "id", assignmentId);
         when(agentRepository.findById(userId)).thenReturn(Optional.of(agent));
         when(assignmentRepository.findById(assignmentId)).thenReturn(Optional.of(assignmentAtOtherStore));

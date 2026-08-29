@@ -1,10 +1,28 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  flex: 1;
+  justify-content: flex-end;
+}
+
 .editionTabs {
   display: inline-flex;
   gap: 2px;
   background: var(--color-surface-hover);
   border-radius: var(--radius-pill);
   padding: 3px;
-  margin-bottom: var(--space-4);
+  flex-shrink: 0;
 }
 
 .editionTab {
@@ -33,16 +51,59 @@
   box-shadow: var(--shadow-sm);
 }
 
-.filters {
-  display: grid;
-  grid-template-columns: minmax(240px, 1fr) 240px;
+.dropdownWrap {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2);
+  z-index: 100;
+  transform-origin: top right;
+  animation: dropIn 0.15s ease-out;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
   gap: var(--space-3);
-  align-items: end;
-  margin-bottom: var(--space-4);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.dropdownItem:hover {
+  background: var(--color-surface-hover);
 }
 
 .searchWrap {
   position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
 }
 
 .searchIcon {
@@ -115,9 +176,15 @@
   margin-left: auto;
 }
 
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
 }
 
 .table th {

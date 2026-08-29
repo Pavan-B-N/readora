@@ -17,4 +17,6 @@ public interface DeliveryAssignmentRepository extends JpaRepository<DeliveryAssi
     List<DeliveryAssignment> findAllByAgentIdOrderByCreatedAtDesc(UUID agentId);
 
     Optional<DeliveryAssignment> findByIdAndAgentId(UUID id, UUID agentId);
+
+    long countByAgentIdAndStatus(UUID agentId, DeliveryAssignmentStatus status);
 }

@@ -1,0 +1,230 @@
+.loading {
+  color: var(--color-text-muted);
+}
+
+.identityCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  font-weight: 600;
+  font-size: var(--font-size-base);
+}
+
+.phone {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-5) 0;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+}
+
+.earningsIcon {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.deliveriesIcon {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.returnsIcon {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.totalIcon {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.statValue {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-6);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+}
+
+.sectionSubtitle {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin: var(--space-1) 0 var(--space-4);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--color-text-subtle);
+}
+
+.jobList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.jobCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.jobLink {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: inherit;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.orderNumber {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.itemsRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  padding-top: var(--space-1);
+  border-top: 1px dashed var(--color-border);
+}
+
+.itemsRow svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.itemsSummary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.jobFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.payout {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-success);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}

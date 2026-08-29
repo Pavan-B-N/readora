@@ -17,4 +17,6 @@ public interface ReturnPickupAssignmentRepository extends JpaRepository<ReturnPi
     List<ReturnPickupAssignment> findAllByAgentIdOrderByCreatedAtDesc(UUID agentId);
 
     Optional<ReturnPickupAssignment> findByIdAndAgentId(UUID id, UUID agentId);
+
+    long countByAgentIdAndStatus(UUID agentId, ReturnPickupStatus status);
 }

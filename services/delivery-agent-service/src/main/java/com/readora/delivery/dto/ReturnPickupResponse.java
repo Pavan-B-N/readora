@@ -2,6 +2,7 @@ package com.readora.delivery.dto;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record ReturnPickupResponse(
@@ -15,6 +16,9 @@ public record ReturnPickupResponse(
         Instant enRouteAt,
         Instant collectedAt,
         String destinationCity,
+        String recipientName,
+        String recipientPhone,
+        List<ItemSnapshot> items,
         BigDecimal payoutAmount
 ) {
 }

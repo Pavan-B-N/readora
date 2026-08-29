@@ -1,9 +1,9 @@
 export const ROUTES = {
   login: '/login',
-  books: '/books',
-  newPhysicalBook: '/books/new/physical',
-  newVirtualBook: '/books/new/virtual',
-  editBook: (bookId: string) => `/books/${bookId}/edit`,
+  books: '/catalog',
+  newPhysicalBook: '/catalog/new/physical',
+  newVirtualBook: '/catalog/new/virtual',
+  editBook: (bookId: string) => `/catalog/${bookId}/edit`,
   categories: '/categories',
   publishers: '/publishers',
   authors: '/authors',

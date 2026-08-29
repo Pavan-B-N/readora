@@ -42,6 +42,16 @@ public class ReturnPickupAssignment {
     @Column(name = "destination_city")
     private String destinationCity;
 
+    @Column(name = "recipient_name")
+    private String recipientName;
+
+    @Column(name = "recipient_phone")
+    private String recipientPhone;
+
+    /** JSON array of {"title","qty"} objects, snapshotted at creation — parsed back into a list in the service layer for the response. */
+    @Column(name = "items_json")
+    private String itemsJson;
+
     @Column(name = "agent_id")
     private UUID agentId;
 
@@ -67,11 +77,17 @@ public class ReturnPickupAssignment {
     protected ReturnPickupAssignment() {
     }
 
-    public ReturnPickupAssignment(UUID orderId, String orderNumber, UUID storeId, String destinationCity) {
+    public ReturnPickupAssignment(
+            UUID orderId, String orderNumber, UUID storeId, String destinationCity,
+            String recipientName, String recipientPhone, String itemsJson
+    ) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
         this.storeId = storeId;
         this.destinationCity = destinationCity;
+        this.recipientName = recipientName;
+        this.recipientPhone = recipientPhone;
+        this.itemsJson = itemsJson;
     }
 
     @jakarta.persistence.PrePersist
@@ -114,6 +130,18 @@ public class ReturnPickupAssignment {
 
     public String getDestinationCity() {
         return destinationCity;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public String getRecipientPhone() {
+        return recipientPhone;
+    }
+
+    public String getItemsJson() {
+        return itemsJson;
     }
 
     public UUID getAgentId() {

@@ -1,8 +1,13 @@
 import { apiClient } from './client';
-import type { AgentMe, Assignment, AssignmentDetail } from '@/types/delivery';
+import type { AgentMe, AgentStats, Assignment, AssignmentDetail } from '@/types/delivery';
 
 export async function getMe(): Promise<AgentMe> {
   const response = await apiClient.get<AgentMe>('/api/v1/delivery/me');
+  return response.data;
+}
+
+export async function getStats(): Promise<AgentStats> {
+  const response = await apiClient.get<AgentStats>('/api/v1/delivery/me/stats');
   return response.data;
 }
 

@@ -15,6 +15,7 @@ import { ReturnsPage } from '@/pages/ReturnsPage/ReturnsPage';
 import { ReturnDetailPage } from '@/pages/ReturnDetailPage/ReturnDetailPage';
 import { DeliveryAgentsPage } from '@/pages/DeliveryAgentsPage/DeliveryAgentsPage';
 import { ProfilePage } from '@/pages/ProfilePage/ProfilePage';
+import { NotFoundPage } from '@/pages/NotFoundPage/NotFoundPage';
 import { ROUTES } from '@/constants/routes';
 
 export const router = createBrowserRouter([
@@ -29,7 +30,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.books, element: <BooksListPage /> },
           { path: ROUTES.newPhysicalBook, element: <BookFormPage /> },
           { path: ROUTES.newVirtualBook, element: <VirtualBookFormPage /> },
-          { path: '/books/:bookId/edit', element: <BookDetailPage /> },
+          { path: '/catalog/:bookId/edit', element: <BookDetailPage /> },
           { path: ROUTES.categories, element: <CategoriesPage /> },
           { path: ROUTES.publishers, element: <PublishersPage /> },
           { path: ROUTES.authors, element: <AuthorsPage /> },
@@ -39,6 +40,7 @@ export const router = createBrowserRouter([
           { path: '/returns/:orderId', element: <ReturnDetailPage /> },
           { path: ROUTES.deliveryAgents, element: <DeliveryAgentsPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
+          { path: '*', element: <NotFoundPage /> },
         ],
       },
     ],

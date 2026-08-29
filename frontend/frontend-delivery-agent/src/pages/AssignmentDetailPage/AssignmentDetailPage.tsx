@@ -70,10 +70,10 @@ export function AssignmentDetailPage() {
                 {address.line2 ? `, ${address.line2}` : ''}, {address.city}, {address.state} {address.postalCode}
               </span>
               {address.phone && (
-                <span className={styles.addressLine}>
+                <a href={`tel:${address.phone}`} className={styles.addressLine}>
                   <Phone size={14} />
                   {address.phone}
-                </span>
+                </a>
               )}
             </div>
           ) : (

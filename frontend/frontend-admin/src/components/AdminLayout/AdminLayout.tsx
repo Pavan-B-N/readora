@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store, Undo2, Bike } from 'lucide-react';
+import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store, Undo2, Bike, Menu, X } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
 import { getMe } from '@/api/userApi';
 import { listStores } from '@/api/catalogApi';
@@ -34,6 +34,7 @@ export function AdminLayout() {
   const email = useAppSelector((state) => state.auth.email);
   const initials = email ? email.slice(0, 2).toUpperCase() : '?';
   const [storeName, setStoreName] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([getMe(), listStores()]).then(([me, stores]) => {
@@ -42,9 +43,48 @@ export function AdminLayout() {
     });
   }, []);
 
+  useEffect(() => {
+    // Close sidebar on route change for mobile
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    // Prevent scrolling when drawer is open
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <div className={styles.shell}>
-      <aside className={styles.sidebar}>
+      <header className={styles.mobileHeader}>
+        <div className={styles.mobileBrand}>
+          <span className={styles.brandMark}>
+            <Library size={17} />
+          </span>
+          <span>Readora Admin</span>
+        </div>
+        <button
+          className={styles.mobileMenuBtn}
+          onClick={() => setMobileMenuOpen(true)}
+          aria-label="Open menu"
+        >
+          <Menu size={24} />
+        </button>
+      </header>
+
+      <div
+        className={[styles.overlay, mobileMenuOpen && styles.overlayOpen].filter(Boolean).join(' ')}
+        onClick={() => setMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      <aside className={[styles.sidebar, mobileMenuOpen && styles.sidebarOpen].filter(Boolean).join(' ')}>
         <div className={styles.brand}>
           <span className={styles.brandMark}>
             <Library size={17} />
@@ -53,6 +93,13 @@ export function AdminLayout() {
             <span className={styles.brandName}>Readora</span>
             <span className={styles.brandRole}>Admin</span>
           </span>
+          <button
+            className={styles.closeSidebarBtn}
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {storeName && (

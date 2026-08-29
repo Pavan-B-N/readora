@@ -40,6 +40,17 @@ public class DeliveryAssignment {
     @Column(name = "destination_city")
     private String destinationCity;
 
+    /** Snapshot of who to hand the package to — same resolve-once-at-creation reasoning as destinationCity. */
+    @Column(name = "recipient_name")
+    private String recipientName;
+
+    @Column(name = "recipient_phone")
+    private String recipientPhone;
+
+    /** JSON array of {"title","qty"} objects, snapshotted at creation — parsed back into a list in the service layer for the response. */
+    @Column(name = "items_json")
+    private String itemsJson;
+
     @Column(name = "agent_id")
     private UUID agentId;
 
@@ -62,11 +73,17 @@ public class DeliveryAssignment {
     protected DeliveryAssignment() {
     }
 
-    public DeliveryAssignment(UUID orderId, String orderNumber, UUID storeId, String destinationCity) {
+    public DeliveryAssignment(
+            UUID orderId, String orderNumber, UUID storeId, String destinationCity,
+            String recipientName, String recipientPhone, String itemsJson
+    ) {
         this.orderId = orderId;
         this.orderNumber = orderNumber;
         this.storeId = storeId;
         this.destinationCity = destinationCity;
+        this.recipientName = recipientName;
+        this.recipientPhone = recipientPhone;
+        this.itemsJson = itemsJson;
     }
 
     @jakarta.persistence.PrePersist
@@ -108,6 +125,18 @@ public class DeliveryAssignment {
 
     public String getDestinationCity() {
         return destinationCity;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public String getRecipientPhone() {
+        return recipientPhone;
+    }
+
+    public String getItemsJson() {
+        return itemsJson;
     }
 
     public UUID getAgentId() {

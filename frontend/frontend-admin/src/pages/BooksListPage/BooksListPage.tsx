@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Search, BookOpen, Truck, Download, X, ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
+import { Plus, Search, BookOpen, Truck, Download, X, ChevronLeft, ChevronRight, ImageOff, ChevronDown } from 'lucide-react';
 import { listBooks, getCategoryTree } from '@/api/catalogApi';
 import { getMe } from '@/api/userApi';
 import type { BookSummary } from '@/types/catalog';
@@ -8,9 +8,8 @@ import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryT
 import { useDebounced } from '@/hooks/useDebounced';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
-import { Select, FieldWrapper } from '@/components/Input';
+import { Select } from '@/components/Input';
 import { Badge } from '@/components/Badge';
-import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { ROUTES } from '@/constants/routes';
 import styles from './BooksListPage.module.css';
@@ -55,6 +54,19 @@ export function BooksListPage() {
   // store before it can search at all. null-but-loaded means "no store assigned."
   const [adminStoreId, setAdminStoreId] = useState<string | null>(null);
   const [storeLoaded, setStoreLoaded] = useState(false);
+
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
+  const addMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (addMenuRef.current && !addMenuRef.current.contains(event.target as Node)) {
+        setAddMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     getCategoryTree().then((tree) => setCategories(flattenCategoryTree(tree)));
@@ -135,68 +147,82 @@ export function BooksListPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Catalog"
-        subtitle="Manage the catalogue — stock levels, pricing, and virtual editions."
-        actions={
-          edition === 'physical' ? (
-            <Button onClick={() => navigate(ROUTES.newPhysicalBook)}>
-              <Plus size={15} />
-              New physical book
-            </Button>
-          ) : (
-            <Button onClick={() => navigate(ROUTES.newVirtualBook)}>
-              <Plus size={15} />
-              New virtual edition
-            </Button>
-          )
-        }
-      />
+      <div className={styles.toolbar}>
+        <div className={styles.editionTabs} role="tablist" aria-label="Edition type">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={edition === 'physical'}
+            className={[styles.editionTab, edition === 'physical' && styles.editionTabActive].filter(Boolean).join(' ')}
+            onClick={() => setEdition('physical')}
+          >
+            <Truck size={14} />
+            Physical
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={edition === 'virtual'}
+            className={[styles.editionTab, edition === 'virtual' && styles.editionTabActive].filter(Boolean).join(' ')}
+            onClick={() => setEdition('virtual')}
+          >
+            <Download size={14} />
+            Virtual
+          </button>
+        </div>
 
-      <div className={styles.editionTabs} role="tablist" aria-label="Edition type">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={edition === 'physical'}
-          className={[styles.editionTab, edition === 'physical' && styles.editionTabActive].filter(Boolean).join(' ')}
-          onClick={() => setEdition('physical')}
-        >
-          <Truck size={14} />
-          Physical
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={edition === 'virtual'}
-          className={[styles.editionTab, edition === 'virtual' && styles.editionTabActive].filter(Boolean).join(' ')}
-          onClick={() => setEdition('virtual')}
-        >
-          <Download size={14} />
-          Virtual editions
-        </button>
-      </div>
-
-      <div className={styles.filters}>
-        <FieldWrapper label="Search">
+        <div className={styles.toolbarActions}>
           <div className={styles.searchWrap}>
             <Search size={15} className={styles.searchIcon} />
             <input
               className={styles.searchInput}
-              placeholder="Title, author, ISBN…"
+              placeholder="Search catalogue…"
               value={filters.q}
               onChange={(e) => set({ q: e.target.value })}
             />
           </div>
-        </FieldWrapper>
 
-        <Select label="Category" value={filters.categoryId} onChange={(e) => set({ categoryId: e.target.value })}>
-          <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </Select>
+          <Select value={filters.categoryId} onChange={(e) => set({ categoryId: e.target.value })}>
+            <option value="">All categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </Select>
+
+          <div className={styles.dropdownWrap} ref={addMenuRef}>
+            <Button onClick={() => setAddMenuOpen((prev) => !prev)}>
+              <Plus size={15} />
+              Add Book
+              <ChevronDown size={14} style={{ marginLeft: -2, opacity: 0.8 }} />
+            </Button>
+            {addMenuOpen && (
+              <div className={styles.dropdownMenu}>
+                <button
+                  className={styles.dropdownItem}
+                  onClick={() => {
+                    setAddMenuOpen(false);
+                    navigate(ROUTES.newPhysicalBook);
+                  }}
+                >
+                  <Truck size={15} />
+                  Physical book
+                </button>
+                <button
+                  className={styles.dropdownItem}
+                  onClick={() => {
+                    setAddMenuOpen(false);
+                    navigate(ROUTES.newVirtualBook);
+                  }}
+                >
+                  <Download size={15} />
+                  Virtual edition
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {(activeChips.length > 0 || !loading) && (
@@ -225,56 +251,58 @@ export function BooksListPage() {
       )}
 
       <Card flush>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Authors</th>
-              <th>Price</th>
-              <th>Availability</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <tr className={styles.skeletonRow} key={i}>
-                    {Array.from({ length: 4 }).map((__, j) => (
-                      <td key={j}>
-                        <div className={styles.skeleton} style={{ width: j === 0 ? '70%' : '50%' }} />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              : books.map((book) => (
-                  <tr key={book.id} className={styles.row} onClick={() => navigate(ROUTES.editBook(book.id))}>
-                    <td>
-                      <div className={styles.titleCell}>
-                        {book.coverImageUrl ? (
-                          <img className={styles.cover} src={book.coverImageUrl} alt="" />
-                        ) : (
-                          <span className={styles.cover}>
-                            <ImageOff size={13} />
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Authors</th>
+                <th>Price</th>
+                <th>Availability</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <tr className={styles.skeletonRow} key={i}>
+                      {Array.from({ length: 4 }).map((__, j) => (
+                        <td key={j}>
+                          <div className={styles.skeleton} style={{ width: j === 0 ? '70%' : '50%' }} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                : books.map((book) => (
+                    <tr key={book.id} className={styles.row} onClick={() => navigate(ROUTES.editBook(book.id))}>
+                      <td>
+                        <div className={styles.titleCell}>
+                          {book.coverImageUrl ? (
+                            <img className={styles.cover} src={book.coverImageUrl} alt="" />
+                          ) : (
+                            <span className={styles.cover}>
+                              <ImageOff size={13} />
+                            </span>
+                          )}
+                          <span className={styles.titleText}>
+                            <span className={styles.bookTitle}>{book.title}</span>
+                            <span className={styles.bookMeta}>{book.isbn13}</span>
                           </span>
-                        )}
-                        <span className={styles.titleText}>
-                          <span className={styles.bookTitle}>{book.title}</span>
-                          <span className={styles.bookMeta}>{book.isbn13}</span>
-                        </span>
-                      </div>
-                    </td>
-                    <td>{book.authors.join(', ') || '—'}</td>
-                    <td className={styles.price}>
-                      {book.listPrice} {book.currency}
-                    </td>
-                    <td>
-                      <Badge variant={book.availability === 'IN_STOCK' ? 'success' : 'danger'} dot>
-                        {book.availability === 'IN_STOCK' ? 'In stock' : 'Out of stock'}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-          </tbody>
-        </table>
+                        </div>
+                      </td>
+                      <td>{book.authors.join(', ') || '—'}</td>
+                      <td className={styles.price}>
+                        {book.listPrice} {book.currency}
+                      </td>
+                      <td>
+                        <Badge variant={book.availability === 'IN_STOCK' ? 'success' : 'danger'} dot>
+                          {book.availability === 'IN_STOCK' ? 'In stock' : 'Out of stock'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
+        </div>
 
         {!loading && edition === 'physical' && storeLoaded && !adminStoreId && (
           <EmptyState

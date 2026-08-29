@@ -1,10 +1,12 @@
 package com.readora.delivery.controller;
 
 import com.readora.delivery.dto.AgentMeResponse;
+import com.readora.delivery.dto.AgentStatsResponse;
 import com.readora.delivery.dto.AssignmentDetailResponse;
 import com.readora.delivery.dto.AssignmentResponse;
 import com.readora.delivery.dto.SetDutyRequest;
 import com.readora.delivery.security.CurrentUserContext;
+import com.readora.delivery.service.AgentStatsService;
 import com.readora.delivery.service.DeliveryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,15 +32,27 @@ import java.util.UUID;
 public class DeliveryController {
 
     private final DeliveryService deliveryService;
+    private final AgentStatsService agentStatsService;
 
-    public DeliveryController(DeliveryService deliveryService) {
+    public DeliveryController(DeliveryService deliveryService, AgentStatsService agentStatsService) {
         this.deliveryService = deliveryService;
+        this.agentStatsService = agentStatsService;
     }
 
     @Operation(summary = "Get the caller's agent profile", tags = {"Delivery"})
     @GetMapping("/me")
     public ResponseEntity<AgentMeResponse> me() {
         return ResponseEntity.ok(deliveryService.getMe(CurrentUserContext.require()));
+    }
+
+    @Operation(
+            summary = "Get the caller's lifetime stats",
+            description = "Completed deliveries, completed return pickups, and total earnings across both — for the agent's profile page.",
+            tags = {"Delivery"}
+    )
+    @GetMapping("/me/stats")
+    public ResponseEntity<AgentStatsResponse> stats() {
+        return ResponseEntity.ok(agentStatsService.getStats(CurrentUserContext.require()));
     }
 
     @Operation(

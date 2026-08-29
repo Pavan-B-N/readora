@@ -1,6 +1,52 @@
 .shell {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
+}
+
+@media (min-width: 901px) {
+  .shell {
+    flex-direction: row;
+  }
+}
+
+.mobileHeader {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobileHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    padding: 0 var(--space-4);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+}
+
+.mobileBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+}
+
+.mobileMenuBtn {
+  background: none;
+  border: none;
+  color: var(--color-text);
+  padding: var(--space-2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: -8px;
 }
 
 .sidebar {
@@ -15,6 +61,44 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  z-index: 50;
+  transition: transform var(--transition);
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+}
+
+.overlay {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 45;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+  }
+
+  .overlayOpen {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .brand {
@@ -52,6 +136,22 @@
   color: var(--color-text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.closeSidebarBtn {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .closeSidebarBtn {
+    display: flex;
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    padding: var(--space-2);
+    margin-left: auto;
+    cursor: pointer;
+  }
 }
 
 .storeBadge {
@@ -162,5 +262,6 @@
 @media (max-width: 900px) {
   .main {
     padding: var(--space-5) var(--space-4);
+    width: 100%;
   }
 }
