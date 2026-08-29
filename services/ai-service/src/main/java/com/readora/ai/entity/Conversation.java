@@ -28,6 +28,10 @@ public class Conversation {
     @Column(name = "title")
     private String title;
 
+    /** Null for a general shopping-assistant conversation; set for a book reader's Q&A thread, one per (user, book). */
+    @Column(name = "book_id")
+    private UUID bookId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -40,6 +44,12 @@ public class Conversation {
     public Conversation(UUID userId, String title) {
         this.userId = userId;
         this.title = title;
+    }
+
+    public Conversation(UUID userId, String title, UUID bookId) {
+        this.userId = userId;
+        this.title = title;
+        this.bookId = bookId;
     }
 
     @PrePersist
@@ -64,6 +74,10 @@ public class Conversation {
 
     public String getTitle() {
         return title;
+    }
+
+    public UUID getBookId() {
+        return bookId;
     }
 
     public void setTitle(String title) {

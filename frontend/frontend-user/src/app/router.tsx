@@ -10,6 +10,7 @@ import { WishlistPage } from '@/pages/WishlistPage/WishlistPage';
 import { CheckoutPage } from '@/pages/CheckoutPage/CheckoutPage';
 import { OrdersPage } from '@/pages/OrdersPage/OrdersPage';
 import { OrderDetailPage } from '@/pages/OrderDetailPage/OrderDetailPage';
+import { LibraryPage } from '@/pages/LibraryPage/LibraryPage';
 import { WalletPage } from '@/pages/WalletPage/WalletPage';
 import { ProfilePage } from '@/pages/ProfilePage/ProfilePage';
 import { VirtualReaderPage } from '@/pages/VirtualReaderPage/VirtualReaderPage';
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.checkout, element: <CheckoutPage /> },
           { path: ROUTES.orders, element: <OrdersPage /> },
           { path: '/orders/:orderId', element: <OrderDetailPage /> },
+          { path: ROUTES.library, element: <LibraryPage /> },
           { path: ROUTES.wallet, element: <WalletPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
           { path: '/read/:bookId', element: <VirtualReaderPage /> },

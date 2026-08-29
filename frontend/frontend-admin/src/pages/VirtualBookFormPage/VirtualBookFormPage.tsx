@@ -8,11 +8,11 @@ import {
   listAuthors,
   upsertVirtualEdition,
 } from '@/api/catalogApi';
-import type { Author, VirtualFileFormat } from '@/types/catalog';
+import type { Author } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
-import { Input, Select, Textarea } from '@/components/Input';
+import { Input, Textarea } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
 import { PageHeader } from '@/components/PageHeader';
@@ -29,8 +29,6 @@ interface FormState {
   language: string;
   coverImageUrl: string;
   fileUrl: string;
-  fileFormat: VirtualFileFormat;
-  fileSizeBytes: string;
   price: string;
   currency: string;
 }
@@ -45,8 +43,6 @@ const EMPTY_FORM: FormState = {
   language: 'en',
   coverImageUrl: '',
   fileUrl: '',
-  fileFormat: 'PDF',
-  fileSizeBytes: '',
   price: '',
   currency: 'INR',
 };
@@ -109,7 +105,6 @@ export function VirtualBookFormPage() {
     if (!form.price.trim()) next.price = 'Price is required';
     else if (Number.isNaN(Number(form.price))) next.price = 'Price must be a number';
     if (form.currency.trim().length !== 3) next.currency = 'Use a 3-letter currency code';
-    if (form.fileSizeBytes && !/^\d+$/.test(form.fileSizeBytes)) next.fileSizeBytes = 'Whole number';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -139,16 +134,22 @@ export function VirtualBookFormPage() {
 
       await upsertVirtualEdition(book.id, {
         fileUrl: form.fileUrl.trim(),
-        fileFormat: form.fileFormat,
-        fileSizeBytes: form.fileSizeBytes ? Number(form.fileSizeBytes) : null,
+        fileFormat: 'PDF',
+        fileSizeBytes: null,
         price: form.price.trim(),
         currency: form.currency.trim().toUpperCase(),
       });
 
       showToast('Virtual edition created');
       navigate(ROUTES.editBook(book.id), { replace: true });
-    } catch {
-      showToast('Failed to create virtual edition', 'error');
+    } catch (error: unknown) {
+      const errorCode = (error as { response?: { data?: { errorCode?: string } } })?.response?.data?.errorCode;
+      if (errorCode === 'ISBN_ALREADY_EXISTS') {
+        setErrors((e) => ({ ...e, isbn13: 'A book with this ISBN already exists' }));
+        showToast('That ISBN is already in the catalogue', 'error');
+      } else {
+        showToast('Failed to create virtual edition', 'error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -258,18 +259,14 @@ export function VirtualBookFormPage() {
             onChange={(e) => set({ fileUrl: e.target.value })}
           />
 
-          <div className={styles.row3}>
-            <Select label="File format" value={form.fileFormat} onChange={(e) => set({ fileFormat: e.target.value as VirtualFileFormat })}>
-              <option value="PDF">PDF</option>
-              <option value="EPUB">EPUB</option>
-            </Select>
+          <div className={styles.row2}>
             <Input
-              label="File size"
-              hint="bytes, optional"
-              placeholder="512000"
-              value={form.fileSizeBytes}
-              error={errors.fileSizeBytes}
-              onChange={(e) => set({ fileSizeBytes: e.target.value })}
+              label="Price"
+              required
+              placeholder="249.00"
+              value={form.price}
+              error={errors.price}
+              onChange={(e) => set({ price: e.target.value })}
             />
             <Input
               label="Currency"
@@ -280,14 +277,7 @@ export function VirtualBookFormPage() {
             />
           </div>
 
-          <Input
-            label="Price"
-            required
-            placeholder="249.00"
-            value={form.price}
-            error={errors.price}
-            onChange={(e) => set({ price: e.target.value })}
-          />
+          <p className={styles.fileMeta}>PDF only for now. File size is detected automatically when saved.</p>
 
           <Button onClick={submit} disabled={submitting} block>
             <Check size={15} />

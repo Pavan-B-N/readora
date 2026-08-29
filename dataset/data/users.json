@@ -15,9 +15,9 @@
           "recipientName": "Dev Patel",
           "line1": "12 MG Road",
           "line2": null,
-          "city": "Pune",
-          "state": "Maharashtra",
-          "postalCode": "411001",
+          "city": "Bangalore",
+          "state": "Karnataka",
+          "postalCode": "560001",
           "countryCode": "IN",
           "phone": "+91-9000000005",
           "isDefault": true
@@ -289,6 +289,78 @@
       "displayName": "Amit Yadav",
       "role": "DELIVERY_AGENT",
       "phone": "+91-9000000017",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.bangalore2@readora.dev",
+      "displayName": "Deepa Nair",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000018",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.bangalore3@readora.dev",
+      "displayName": "Manoj Reddy",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000019",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.bangalore4@readora.dev",
+      "displayName": "Ananya Iyer",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000020",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.bangalore5@readora.dev",
+      "displayName": "Karthik Rao",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000021",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.mumbai2@readora.dev",
+      "displayName": "Priya Deshmukh",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000022",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.delhi2@readora.dev",
+      "displayName": "Rohit Sharma",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000023",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.hyderabad@readora.dev",
+      "displayName": "Sneha Reddy",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000024",
+      "walletBalance": 0.0,
+      "marketingOptIn": false,
+      "addresses": []
+    },
+    {
+      "email": "agent.chennai@readora.dev",
+      "displayName": "Vijay Kumar",
+      "role": "DELIVERY_AGENT",
+      "phone": "+91-9000000025",
       "walletBalance": 0.0,
       "marketingOptIn": false,
       "addresses": []

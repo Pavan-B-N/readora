@@ -22,6 +22,8 @@ public interface BookRepository extends JpaRepository<Book, UUID>, JpaSpecificat
 
     boolean existsByAuthorsId(UUID authorId);
 
+    boolean existsByIsbn13(String isbn13);
+
     /**
      * Bulk update, bypassing {@code @PreUpdate} — going through the entity would bump
      * {@code updatedAt} again on flush and make the book look stale as soon as it's marked

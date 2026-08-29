@@ -13,6 +13,7 @@ import com.readora.commerce.dto.CheckoutResponse;
 import com.readora.commerce.dto.OrderCancelledEvent;
 import com.readora.commerce.dto.OrderCreatedEvent;
 import com.readora.commerce.dto.OrderDeliveryDetailResponse;
+import com.readora.commerce.dto.NotificationRequestedEvent;
 import com.readora.commerce.dto.OrderDetailResponse;
 import com.readora.commerce.dto.OrderReturnedEvent;
 import com.readora.commerce.dto.OrderStatusChangedEvent;
@@ -22,6 +23,7 @@ import com.readora.commerce.dto.ReserveStockResponse;
 import com.readora.commerce.dto.ReturnMessageResponse;
 import com.readora.commerce.dto.ReturnOrderRequest;
 import com.readora.commerce.dto.ReturnOrderResponse;
+import com.readora.commerce.dto.StoreInfo;
 import com.readora.commerce.dto.VirtualEditionLookupRequest;
 import com.readora.commerce.dto.VirtualEditionLookupResponse;
 import com.readora.commerce.dto.WalletBalance;
@@ -45,7 +47,9 @@ import com.readora.commerce.exception.OrderCancelWindowExpiredException;
 import com.readora.commerce.exception.OrderNotFoundException;
 import com.readora.commerce.exception.OrderNotReturnableException;
 import com.readora.commerce.exception.ReturnNotUnderReviewException;
+import com.readora.commerce.exception.ShippingAddressCityMismatchException;
 import com.readora.commerce.exception.ShippingAddressRequiredException;
+import com.readora.commerce.exception.VirtualEditionAlreadyOwnedException;
 import com.readora.commerce.exception.VirtualEditionNotAvailableException;
 import com.readora.commerce.kafka.KafkaTopics;
 import com.readora.commerce.repository.OrderItemRepository;
@@ -143,6 +147,15 @@ public class OrderService {
             throw new ShippingAddressRequiredException();
         }
 
+        // Belt-and-suspenders on top of CartService's own check at add-to-cart time — this is the
+        // actual point of no return (payment), so it's checked again here in case a caller ever
+        // reaches checkout without having gone through the cart (e.g. a direct API call).
+        for (CheckoutRequest.Item item : virtualItems) {
+            if (orderItemRepository.existsActiveVirtualPurchase(userId, item.bookId())) {
+                throw new VirtualEditionAlreadyOwnedException();
+            }
+        }
+
         Order existing = orderRepository.findByIdempotencyKey(idempotencyKey).orElse(null);
         if (existing != null) {
             return toCheckoutResponse(existing);
@@ -181,12 +194,20 @@ public class OrderService {
             walletAmountUsed = grandTotal;
         }
 
+        UUID resolvedStoreId = resolveStoreId(lines);
+        if (hasPhysical) {
+            StoreInfo deliveringStore = catalogClient.getStore(resolvedStoreId);
+            if (!deliveringStore.city().equalsIgnoreCase(request.shippingAddress().city())) {
+                throw new ShippingAddressCityMismatchException(deliveringStore.city());
+            }
+        }
+
         DeliveryType orderDeliveryType = hasPhysical ? DeliveryType.PHYSICAL : DeliveryType.VIRTUAL;
         Order order = new Order(
                 generateOrderNumber(), userId, "INR", subtotal, shippingFee, packagingFee, taxAmount, grandTotal,
                 walletAmountUsed, paymentMethod, idempotencyKey, orderDeliveryType
         );
-        order.setStoreId(resolveStoreId(lines));
+        order.setStoreId(resolvedStoreId);
         orderRepository.save(order);
 
         for (PricedLine line : lines) {
@@ -386,9 +407,23 @@ public class OrderService {
 
         if (order.getDeliveryType() == DeliveryType.VIRTUAL) {
             initiateRefund(order, request.reason(), "system");
+        } else {
+            notifyAdminOfReturnRequest(order);
         }
 
         return new ReturnOrderResponse(order.getId(), order.getStatus().name(), order.getCancelledAt());
+    }
+
+    /** Only physical returns actually need an admin's attention — a virtual one auto-approves above and never waits on review. */
+    private void notifyAdminOfReturnRequest(Order order) {
+        UUID adminUserId = userServiceClient.getAdminUserIdForStore(order.getStoreId());
+        if (adminUserId == null) {
+            return;
+        }
+        publish("Order", order.getId(), KafkaTopics.NOTIFICATION_REQUESTED, new NotificationRequestedEvent(
+                adminUserId, "RETURN_REQUESTED_ADMIN", "New return to review",
+                "Order " + order.getOrderNumber() + " has a return awaiting your review.", order.getId()
+        ));
     }
 
     /**

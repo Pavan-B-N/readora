@@ -5,13 +5,17 @@ import com.readora.catalog.dto.BookCoverLookupResponse;
 import com.readora.catalog.dto.BookExportItem;
 import com.readora.catalog.dto.BookExportPage;
 import com.readora.catalog.dto.BookLookupResponse;
+import com.readora.catalog.dto.StoreResponse;
 import com.readora.catalog.dto.VirtualEditionLookupResponse;
 import com.readora.catalog.entity.Author;
 import com.readora.catalog.entity.Book;
 import com.readora.catalog.entity.Inventory;
+import com.readora.catalog.entity.Store;
 import com.readora.catalog.entity.VirtualEdition;
+import com.readora.catalog.exception.StoreNotFoundException;
 import com.readora.catalog.repository.BookRepository;
 import com.readora.catalog.repository.InventoryRepository;
+import com.readora.catalog.repository.StoreRepository;
 import com.readora.catalog.repository.VirtualEditionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,15 +37,32 @@ public class InternalCatalogService {
     private final BookRepository bookRepository;
     private final VirtualEditionRepository virtualEditionRepository;
     private final InventoryRepository inventoryRepository;
+    private final StoreRepository storeRepository;
 
     public InternalCatalogService(
             BookRepository bookRepository,
             VirtualEditionRepository virtualEditionRepository,
-            InventoryRepository inventoryRepository
+            InventoryRepository inventoryRepository,
+            StoreRepository storeRepository
     ) {
         this.bookRepository = bookRepository;
         this.virtualEditionRepository = virtualEditionRepository;
         this.inventoryRepository = inventoryRepository;
+        this.storeRepository = storeRepository;
+    }
+
+    /**
+     * Looked up by commerce-service during checkout to validate a shipping address's city
+     * actually matches the store the order is delivering from — commerce-service holds no local
+     * store data of its own.
+     */
+    @Transactional(readOnly = true)
+    public StoreResponse findStore(UUID storeId) {
+        Store store = storeRepository.findById(storeId).orElseThrow(StoreNotFoundException::new);
+        return new StoreResponse(
+                store.getId(), store.getName(), store.getCity(), store.getLine1(), store.getLine2(),
+                store.getState(), store.getPostalCode(), store.getCountryCode()
+        );
     }
 
     /**

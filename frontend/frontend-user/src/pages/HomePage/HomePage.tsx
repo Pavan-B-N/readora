@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Package, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { searchBooks, getCategoryTree, getRecommendations, getPurchasedBooks } from '@/api/catalogApi';
-import type { BookSummary, CategoryNode, PurchasedBook } from '@/types/catalog';
+import { BookOpen, Package, X, ChevronLeft, ChevronRight, SlidersHorizontal, Zap } from 'lucide-react';
+import { searchBooks, getCategoryTree, getRecommendations, getPurchasedBooks, getLibrary, listAuthors } from '@/api/catalogApi';
+import type { Author, BookSummary, CategoryNode, PurchasedBook } from '@/types/catalog';
 import { useDebounced } from '@/hooks/useDebounced';
 import { useAppSelector } from '@/redux/hooks';
 import { BookCard } from '@/components/BookCard';
@@ -60,12 +60,29 @@ export function HomePage() {
   const [categoryId, setCategoryId] = useState('');
   const [recommendedIds, setRecommendedIds] = useState<Set<string>>(new Set());
   const [orders, setOrders] = useState<PurchasedBook[]>([]);
+  const [ownedVirtualIds, setOwnedVirtualIds] = useState<Set<string>>(new Set());
+
+  const [authors, setAuthors] = useState<Author[]>([]);
+  const [authorId, setAuthorId] = useState('');
+  const [virtualOnly, setVirtualOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersRef = useRef<HTMLDivElement>(null);
 
   const debouncedCategoryId = useDebounced(categoryId, 150);
 
   useEffect(() => {
     getCategoryTree().then((tree) => setCategories(flatten(tree)));
+    listAuthors().then(setAuthors);
   }, []);
+
+  useEffect(() => {
+    if (!filtersOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) setFiltersOpen(false);
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [filtersOpen]);
 
   // Recommended items aren't a separate rail — they're just sorted first in the main feed below.
   useEffect(() => {
@@ -79,14 +96,16 @@ export function HomePage() {
   useEffect(() => {
     if (!accessToken) {
       setOrders([]);
+      setOwnedVirtualIds(new Set());
       return;
     }
     getPurchasedBooks().then(setOrders);
+    getLibrary().then((books) => setOwnedVirtualIds(new Set(books.map((b) => b.id))));
   }, [accessToken]);
 
   useEffect(() => {
     setPage(0);
-  }, [query, debouncedCategoryId]);
+  }, [query, debouncedCategoryId, authorId, virtualOnly]);
 
   useEffect(() => {
     if (!storeResolved) return;
@@ -97,6 +116,8 @@ export function HomePage() {
     searchBooks({
       q: query || undefined,
       categoryId: debouncedCategoryId || undefined,
+      authorId: authorId || undefined,
+      virtualOnly: virtualOnly || undefined,
       storeId: storeId ?? undefined,
       page,
       size: PAGE_SIZE,
@@ -122,9 +143,11 @@ export function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [query, page, debouncedCategoryId, storeId, storeResolved, recommendedIds]);
+  }, [query, page, debouncedCategoryId, authorId, virtualOnly, storeId, storeResolved, recommendedIds]);
 
   const activeCategoryName = categories.find((c) => c.id === categoryId)?.name;
+  const activeAuthorName = authors.find((a) => a.id === authorId)?.name;
+  const activeFilterCount = (authorId ? 1 : 0) + (virtualOnly ? 1 : 0);
 
   return (
     <div className={styles.layout}>
@@ -169,6 +192,7 @@ export function HomePage() {
                     <BookCard
                       book={item.book}
                       addLabel="Buy again"
+                      owned={ownedVirtualIds.has(item.book.id)}
                       footer={
                         <span className={[styles.statusChip, statusChipClassByVariant[statusVariant(item.orderStatus)]].join(' ')}>
                           {displayStatus(item.orderStatus)}
@@ -199,6 +223,96 @@ export function HomePage() {
                 </button>
               </span>
             )}
+            {activeAuthorName && (
+              <span className={styles.chip}>
+                {activeAuthorName}
+                <button type="button" onClick={() => setAuthorId('')} aria-label="Clear author filter">
+                  <X size={11} />
+                </button>
+              </span>
+            )}
+            {virtualOnly && (
+              <span className={styles.chip}>
+                <Zap size={11} />
+                Virtual only
+                <button type="button" onClick={() => setVirtualOnly(false)} aria-label="Clear virtual-only filter">
+                  <X size={11} />
+                </button>
+              </span>
+            )}
+
+            <div className={styles.filterWrap} ref={filtersRef}>
+              <button
+                type="button"
+                className={[styles.filterButton, activeFilterCount > 0 && styles.filterButtonActive].filter(Boolean).join(' ')}
+                onClick={() => setFiltersOpen((o) => !o)}
+                aria-label="Filters"
+              >
+                <SlidersHorizontal size={14} />
+                Filters
+                {activeFilterCount > 0 && <span className={styles.filterCount}>{activeFilterCount}</span>}
+              </button>
+
+              {filtersOpen && (
+                <div className={styles.filterPanel}>
+                  <label className={styles.filterCheckboxRow}>
+                    <input
+                      type="checkbox"
+                      checked={virtualOnly}
+                      onChange={(e) => setVirtualOnly(e.target.checked)}
+                    />
+                    <Zap size={13} />
+                    Virtual editions only
+                  </label>
+
+                  <div className={styles.filterField}>
+                    <span className={styles.filterLabel}>Category</span>
+                    <select
+                      className={styles.filterSelect}
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
+                    >
+                      <option value="">All categories</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {'—'.repeat(c.depth)} {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.filterField}>
+                    <span className={styles.filterLabel}>Author</span>
+                    <select
+                      className={styles.filterSelect}
+                      value={authorId}
+                      onChange={(e) => setAuthorId(e.target.value)}
+                    >
+                      <option value="">All authors</option>
+                      {authors.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {(activeFilterCount > 0 || categoryId) && (
+                    <button
+                      type="button"
+                      className={styles.filterClear}
+                      onClick={() => {
+                        setAuthorId('');
+                        setVirtualOnly(false);
+                        setCategoryId('');
+                      }}
+                    >
+                      Clear all filters
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           <span className={styles.count}>
             {loading ? 'Loading…' : `${totalElements} book${totalElements === 1 ? '' : 's'}`}
@@ -225,8 +339,16 @@ export function HomePage() {
                 : 'Try clearing a filter to see more of the catalogue.'
             }
             action={
-              categoryId ? (
-                <Button variant="secondary" size="sm" onClick={() => setCategoryId('')}>
+              categoryId || authorId || virtualOnly ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setCategoryId('');
+                    setAuthorId('');
+                    setVirtualOnly(false);
+                  }}
+                >
                   Clear filters
                 </Button>
               ) : undefined
@@ -236,7 +358,7 @@ export function HomePage() {
           <>
             <motion.div
               className={styles.grid}
-              key={`${page}-${debouncedCategoryId}-${query}`}
+              key={`${page}-${debouncedCategoryId}-${authorId}-${virtualOnly}-${query}`}
               variants={gridVariants}
               initial="hidden"
               animate="show"

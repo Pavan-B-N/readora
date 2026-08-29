@@ -19,7 +19,7 @@ import { Input, Textarea } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
 import { PageHeader } from '@/components/PageHeader';
-import { TocBuilder, tocSectionsToJson, jsonToTocSections, type TocSection } from '@/components/TocBuilder';
+import { TocBuilder, topicsToJson, jsonToTopics } from '@/components/TocBuilder';
 import { InventorySection } from '../BookFormPage/InventorySection';
 import { VirtualEditionSection } from '../BookFormPage/VirtualEditionSection';
 import { ReviewsSection } from '../BookFormPage/ReviewsSection';
@@ -69,7 +69,7 @@ export function BookDetailPage() {
 
   const [detail, setDetail] = useState<AdminBookDetail | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
-  const [toc, setToc] = useState<TocSection[]>([]);
+  const [toc, setToc] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Section>(null);
   const [saving, setSaving] = useState(false);
@@ -85,7 +85,7 @@ export function BookDetailPage() {
     return getBookForEdit(bookId).then((result) => {
       setDetail(result);
       setForm(detailToForm(result));
-      setToc(jsonToTocSections(result.tableOfContents));
+      setToc(jsonToTopics(result.tableOfContents));
     });
   };
 
@@ -135,7 +135,7 @@ export function BookDetailPage() {
   const cancelEdit = () => {
     if (detail) {
       setForm(detailToForm(detail));
-      setToc(jsonToTocSections(detail.tableOfContents));
+      setToc(jsonToTopics(detail.tableOfContents));
     }
     setErrors({});
     setEditing(null);
@@ -145,13 +145,21 @@ export function BookDetailPage() {
     if (!bookId || !form) return;
 
     const next: Record<string, string> = {};
-    if (section === 'details' && !form.title.trim()) next.title = 'Title is required';
-    if (section === 'classification' && form.authorIds.length === 0) next.authorIds = 'Select at least one author';
+    if (section === 'details') {
+      if (!form.title.trim()) next.title = 'Title is required';
+      if (!form.coverImageUrl.trim()) next.coverImageUrl = 'Cover image URL is required';
+    }
+    if (section === 'classification') {
+      if (form.authorIds.length === 0) next.authorIds = 'Select at least one author';
+      if (!form.categoryId) next.categoryId = 'Select a category';
+      if (!form.publisherId) next.publisherId = 'Select a publisher';
+    }
     if (section === 'pricing') {
       if (!form.listPrice.trim()) next.listPrice = 'Price is required';
       else if (Number.isNaN(Number(form.listPrice))) next.listPrice = 'Price must be a number';
       if (form.currency.trim().length !== 3) next.currency = 'Use a 3-letter currency code';
       if (form.pageCount && !/^\d+$/.test(form.pageCount)) next.pageCount = 'Must be a whole number';
+      if (!form.publishedOn) next.publishedOn = 'Published date is required';
     }
     setErrors(next);
     if (Object.keys(next).length > 0) return;
@@ -162,7 +170,7 @@ export function BookDetailPage() {
         title: form.title.trim(),
         subtitle: form.subtitle.trim() || null,
         description: form.description.trim() || null,
-        tableOfContents: tocSectionsToJson(toc),
+        tableOfContents: topicsToJson(toc),
         categoryId: form.categoryId,
         publisherId: form.publisherId,
         authorIds: form.authorIds,
@@ -205,184 +213,220 @@ export function BookDetailPage() {
         }
       />
 
-      <div className={styles.hero}>
-        {form.coverImageUrl ? (
-          <img className={styles.cover} src={form.coverImageUrl} alt="" />
-        ) : (
-          <span className={styles.coverPlaceholder}>
-            <ImageOff size={22} />
-          </span>
-        )}
-        <div className={styles.heroBadges}>
-          {isPhysical && (
-            <Badge variant="neutral">
-              <Truck size={11} />
-              Physical
-            </Badge>
+      <div className={styles.layout}>
+        <div className={styles.coverColumn}>
+          {form.coverImageUrl ? (
+            <img className={styles.cover} src={form.coverImageUrl} alt="" />
+          ) : (
+            <span className={styles.coverPlaceholder}>
+              <ImageOff size={32} />
+            </span>
           )}
-          {isVirtual && (
-            <Badge variant="neutral">
-              <Download size={11} />
-              Virtual
+          <div className={styles.heroBadges}>
+            {isPhysical && (
+              <Badge variant="neutral">
+                <Truck size={11} />
+                Physical
+              </Badge>
+            )}
+            {isVirtual && (
+              <Badge variant="neutral">
+                <Download size={11} />
+                Virtual
+              </Badge>
+            )}
+            <Badge variant={detail.isActive ? 'success' : 'danger'} dot>
+              {detail.isActive ? 'Active' : 'Inactive'}
             </Badge>
-          )}
-          <Badge variant={detail.isActive ? 'success' : 'danger'} dot>
-            {detail.isActive ? 'Active' : 'Inactive'}
-          </Badge>
+          </div>
+        </div>
+
+        <div className={styles.main}>
+          <Card>
+            <CardHeader
+              title="Details"
+              actions={
+                editing === 'details' ? (
+                  <SectionActions saving={saving} onSave={() => saveSection('details')} onCancel={cancelEdit} />
+                ) : (
+                  <EditButton onClick={() => startEdit('details')} />
+                )
+              }
+            />
+
+            {editing === 'details' ? (
+              <div className={styles.form}>
+                <div className={styles.row2}>
+                  <Input label="Title" required value={form.title} error={errors.title} onChange={(e) => set({ title: e.target.value })} />
+                  <Input label="Subtitle" value={form.subtitle} onChange={(e) => set({ subtitle: e.target.value })} />
+                </div>
+                <Textarea
+                  label="Description"
+                  hint="Also powers semantic search"
+                  rows={4}
+                  value={form.description}
+                  onChange={(e) => set({ description: e.target.value })}
+                />
+                <Input
+                  label="Cover image URL"
+                  required
+                  value={form.coverImageUrl}
+                  error={errors.coverImageUrl}
+                  onChange={(e) => set({ coverImageUrl: e.target.value })}
+                />
+                <label className={styles.toggleRow}>
+                  <input type="checkbox" checked={form.isActive} onChange={(e) => set({ isActive: e.target.checked })} />
+                  <span className={styles.toggleText}>
+                    <span className={styles.toggleLabel}>Active</span>
+                    <span className={styles.toggleHint}>Inactive books are hidden from customers and can't be purchased.</span>
+                  </span>
+                </label>
+              </div>
+            ) : (
+              <div className={styles.reviewGrid}>
+                <ReviewItem label="Subtitle" value={form.subtitle || null} />
+                <ReviewItem label="Description" value={form.description || null} />
+                <ReviewItem label="Cover image URL" value={form.coverImageUrl || null} />
+              </div>
+            )}
+
+            <div className={styles.sectionDivider} />
+
+            <CardHeader
+              title="Classification"
+              actions={
+                editing === 'classification' ? (
+                  <SectionActions saving={saving} onSave={() => saveSection('classification')} onCancel={cancelEdit} />
+                ) : (
+                  <EditButton onClick={() => startEdit('classification')} />
+                )
+              }
+            />
+
+            {editing === 'classification' ? (
+              <div className={styles.form}>
+                <div className={styles.row2}>
+                  <Combobox
+                    label="Category"
+                    required
+                    placeholder="Search categories…"
+                    options={categoryOptions}
+                    value={form.categoryId}
+                    error={errors.categoryId}
+                    onChange={(v) => set({ categoryId: v })}
+                  />
+                  <Combobox
+                    label="Publisher"
+                    required
+                    placeholder="Search publishers…"
+                    options={publisherOptions}
+                    value={form.publisherId}
+                    error={errors.publisherId}
+                    onChange={(v) => set({ publisherId: v })}
+                  />
+                </div>
+                <Combobox
+                  multiple
+                  label="Authors"
+                  required
+                  hint="Type a new name to add an author that isn't in the catalogue yet"
+                  placeholder="Search authors…"
+                  options={authorOptions}
+                  value={form.authorIds}
+                  error={errors.authorIds}
+                  onChange={(v) => set({ authorIds: v })}
+                  onCreate={handleCreateAuthor}
+                  creating={creatingAuthor}
+                />
+              </div>
+            ) : (
+              <div className={styles.reviewGrid}>
+                <ReviewItem label="Category" value={categoryLabel} />
+                <ReviewItem label="Publisher" value={publisherLabel} />
+                <ReviewItem label="Authors" value={authorNames || null} />
+              </div>
+            )}
+
+            {isPhysical && (
+              <>
+                <div className={styles.sectionDivider} />
+
+                <CardHeader
+                  title="Pricing & contents"
+                  subtitle="Physical-edition specific — hidden for virtual-only titles."
+                  actions={
+                    editing === 'pricing' ? (
+                      <SectionActions saving={saving} onSave={() => saveSection('pricing')} onCancel={cancelEdit} />
+                    ) : (
+                      <EditButton onClick={() => startEdit('pricing')} />
+                    )
+                  }
+                />
+
+                {editing === 'pricing' ? (
+                  <div className={styles.form}>
+                    <div className={styles.row3}>
+                      <Input label="List price" required value={form.listPrice} error={errors.listPrice} onChange={(e) => set({ listPrice: e.target.value })} />
+                      <Input label="Currency" required value={form.currency} error={errors.currency} onChange={(e) => set({ currency: e.target.value })} />
+                      <Input label="Language" value={form.language} onChange={(e) => set({ language: e.target.value })} />
+                    </div>
+                    <div className={styles.row2}>
+                      <Input label="Page count" value={form.pageCount} error={errors.pageCount} onChange={(e) => set({ pageCount: e.target.value })} />
+                      <Input
+                        label="Published on"
+                        type="date"
+                        required
+                        value={form.publishedOn}
+                        error={errors.publishedOn}
+                        onChange={(e) => set({ publishedOn: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <span className={styles.tocLabel}>
+                        Table of contents
+                        <span className={styles.tocLabelHint}> — optional, improves search quality for non-fiction</span>
+                      </span>
+                      <TocBuilder value={toc} onChange={setToc} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.reviewGrid}>
+                    <ReviewItem label="Price" value={`${form.listPrice} ${form.currency}`} />
+                    <ReviewItem label="Language" value={form.language || null} />
+                    <ReviewItem label="Page count" value={form.pageCount || null} />
+                    <ReviewItem label="Published on" value={form.publishedOn || null} />
+                    <ReviewItem label="Topics" value={toc.length ? String(toc.length) : null} />
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className={styles.sectionDivider} />
+
+            <CardHeader title="Audit" subtitle="Who listed this book, and whether its search index is current." />
+            <div className={styles.reviewGrid}>
+              <ReviewItem label="Added on" value={new Date(detail.createdAt).toLocaleString()} />
+              <ReviewItem label="Added by" value={detail.createdByUserId ? `${detail.createdByUserId.slice(0, 8)}…` : null} />
+              <div className={styles.reviewItem}>
+                <span className={styles.reviewLabel}>Search index</span>
+                <span className={styles.reviewValue}>
+                  <Badge variant={detail.needsReembedding ? 'warning' : 'success'} dot>
+                    {detail.needsReembedding ? 'Needs re-embedding' : 'Up to date'}
+                  </Badge>
+                </span>
+              </div>
+              <ReviewItem label="Last embedded" value={detail.embeddedAt ? new Date(detail.embeddedAt).toLocaleString() : 'Never'} />
+            </div>
+          </Card>
+
+          <ReviewsSection bookId={bookId!} />
+        </div>
+
+        <div className={styles.sidebar}>
+          {isPhysical && <InventorySection bookId={bookId!} inventory={detail.inventory} />}
+          <VirtualEditionSection bookId={bookId!} virtualEdition={detail.virtualEdition} onChanged={reload} />
         </div>
       </div>
-
-      <Card>
-        <CardHeader
-          title="Details"
-          actions={
-            editing === 'details' ? (
-              <SectionActions saving={saving} onSave={() => saveSection('details')} onCancel={cancelEdit} />
-            ) : (
-              <EditButton onClick={() => startEdit('details')} />
-            )
-          }
-        />
-
-        {editing === 'details' ? (
-          <div className={styles.form}>
-            <div className={styles.row2}>
-              <Input label="Title" required value={form.title} error={errors.title} onChange={(e) => set({ title: e.target.value })} />
-              <Input label="Subtitle" value={form.subtitle} onChange={(e) => set({ subtitle: e.target.value })} />
-            </div>
-            <Textarea
-              label="Description"
-              hint="Also powers semantic search"
-              rows={4}
-              value={form.description}
-              onChange={(e) => set({ description: e.target.value })}
-            />
-            <Input label="Cover image URL" value={form.coverImageUrl} onChange={(e) => set({ coverImageUrl: e.target.value })} />
-            <label className={styles.toggleRow}>
-              <input type="checkbox" checked={form.isActive} onChange={(e) => set({ isActive: e.target.checked })} />
-              <span className={styles.toggleText}>
-                <span className={styles.toggleLabel}>Active</span>
-                <span className={styles.toggleHint}>Inactive books are hidden from customers and can't be purchased.</span>
-              </span>
-            </label>
-          </div>
-        ) : (
-          <div className={styles.reviewGrid}>
-            <ReviewItem label="Subtitle" value={form.subtitle || null} />
-            <ReviewItem label="Description" value={form.description || null} />
-            <ReviewItem label="Cover image URL" value={form.coverImageUrl || null} />
-          </div>
-        )}
-      </Card>
-
-      <Card>
-        <CardHeader
-          title="Classification"
-          actions={
-            editing === 'classification' ? (
-              <SectionActions saving={saving} onSave={() => saveSection('classification')} onCancel={cancelEdit} />
-            ) : (
-              <EditButton onClick={() => startEdit('classification')} />
-            )
-          }
-        />
-
-        {editing === 'classification' ? (
-          <div className={styles.form}>
-            <div className={styles.row2}>
-              <Combobox label="Category" placeholder="Search categories…" options={categoryOptions} value={form.categoryId} onChange={(v) => set({ categoryId: v })} />
-              <Combobox label="Publisher" placeholder="Search publishers…" options={publisherOptions} value={form.publisherId} onChange={(v) => set({ publisherId: v })} />
-            </div>
-            <Combobox
-              multiple
-              label="Authors"
-              required
-              hint="Type a new name to add an author that isn't in the catalogue yet"
-              placeholder="Search authors…"
-              options={authorOptions}
-              value={form.authorIds}
-              error={errors.authorIds}
-              onChange={(v) => set({ authorIds: v })}
-              onCreate={handleCreateAuthor}
-              creating={creatingAuthor}
-            />
-          </div>
-        ) : (
-          <div className={styles.reviewGrid}>
-            <ReviewItem label="Category" value={categoryLabel} />
-            <ReviewItem label="Publisher" value={publisherLabel} />
-            <ReviewItem label="Authors" value={authorNames || null} />
-          </div>
-        )}
-      </Card>
-
-      {isPhysical && (
-        <Card>
-          <CardHeader
-            title="Pricing & contents"
-            subtitle="Physical-edition specific — hidden for virtual-only titles."
-            actions={
-              editing === 'pricing' ? (
-                <SectionActions saving={saving} onSave={() => saveSection('pricing')} onCancel={cancelEdit} />
-              ) : (
-                <EditButton onClick={() => startEdit('pricing')} />
-              )
-            }
-          />
-
-          {editing === 'pricing' ? (
-            <div className={styles.form}>
-              <div className={styles.row3}>
-                <Input label="List price" required value={form.listPrice} error={errors.listPrice} onChange={(e) => set({ listPrice: e.target.value })} />
-                <Input label="Currency" required value={form.currency} error={errors.currency} onChange={(e) => set({ currency: e.target.value })} />
-                <Input label="Language" value={form.language} onChange={(e) => set({ language: e.target.value })} />
-              </div>
-              <div className={styles.row3}>
-                <Input label="Page count" value={form.pageCount} error={errors.pageCount} onChange={(e) => set({ pageCount: e.target.value })} />
-                <Input label="Published on" type="date" value={form.publishedOn} onChange={(e) => set({ publishedOn: e.target.value })} />
-              </div>
-              <div>
-                <span className={styles.tocLabel}>
-                  Table of contents
-                  <span className={styles.tocLabelHint}> — optional, improves search quality for non-fiction</span>
-                </span>
-                <TocBuilder value={toc} onChange={setToc} />
-              </div>
-            </div>
-          ) : (
-            <div className={styles.reviewGrid}>
-              <ReviewItem label="Price" value={`${form.listPrice} ${form.currency}`} />
-              <ReviewItem label="Language" value={form.language || null} />
-              <ReviewItem label="Page count" value={form.pageCount || null} />
-              <ReviewItem label="Published on" value={form.publishedOn || null} />
-              <ReviewItem label="Contents sections" value={toc.length ? String(toc.length) : null} />
-            </div>
-          )}
-        </Card>
-      )}
-
-      {isPhysical && <InventorySection bookId={bookId!} inventory={detail.inventory} />}
-
-      <VirtualEditionSection bookId={bookId!} virtualEdition={detail.virtualEdition} onChanged={reload} />
-
-      <ReviewsSection bookId={bookId!} />
-
-      <Card>
-        <CardHeader title="Audit" subtitle="Who listed this book, and whether its search index is current." />
-        <div className={styles.reviewGrid}>
-          <ReviewItem label="Added on" value={new Date(detail.createdAt).toLocaleString()} />
-          <ReviewItem label="Added by" value={detail.createdByUserId ? `${detail.createdByUserId.slice(0, 8)}…` : null} />
-          <div className={styles.reviewItem}>
-            <span className={styles.reviewLabel}>Search index</span>
-            <span className={styles.reviewValue}>
-              <Badge variant={detail.needsReembedding ? 'warning' : 'success'} dot>
-                {detail.needsReembedding ? 'Needs re-embedding' : 'Up to date'}
-              </Badge>
-            </span>
-          </div>
-          <ReviewItem label="Last embedded" value={detail.embeddedAt ? new Date(detail.embeddedAt).toLocaleString() : 'Never'} />
-        </div>
-      </Card>
     </div>
   );
 }

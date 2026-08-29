@@ -1,10 +1,10 @@
 [
   {
-    "isbn13": "9781234567897",
-    "title": "Java & Spring",
-    "fileUrl": "java-and-spring.pdf",
+    "isbn13": "9781234567904",
+    "title": "JavaScript Notes",
+    "fileUrl": "javaScript.pdf",
     "fileFormat": "PDF",
-    "fileSizeBytes": 5104,
+    "fileSizeBytes": 8243412,
     "price": 199.0,
     "currency": "INR",
     "isActive": true

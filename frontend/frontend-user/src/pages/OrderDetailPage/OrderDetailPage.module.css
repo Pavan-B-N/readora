@@ -56,6 +56,19 @@
   padding-bottom: 0;
 }
 
+.itemClickable {
+  cursor: pointer;
+  margin: 0 calc(-1 * var(--space-3));
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
+  border-radius: var(--radius-md);
+  transition: background var(--transition);
+}
+
+.itemClickable:hover {
+  background: var(--color-surface-hover);
+}
+
 .itemName {
   min-width: 0;
 }

@@ -102,6 +102,36 @@ public class CatalogClient {
      * risking a stale/wrong availability list, since silently falling back to "everything is
      * available" would defeat the guardrail's whole purpose.
      */
+    /** Gates both indexing and chatting about a book's content — only a real purchaser may trigger either. */
+    @CircuitBreaker(name = "catalog-service", fallbackMethod = "isOwnedFallback")
+    public boolean isOwned(UUID userId, UUID bookId) {
+        OwnedResponse response = restClient.get()
+                .uri("/internal/books/{bookId}/owned?userId={userId}", bookId, userId)
+                .retrieve()
+                .body(OwnedResponse.class);
+        return response != null && response.owned();
+    }
+
+    /** Raw bytes of a virtual edition's file, for the reader's text-extraction + embedding pipeline. */
+    @CircuitBreaker(name = "catalog-service", fallbackMethod = "getBookContentFallback")
+    public byte[] getBookContent(UUID bookId) {
+        return restClient.get()
+                .uri("/internal/books/{bookId}/content", bookId)
+                .retrieve()
+                .body(byte[].class);
+    }
+
+    private boolean isOwnedFallback(UUID userId, UUID bookId, Throwable t) {
+        throw translate(t);
+    }
+
+    private byte[] getBookContentFallback(UUID bookId, Throwable t) {
+        throw translate(t);
+    }
+
+    private record OwnedResponse(boolean owned) {
+    }
+
     @CircuitBreaker(name = "catalog-service", fallbackMethod = "checkAvailabilityFallback")
     public List<UUID> checkAvailability(List<UUID> bookIds, UUID storeId) {
         if (bookIds.isEmpty()) {

@@ -8,22 +8,28 @@ import com.readora.catalog.dto.BookExportPage;
 import com.readora.catalog.dto.BookLookupRequest;
 import com.readora.catalog.dto.BookLookupResponse;
 import com.readora.catalog.dto.MarkEmbeddedRequest;
+import com.readora.catalog.dto.StoreResponse;
 import com.readora.catalog.dto.VirtualEditionLookupRequest;
 import com.readora.catalog.dto.VirtualEditionLookupResponse;
 import com.readora.catalog.service.InternalCatalogService;
+import com.readora.catalog.service.VirtualContentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 @Tag(name = "Internal")
 @RestController
@@ -31,9 +37,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class InternalCatalogController {
 
     private final InternalCatalogService internalCatalogService;
+    private final VirtualContentService virtualContentService;
 
-    public InternalCatalogController(InternalCatalogService internalCatalogService) {
+    public InternalCatalogController(InternalCatalogService internalCatalogService, VirtualContentService virtualContentService) {
         this.internalCatalogService = internalCatalogService;
+        this.virtualContentService = virtualContentService;
     }
 
     @Operation(
@@ -119,5 +127,52 @@ public class InternalCatalogController {
     @PostMapping("/books/covers")
     public ResponseEntity<BookCoverLookupResponse> lookupCovers(@RequestBody BookCoverLookupRequest request) {
         return ResponseEntity.ok(internalCatalogService.lookupCovers(request.bookIds()));
+    }
+
+    @Operation(
+            summary = "Look up a store by id",
+            description = "Internal, service-to-service only. Called by commerce-service during checkout to validate "
+                    + "a shipping address's city against the store the order is delivering from.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Store found"),
+            @ApiResponse(responseCode = "404", description = "No store with that id")
+    })
+    @GetMapping("/stores/{storeId}")
+    public ResponseEntity<StoreResponse> findStore(@PathVariable UUID storeId) {
+        return ResponseEntity.ok(internalCatalogService.findStore(storeId));
+    }
+
+    @Operation(
+            summary = "Check whether a user owns a book's virtual edition",
+            description = "Internal, service-to-service only. Called by ai-service before indexing or chatting "
+                    + "about a book's content, so only a real purchaser can trigger embedding work or read the assistant's answers.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Ownership boolean returned")
+    })
+    @GetMapping("/books/{bookId}/owned")
+    public ResponseEntity<OwnedResponse> isOwned(@PathVariable UUID bookId, @RequestParam UUID userId) {
+        return ResponseEntity.ok(new OwnedResponse(virtualContentService.isOwned(userId, bookId)));
+    }
+
+    @Operation(
+            summary = "Fetch a virtual edition's raw file",
+            description = "Internal, service-to-service only. Called by ai-service's reader-indexing pipeline to "
+                    + "extract and embed a book's text. No ownership check here — the caller already verified "
+                    + "ownership via the /owned endpoint above; this just resolves the stored file.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "File streamed")
+    })
+    @GetMapping("/books/{bookId}/content")
+    public ResponseEntity<Resource> getContent(@PathVariable UUID bookId) {
+        return ResponseEntity.ok(virtualContentService.getContentForInternalUse(bookId));
+    }
+
+    private record OwnedResponse(boolean owned) {
     }
 }

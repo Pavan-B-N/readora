@@ -49,7 +49,7 @@ public final class BookSpecifications {
     }
 
     public static Specification<Book> withFilters(
-            String query, UUID categoryId, UUID publisherId,
+            String query, UUID categoryId, UUID publisherId, UUID authorId,
             BigDecimal minPrice, BigDecimal maxPrice, Boolean virtualOnly, UUID storeId, Set<UUID> ownedBookIds
     ) {
         return (root, criteriaQuery, cb) -> {
@@ -87,6 +87,13 @@ public final class BookSpecifications {
             }
             if (publisherId != null) {
                 predicates.add(cb.equal(root.get("publisher").get("id"), publisherId));
+            }
+            if (authorId != null) {
+                // authors is a @ManyToMany collection — the join can otherwise duplicate a book
+                // row per matching author, though filtering to one specific id never actually
+                // matches more than once per book; distinct() is just cheap insurance.
+                criteriaQuery.distinct(true);
+                predicates.add(cb.equal(root.join("authors").get("id"), authorId));
             }
             if (minPrice != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("listPrice"), minPrice));

@@ -640,20 +640,20 @@
     "coverImageUrl": "https://covers.openlibrary.org/b/isbn/9780393609394-L.jpg"
   },
   {
-    "isbn13": "9781234567897",
-    "title": "Java & Spring",
-    "subtitle": "A Demo Virtual Edition",
-    "description": "A short demo book used to exercise Readora's virtual-edition purchase and in-app reading flow end to end. Not real learning material.",
-    "tableOfContents": "{\"Topics\": [\"Core Java Syntax\", \"Spring Dependency Injection\", \"Spring Boot Basics\", \"REST Controllers\", \"Data Access with Spring Data\"]}",
+    "isbn13": "9781234567904",
+    "title": "JavaScript Notes",
+    "subtitle": "ECMAScript, the Language, and How It Runs",
+    "description": "A concise set of JavaScript study notes covering ECMAScript fundamentals and core language mechanics — the sole virtual edition in the catalog, used to exercise Readora's virtual-edition purchase and in-app reading (with an AI reading assistant) end to end.",
+    "tableOfContents": "{\"Topics\": [\"ECMAScript Basics\", \"Variables and Scope\", \"Functions and Closures\", \"Asynchronous JavaScript\", \"The DOM and Browser APIs\"]}",
     "category": "Technology",
     "publisher": "Addison-Wesley",
     "authors": ["Readora Editorial"],
     "language": "en",
-    "pageCount": 10,
+    "pageCount": 72,
     "publishedOn": "2026-01-01",
     "listPrice": 199.00,
     "currency": "INR",
-    "coverImageUrl": null,
+    "coverImageUrl": "https://covers.openlibrary.org/b/isbn/1593279507-L.jpg",
     "virtualOnly": true
   },
   {

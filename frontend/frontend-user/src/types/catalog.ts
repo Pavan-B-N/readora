@@ -16,6 +16,11 @@ export interface BookSummary {
   reviewCount: number;
 }
 
+export interface Author {
+  id: string;
+  name: string;
+}
+
 /** One "Your orders" rail entry — a book plus the status of the order it came from. */
 export interface PurchasedBook {
   book: BookSummary;

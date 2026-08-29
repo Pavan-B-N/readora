@@ -3,10 +3,10 @@ import { Download, PowerOff } from 'lucide-react';
 import { deactivateVirtualEdition, upsertVirtualEdition } from '@/api/catalogApi';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
-import { Input, Select } from '@/components/Input';
+import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { Badge } from '@/components/Badge';
-import type { AdminBookDetail, VirtualFileFormat } from '@/types/catalog';
+import type { AdminBookDetail } from '@/types/catalog';
 import styles from './BookFormPage.module.css';
 
 export function VirtualEditionSection({
@@ -20,10 +20,6 @@ export function VirtualEditionSection({
 }) {
   const { showToast } = useToast();
   const [fileUrl, setFileUrl] = useState(virtualEdition?.fileUrl ?? '');
-  const [fileFormat, setFileFormat] = useState<VirtualFileFormat>(virtualEdition?.fileFormat ?? 'PDF');
-  const [fileSizeBytes, setFileSizeBytes] = useState(
-    virtualEdition?.fileSizeBytes != null ? String(virtualEdition.fileSizeBytes) : '',
-  );
   const [price, setPrice] = useState(virtualEdition?.price != null ? String(virtualEdition.price) : '');
   const [currency, setCurrency] = useState(virtualEdition?.currency ?? 'INR');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -35,7 +31,6 @@ export function VirtualEditionSection({
     if (!price.trim()) next.price = 'Price is required';
     else if (Number.isNaN(Number(price))) next.price = 'Must be a number';
     if (currency.trim().length !== 3) next.currency = 'Use a 3-letter code';
-    if (fileSizeBytes && !/^\d+$/.test(fileSizeBytes)) next.fileSizeBytes = 'Whole number';
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -43,8 +38,8 @@ export function VirtualEditionSection({
     try {
       await upsertVirtualEdition(bookId, {
         fileUrl: fileUrl.trim(),
-        fileFormat,
-        fileSizeBytes: fileSizeBytes ? Number(fileSizeBytes) : null,
+        fileFormat: 'PDF',
+        fileSizeBytes: null,
         price: price.trim(),
         currency: currency.trim().toUpperCase(),
       });
@@ -98,22 +93,15 @@ export function VirtualEditionSection({
           onChange={(e) => setFileUrl(e.target.value)}
         />
 
-        <div className={styles.row3}>
-          <Select
-            label="File format"
-            value={fileFormat}
-            onChange={(e) => setFileFormat(e.target.value as VirtualFileFormat)}
-          >
-            <option value="PDF">PDF</option>
-            <option value="EPUB">EPUB</option>
-          </Select>
+        <div className={styles.row2}>
           <Input
-            label="File size"
-            hint="bytes"
-            placeholder="512000"
-            value={fileSizeBytes}
-            error={errors.fileSizeBytes}
-            onChange={(e) => setFileSizeBytes(e.target.value)}
+            label="Price"
+            required
+            hint="Can differ from the physical list price"
+            placeholder="249.00"
+            value={price}
+            error={errors.price}
+            onChange={(e) => setPrice(e.target.value)}
           />
           <Input
             label="Currency"
@@ -124,15 +112,9 @@ export function VirtualEditionSection({
           />
         </div>
 
-        <Input
-          label="Price"
-          required
-          hint="Can differ from the physical list price"
-          placeholder="249.00"
-          value={price}
-          error={errors.price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
+        <p className={styles.fileMeta}>
+          PDF only for now. File size is detected automatically when saved.
+        </p>
 
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <Button onClick={onSave} disabled={saving}>

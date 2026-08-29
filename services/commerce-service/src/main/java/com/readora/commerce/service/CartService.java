@@ -13,7 +13,9 @@ import com.readora.commerce.exception.CartItemNotFoundException;
 import com.readora.commerce.exception.InsufficientStockException;
 import com.readora.commerce.exception.QtyLimitExceededException;
 import com.readora.commerce.exception.StoreIdRequiredException;
+import com.readora.commerce.exception.VirtualEditionAlreadyOwnedException;
 import com.readora.commerce.exception.VirtualEditionNotAvailableException;
+import com.readora.commerce.repository.OrderItemRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,10 +30,12 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final CatalogClient catalogClient;
+    private final OrderItemRepository orderItemRepository;
 
-    public CartService(CartRepository cartRepository, CatalogClient catalogClient) {
+    public CartService(CartRepository cartRepository, CatalogClient catalogClient, OrderItemRepository orderItemRepository) {
         this.cartRepository = cartRepository;
         this.catalogClient = catalogClient;
+        this.orderItemRepository = orderItemRepository;
     }
 
     public CartResponse getCart(UUID userId) {
@@ -51,6 +55,12 @@ public class CartService {
         // already in the cart, unlike physical stock which genuinely accumulates.
         int newQty;
         if (request.deliveryType() == DeliveryType.VIRTUAL) {
+            // Nothing left to sell — re-adding (e.g. a "Buy again" click on order history, which
+            // doesn't know the difference between a physical rebuy and a virtual one) would let a
+            // customer pay twice for the exact same permanent, unlimited-access digital copy.
+            if (orderItemRepository.existsActiveVirtualPurchase(userId, request.bookId())) {
+                throw new VirtualEditionAlreadyOwnedException();
+            }
             newQty = 1;
         } else {
             newQty = (existing != null ? existing.qty() : 0) + request.qty();

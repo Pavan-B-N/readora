@@ -561,6 +561,13 @@ CREATE TABLE IF NOT EXISTS commerce.orders (
                 'DELIVERED',
                 'PAYMENT_FAILED',
                 'CANCELLED',
+                'RETURN_REQUESTED',
+                'RETURN_REJECTED',
+                'RETURN_APPROVED',
+                'RETURN_ASSIGNED',
+                'RETURN_EN_ROUTE',
+                'RETURN_COLLECTED',
+                'REFUND_INITIATED',
                 'RETURNED'
             )
         ),
@@ -637,6 +644,13 @@ CREATE TABLE IF NOT EXISTS commerce.order_status_history (
                 'DELIVERED',
                 'PAYMENT_FAILED',
                 'CANCELLED',
+                'RETURN_REQUESTED',
+                'RETURN_REJECTED',
+                'RETURN_APPROVED',
+                'RETURN_ASSIGNED',
+                'RETURN_EN_ROUTE',
+                'RETURN_COLLECTED',
+                'REFUND_INITIATED',
                 'RETURNED'
             )
         ),
@@ -652,6 +666,13 @@ CREATE TABLE IF NOT EXISTS commerce.order_status_history (
                 'DELIVERED',
                 'PAYMENT_FAILED',
                 'CANCELLED',
+                'RETURN_REQUESTED',
+                'RETURN_REJECTED',
+                'RETURN_APPROVED',
+                'RETURN_ASSIGNED',
+                'RETURN_EN_ROUTE',
+                'RETURN_COLLECTED',
+                'REFUND_INITIATED',
                 'RETURNED'
             )
         )

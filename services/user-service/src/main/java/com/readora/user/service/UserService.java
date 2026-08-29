@@ -149,6 +149,16 @@ public class UserService {
         return userProfileRepository.findById(userId).map(UserProfile::getAdminStoreId).orElse(null);
     }
 
+    /**
+     * The reverse of getAdminStoreId() — called by commerce-service to find who to notify when a
+     * customer requests a return or posts a return-chat message. Each store has exactly one
+     * assigned admin in this system, so "first" is also "only."
+     */
+    @Transactional(readOnly = true)
+    public UUID getAdminUserIdForStore(UUID storeId) {
+        return userProfileRepository.findFirstByAdminStoreId(storeId).map(UserProfile::getUserId).orElse(null);
+    }
+
     /** Read-only lookup — unlike getMe(), does not provision a profile as a side effect. */
     @Transactional(readOnly = true)
     public String getDisplayName(UUID userId) {

@@ -148,6 +148,13 @@
   min-height: 100vh;
 }
 
+/* The reader wants the PDF + assistant-panel split to use the whole viewport width, not the
+   site-wide reading-column cap every other page shares — unlike mainFullBleed, it keeps the
+   normal padding so the toolbar/panel don't sit flush against the browser edge. */
+.mainWide {
+  max-width: none;
+}
+
 @media (max-width: 640px) {
   .headerInner {
     gap: var(--space-3);

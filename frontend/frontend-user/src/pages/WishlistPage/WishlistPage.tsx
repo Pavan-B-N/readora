@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Heart } from 'lucide-react';
-import { getBooksByIds } from '@/api/catalogApi';
+import { getBooksByIds, getLibrary } from '@/api/catalogApi';
 import type { BookSummary } from '@/types/catalog';
 import { useAppSelector } from '@/redux/hooks';
 import { BookCard } from '@/components/BookCard';
@@ -19,6 +19,11 @@ export function WishlistPage() {
 
   const [books, setBooks] = useState<BookSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ownedVirtualIds, setOwnedVirtualIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    getLibrary().then((owned) => setOwnedVirtualIds(new Set(owned.map((b) => b.id))));
+  }, []);
 
   useEffect(() => {
     if (idList.length === 0) {
@@ -55,7 +60,7 @@ export function WishlistPage() {
       ) : (
         <div className={styles.grid}>
           {books.map((book) => (
-            <BookCard book={book} key={book.id} />
+            <BookCard book={book} key={book.id} owned={ownedVirtualIds.has(book.id)} />
           ))}
         </div>
       )}

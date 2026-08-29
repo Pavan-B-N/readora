@@ -145,3 +145,37 @@ export async function streamChat(
 
   return { conversationId: resolvedConversationId, bookIds };
 }
+
+// ---------------------------------------------------------------------------
+// Reader assistant — a focused RAG Q&A over one purchased book's own content,
+// entirely separate from the shopping assistant above (no tools, no book
+// recommendations, no cross-book knowledge).
+// ---------------------------------------------------------------------------
+
+export type ReaderIndexStatus = 'PENDING' | 'READY' | 'FAILED' | null;
+
+export interface ReaderMessage {
+  role: 'USER' | 'ASSISTANT';
+  content: string;
+}
+
+export async function getReaderStatus(bookId: string): Promise<ReaderIndexStatus> {
+  const response = await apiClient.get<{ status: ReaderIndexStatus }>(`/api/v1/ai/books/${bookId}/reader/status`);
+  return response.data.status;
+}
+
+/** Embeds the book's content for the assistant — one-time, shared by every owner. */
+export async function initializeReader(bookId: string): Promise<ReaderIndexStatus> {
+  const response = await apiClient.post<{ status: ReaderIndexStatus }>(`/api/v1/ai/books/${bookId}/reader/initialize`);
+  return response.data.status;
+}
+
+export async function getReaderHistory(bookId: string): Promise<ReaderMessage[]> {
+  const response = await apiClient.get<ReaderMessage[]>(`/api/v1/ai/books/${bookId}/reader/messages`);
+  return response.data;
+}
+
+export async function sendReaderMessage(bookId: string, message: string): Promise<string> {
+  const response = await apiClient.post<{ reply: string }>(`/api/v1/ai/books/${bookId}/reader/chat`, { message });
+  return response.data.reply;
+}

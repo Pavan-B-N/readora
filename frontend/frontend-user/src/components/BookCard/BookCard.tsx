@@ -18,10 +18,13 @@ export function BookCard({
   book,
   footer,
   addLabel = 'Add',
+  owned = false,
 }: {
   book: BookSummary;
   footer?: ReactNode;
   addLabel?: string;
+  /** The caller already owns this book's virtual edition — there's nothing left to buy, so the card offers "Read now" instead of cart controls. No effect on a physical listing (a second copy is a legitimate purchase). */
+  owned?: boolean;
 }) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -35,6 +38,13 @@ export function BookCard({
   const [adding, setAdding] = useState(false);
   const [changingQty, setChangingQty] = useState(false);
   const outOfStock = book.availability === 'OUT_OF_STOCK';
+  const ownedVirtual = owned && book.deliveryType === 'VIRTUAL';
+
+  const onReadNow = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(ROUTES.read(book.id));
+  };
 
   const toggleWishlist = (e: MouseEvent) => {
     e.preventDefault();
@@ -130,7 +140,12 @@ export function BookCard({
         <span className={styles.price}>₹{book.listPrice}</span>
         <span className={styles.currency}>{book.currency}</span>
       </div>
-      {cartLine ? (
+      {ownedVirtual ? (
+        <Button variant="primary" size="sm" block onClick={onReadNow}>
+          <BookOpen size={13} />
+          Read now
+        </Button>
+      ) : cartLine ? (
         book.deliveryType === 'VIRTUAL' ? (
           <button
             type="button"

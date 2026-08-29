@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package } from 'lucide-react';
+import { Package, PackagePlus } from 'lucide-react';
 import { updateInventory } from '@/api/catalogApi';
 import { useToast } from '@/components/Toast';
 import { Card, CardHeader } from '@/components/Card';
@@ -21,6 +21,10 @@ export function InventorySection({
   const [reorderThreshold, setReorderThreshold] = useState(String(inventory?.reorderThreshold ?? 0));
   const [errors, setErrors] = useState<{ qtyOnHand?: string; reorderThreshold?: string }>({});
   const [saving, setSaving] = useState(false);
+
+  const [restockQty, setRestockQty] = useState('');
+  const [restockError, setRestockError] = useState<string | undefined>();
+  const [restocking, setRestocking] = useState(false);
 
   const available = (Number(qtyOnHand) || 0) - (inventory?.qtyReserved ?? 0);
 
@@ -45,6 +49,31 @@ export function InventorySection({
     }
   };
 
+  /** For when a shipment arrives — adds to the current count instead of asking the admin to do the math. */
+  const onAddStock = async () => {
+    if (!/^\d+$/.test(restockQty) || Number(restockQty) === 0) {
+      setRestockError('Enter how many arrived');
+      return;
+    }
+    setRestockError(undefined);
+
+    const newQty = (Number(qtyOnHand) || 0) + Number(restockQty);
+    setRestocking(true);
+    try {
+      await updateInventory(bookId, {
+        qtyOnHand: newQty,
+        reorderThreshold: Number(reorderThreshold) || 0,
+      });
+      setQtyOnHand(String(newQty));
+      showToast(`Added ${restockQty} — now ${newQty} on hand`);
+      setRestockQty('');
+    } catch {
+      showToast('Failed to add stock', 'error');
+    } finally {
+      setRestocking(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader
@@ -60,6 +89,25 @@ export function InventorySection({
           </Badge>
         }
       />
+
+      <div className={styles.restockRow}>
+        <Input
+          label="Stock arrived"
+          hint="Units to add to the current count"
+          placeholder="e.g. 20"
+          value={restockQty}
+          error={restockError}
+          onChange={(e) => setRestockQty(e.target.value)}
+        />
+        <Button onClick={onAddStock} disabled={restocking}>
+          <PackagePlus size={15} />
+          {restocking ? 'Adding…' : 'Add stock'}
+        </Button>
+      </div>
+
+      <div className={styles.divider} />
+
+      <span className={styles.fileMeta}>Or set the exact totals directly:</span>
 
       <div className={styles.row2}>
         <Input
@@ -79,7 +127,7 @@ export function InventorySection({
       </div>
 
       <div style={{ marginTop: 'var(--space-4)' }}>
-        <Button onClick={onSave} disabled={saving}>
+        <Button variant="secondary" onClick={onSave} disabled={saving}>
           <Package size={15} />
           {saving ? 'Saving…' : 'Save inventory'}
         </Button>

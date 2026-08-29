@@ -6,11 +6,13 @@ import com.readora.commerce.dto.BookCoverLookupResponse;
 import com.readora.commerce.dto.BookInfo;
 import com.readora.commerce.dto.ReserveStockRequest;
 import com.readora.commerce.dto.ReserveStockResponse;
+import com.readora.commerce.dto.StoreInfo;
 import com.readora.commerce.dto.VirtualEditionLookupRequest;
 import com.readora.commerce.dto.VirtualEditionLookupResponse;
 import com.readora.commerce.exception.BookNotFoundException;
 import com.readora.commerce.exception.InsufficientStockException;
 import com.readora.commerce.exception.ServiceException;
+import com.readora.commerce.exception.StoreNotFoundException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -84,6 +86,19 @@ public class CatalogClient {
                 .body(BookInfo.class);
     }
 
+    /** Looked up during checkout to validate a shipping address's city against the delivering store. */
+    @CircuitBreaker(name = "catalog-service", fallbackMethod = "getStoreFallback")
+    @Retry(name = "catalog-service")
+    public StoreInfo getStore(UUID storeId) {
+        return restClient.get()
+                .uri("/internal/stores/{id}", storeId)
+                .retrieve()
+                .onStatus(this::isNotFound, (req, res) -> {
+                    throw new StoreNotFoundException();
+                })
+                .body(StoreInfo.class);
+    }
+
     @CircuitBreaker(name = "catalog-service", fallbackMethod = "reserveStockFallback")
     @Retry(name = "catalog-service")
     public ReserveStockResponse reserveStock(ReserveStockRequest request) {
@@ -140,6 +155,10 @@ public class CatalogClient {
     }
 
     private BookInfo getBookFallback(UUID bookId, UUID storeId, Throwable t) {
+        throw translate(t);
+    }
+
+    private StoreInfo getStoreFallback(UUID storeId, Throwable t) {
         throw translate(t);
     }
 

@@ -1160,36 +1160,36 @@
     "verifiedPurchase": false
   },
   {
-    "isbn13": "9781234567897",
-    "email": "rohan@readora.dev",
-    "authorDisplayName": "Rohan Verma",
-    "rating": 4,
-    "comment": "Solid choice, arrived quickly and the content lived up to the reviews I'd read.",
-    "verifiedPurchase": true
-  },
-  {
-    "isbn13": "9781234567897",
-    "email": "sara.jones@readora.dev",
-    "authorDisplayName": "Sara Jones",
-    "rating": 3,
-    "comment": "Good in parts, slow in others. A mixed experience overall.",
-    "verifiedPurchase": true
-  },
-  {
-    "isbn13": "9781234567897",
-    "email": "priya@readora.dev",
-    "authorDisplayName": "Priya Sharma",
-    "rating": 3,
-    "comment": "It was fine — some strong moments, but overall fairly average.",
-    "verifiedPurchase": false
-  },
-  {
     "isbn13": "9780441013593",
     "email": "priya@readora.dev",
     "authorDisplayName": "Priya Sharma",
     "rating": 5,
     "comment": "One of the best reads I've picked up this year. Highly recommend to anyone interested in the topic.",
     "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781234567904",
+    "email": "rohan@readora.dev",
+    "authorDisplayName": "Rohan Verma",
+    "rating": 5,
+    "comment": "Exactly the refresher I needed on ECMAScript fundamentals — clear and to the point, and the in-app reading assistant is a nice touch for looking things up mid-read.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781234567904",
+    "email": "sara.jones@readora.dev",
+    "authorDisplayName": "Sara Jones",
+    "rating": 4,
+    "comment": "Solid coverage of closures and async JavaScript. Would've liked a bit more on the DOM, but a good concise set of notes overall.",
+    "verifiedPurchase": true
+  },
+  {
+    "isbn13": "9781234567904",
+    "email": "priya@readora.dev",
+    "authorDisplayName": "Priya Sharma",
+    "rating": 4,
+    "comment": "Good for brushing up before interviews. Short enough to get through in an evening.",
+    "verifiedPurchase": false
   },
   {
     "isbn13": "9780441013593",

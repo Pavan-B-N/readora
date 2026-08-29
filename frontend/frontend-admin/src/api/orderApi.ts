@@ -6,6 +6,11 @@ export async function listReturns(page = 0, size = 20): Promise<AdminOrdersPage>
   return response.data;
 }
 
+export async function getReturn(orderId: string): Promise<AdminOrderSummary> {
+  const response = await apiClient.get<AdminOrderSummary>(`/api/v1/admin/orders/${orderId}`);
+  return response.data;
+}
+
 /** decision is "APPROVE"/"REJECT" for a return awaiting review; omit it for a plain cancellation note. */
 export async function reviewOrder(orderId: string, note: string, decision?: 'APPROVE' | 'REJECT'): Promise<AdminOrderSummary> {
   const response = await apiClient.post<AdminOrderSummary>(`/api/v1/admin/orders/${orderId}/review`, { note, decision });

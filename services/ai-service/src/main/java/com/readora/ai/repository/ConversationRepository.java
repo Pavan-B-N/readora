@@ -13,4 +13,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     Page<Conversation> findAllByUserIdOrderByUpdatedAtDesc(UUID userId, Pageable pageable);
 
     Optional<Conversation> findByIdAndUserId(UUID id, UUID userId);
+
+    Optional<Conversation> findByUserIdAndBookId(UUID userId, UUID bookId);
 }

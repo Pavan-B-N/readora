@@ -119,7 +119,7 @@ public class CatalogService {
      */
     @Transactional(readOnly = true)
     public PageResponse<BookSummaryResponse> search(
-            String query, UUID categoryId, UUID publisherId,
+            String query, UUID categoryId, UUID publisherId, UUID authorId,
             BigDecimal minPrice, BigDecimal maxPrice, Boolean virtualOnly, UUID storeId, UUID userId, Pageable pageable
     ) {
         if (!Boolean.TRUE.equals(virtualOnly) && storeId == null) {
@@ -131,7 +131,7 @@ public class CatalogService {
                 : Set.of();
 
         Page<Book> page = bookRepository.findAll(
-                BookSpecifications.withFilters(query, categoryId, publisherId, minPrice, maxPrice, virtualOnly, storeId, ownedBookIds),
+                BookSpecifications.withFilters(query, categoryId, publisherId, authorId, minPrice, maxPrice, virtualOnly, storeId, ownedBookIds),
                 pageable
         );
 
@@ -318,6 +318,35 @@ public class CatalogService {
                 .getContent()
                 .stream()
                 .map(book -> book.getStore() == null ? toVirtualSummary(book) : toSummary(book))
+                .toList();
+    }
+
+    /**
+     * The "My library" page — every virtual edition the caller actually owns and can open in the
+     * in-app reader. Distinct from getPurchasedBookIds' raw id list (which mixes physical and
+     * virtual, and includes titles whose virtual edition has since been deactivated): only
+     * currently-active virtual editions are readable, so only those belong here.
+     */
+    @Transactional(readOnly = true)
+    public List<BookSummaryResponse> getLibrary(UUID userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        List<UUID> purchasedBookIds = commerceClient.getPurchasedBookIds(userId);
+        if (purchasedBookIds.isEmpty()) {
+            return List.of();
+        }
+
+        Set<UUID> ownedVirtualBookIds = virtualEditionRepository.findAllById(purchasedBookIds).stream()
+                .filter(VirtualEdition::isActive)
+                .map(VirtualEdition::getBookId)
+                .collect(Collectors.toSet());
+        if (ownedVirtualBookIds.isEmpty()) {
+            return List.of();
+        }
+
+        return bookRepository.findAllById(ownedVirtualBookIds).stream()
+                .map(this::toVirtualSummary)
                 .toList();
     }
 

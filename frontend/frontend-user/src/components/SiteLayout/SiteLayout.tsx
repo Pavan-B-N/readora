@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ShoppingCart, User, Package, Wallet, LogOut, BookOpen, Heart } from 'lucide-react';
+import { ShoppingCart, User, Package, Wallet, LogOut, BookOpen, Heart, Library } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { loggedOut } from '@/redux/slices/authSlice';
 import { cartCleared } from '@/redux/slices/cartSlice';
@@ -34,6 +34,12 @@ export function SiteLayout() {
 
   // Auth pages own their whole screen — no site chrome competing with the sign-in/sign-up flow.
   const isAuthPage = location.pathname === ROUTES.login || location.pathname === ROUTES.register;
+
+  // The reader already has its own dedicated reading-assistant panel — the general shopping
+  // assistant bubble floating on top of it is redundant and, at the bottom-right, overlaps the
+  // reader's own chat composer. It also wants the full viewport width for the PDF + panel split,
+  // not the site-wide reading-column max-width every other page shares.
+  const isReaderPage = location.pathname.startsWith('/read/');
 
   // The store we're "delivering from" is resolved once here (preferred store for signed-in
   // callers, first active store otherwise) and shared via Redux — StoreSwitcher and HomePage
@@ -94,6 +100,10 @@ export function SiteLayout() {
                     <Package size={18} />
                     <span className={styles.navLabel}>Orders</span>
                   </NavLink>
+                  <NavLink to={ROUTES.library} className={navClass} aria-label="Library">
+                    <Library size={18} />
+                    <span className={styles.navLabel}>Library</span>
+                  </NavLink>
                   <NavLink to={ROUTES.wallet} className={navClass} aria-label="Wallet">
                     <Wallet size={18} />
                     <span className={styles.navLabel}>Wallet</span>
@@ -118,7 +128,11 @@ export function SiteLayout() {
         </header>
       )}
 
-      <main className={[styles.main, isAuthPage && styles.mainFullBleed].filter(Boolean).join(' ')}>
+      <main
+        className={[styles.main, isAuthPage && styles.mainFullBleed, isReaderPage && styles.mainWide]
+          .filter(Boolean)
+          .join(' ')}
+      >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={transitionKey}
@@ -132,7 +146,7 @@ export function SiteLayout() {
         </AnimatePresence>
       </main>
 
-      {!isAuthPage && <ChatWidget />}
+      {!isAuthPage && !isReaderPage && <ChatWidget />}
     </div>
   );
 }

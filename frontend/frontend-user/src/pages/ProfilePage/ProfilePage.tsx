@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Check, MapPin, Plus, Star, Trash2, X } from 'lucide-react';
-import { addAddress, deleteAddress, getMe, listAddresses, setDefaultAddress } from '@/api/userApi';
+import { Check, MapPin, Pencil, Plus, Star, Trash2, X } from 'lucide-react';
+import { addAddress, deleteAddress, getMe, listAddresses, setDefaultAddress, updateProfile } from '@/api/userApi';
 import { listStores } from '@/api/catalogApi';
 import type { Address, AddressLabel, AddressRecipientType, MeResponse } from '@/types/user';
 import type { Store } from '@/types/catalog';
@@ -46,6 +46,10 @@ export function ProfilePage() {
   const [errors, setErrors] = useState<Partial<Record<keyof AddressForm, string>>>({});
   const [saving, setSaving] = useState(false);
 
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ displayName: '', phone: '' });
+  const [savingProfile, setSavingProfile] = useState(false);
+
   const reloadAddresses = () => listAddresses().then(setAddresses);
 
   useEffect(() => {
@@ -66,6 +70,28 @@ export function ProfilePage() {
   const openForm = () => {
     setForm(emptyForm(me?.displayName ?? '', me?.phone ?? ''));
     setFormOpen(true);
+  };
+
+  const openProfileEdit = () => {
+    setProfileForm({ displayName: me?.displayName ?? '', phone: me?.phone ?? '' });
+    setEditingProfile(true);
+  };
+
+  const onSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const updated = await updateProfile({
+        displayName: profileForm.displayName.trim() || null,
+        phone: profileForm.phone.trim() || null,
+      });
+      setMe(updated);
+      showToast('Profile updated');
+      setEditingProfile(false);
+    } catch {
+      showToast('Could not update your profile', 'error');
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   const onRecipientTypeChange = (recipientType: AddressRecipientType) => {
@@ -146,6 +172,16 @@ export function ProfilePage() {
           <Card>
             {me && (
               <>
+                <CardHeader
+                  title="Personal info"
+                  actions={
+                    !editingProfile && (
+                      <Button variant="ghost" size="sm" iconOnly aria-label="Edit profile" onClick={openProfileEdit}>
+                        <Pencil size={14} />
+                      </Button>
+                    )
+                  }
+                />
                 <div className={styles.identity}>
                   <span className={styles.avatar}>{initials}</span>
                   <span className={styles.identityText}>
@@ -153,23 +189,53 @@ export function ProfilePage() {
                     <div className={styles.email}>{me.email}</div>
                   </span>
                 </div>
-                <div className={styles.profileRow}>
-                  <span className={styles.profileLabel}>Wallet balance</span>
-                  <span>
-                    ₹{me.wallet.balance} {me.wallet.currency}
-                  </span>
-                </div>
-                {store && (
-                  <div className={styles.profileRow}>
-                    <span className={styles.profileLabel}>Shopping from</span>
-                    <span>{store.name}</span>
+
+                {editingProfile ? (
+                  <div className={styles.form}>
+                    <Input
+                      label="Display name"
+                      value={profileForm.displayName}
+                      onChange={(e) => setProfileForm((f) => ({ ...f, displayName: e.target.value }))}
+                    />
+                    <Input
+                      label="Phone"
+                      value={profileForm.phone}
+                      onChange={(e) => setProfileForm((f) => ({ ...f, phone: e.target.value }))}
+                    />
+                    <div className={styles.profileEditActions}>
+                      <Button variant="secondary" onClick={() => setEditingProfile(false)} disabled={savingProfile}>
+                        Cancel
+                      </Button>
+                      <Button onClick={onSaveProfile} disabled={savingProfile}>
+                        {savingProfile ? 'Saving…' : 'Save'}
+                      </Button>
+                    </div>
                   </div>
-                )}
-                {me.locale && (
-                  <div className={styles.profileRow}>
-                    <span className={styles.profileLabel}>Locale</span>
-                    <span>{me.locale}</span>
-                  </div>
+                ) : (
+                  <>
+                    <div className={styles.profileRow}>
+                      <span className={styles.profileLabel}>Phone</span>
+                      <span>{me.phone ?? <span className={styles.missingValue}>Not set</span>}</span>
+                    </div>
+                    <div className={styles.profileRow}>
+                      <span className={styles.profileLabel}>Wallet balance</span>
+                      <span>
+                        ₹{me.wallet.balance} {me.wallet.currency}
+                      </span>
+                    </div>
+                    {store && (
+                      <div className={styles.profileRow}>
+                        <span className={styles.profileLabel}>Shopping from</span>
+                        <span>{store.name}</span>
+                      </div>
+                    )}
+                    {me.locale && (
+                      <div className={styles.profileRow}>
+                        <span className={styles.profileLabel}>Locale</span>
+                        <span>{me.locale}</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -300,7 +366,7 @@ export function ProfilePage() {
                 <Input
                   label="Recipient name"
                   required
-                  disabled={form.recipientType === 'OWNER'}
+                  disabled={form.recipientType === 'OWNER' && Boolean(me?.displayName)}
                   value={form.recipientName}
                   error={errors.recipientName}
                   onChange={(e) => set({ recipientName: e.target.value })}
@@ -308,7 +374,7 @@ export function ProfilePage() {
                 <Input
                   label="Recipient phone"
                   required
-                  disabled={form.recipientType === 'OWNER'}
+                  disabled={form.recipientType === 'OWNER' && Boolean(me?.phone)}
                   value={form.recipientPhone}
                   error={errors.recipientPhone}
                   onChange={(e) => set({ recipientPhone: e.target.value })}

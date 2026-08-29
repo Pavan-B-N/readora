@@ -26,6 +26,15 @@
   border-bottom: none;
 }
 
+.row {
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.row:hover {
+  background: var(--color-surface-hover);
+}
+
 .empty {
   text-align: center;
   color: var(--color-text-muted);
@@ -88,13 +97,6 @@
   max-width: 220px;
 }
 
-.reviewForm {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 200px;
-}
-
 .pagination {
   display: flex;
   align-items: center;
@@ -134,22 +136,3 @@
   100% { background-position: -200% 0; }
 }
 
-.reviewModal {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.reviewModalSummary {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.reviewModalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}

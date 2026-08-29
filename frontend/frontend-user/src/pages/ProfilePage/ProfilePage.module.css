@@ -61,6 +61,17 @@
   color: var(--color-text-muted);
 }
 
+.missingValue {
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.profileEditActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
 .addressCard {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);

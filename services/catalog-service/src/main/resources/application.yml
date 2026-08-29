@@ -37,7 +37,13 @@ app:
   user-service:
     base-url: http://localhost:8082
   storage:
-    # Relative to this service's working directory when it starts (see run-all.sh).
+    # Relative to the JVM's working directory at startup — NOT this module's own directory. Run
+    # via an IDE launch configuration (as this project's services are), that's typically the repo
+    # root, so the real files live in <repo-root>/local-storage, not services/catalog-service/
+    # local-storage. Confirmed by inspecting the running process's cwd (lsof -p <pid> | grep cwd)
+    # after this exact mismatch caused every /books/{id}/read call to 500 — FileSystemResource
+    # doesn't fail until the response is actually streamed, so the error surfaces as a generic
+    # unhandled exception with no obvious clue it's a missing-file problem.
     path: local-storage
   security:
     # Deliberately precise, not /api/v1/books/** — /api/v1/books/*/read (virtual-content

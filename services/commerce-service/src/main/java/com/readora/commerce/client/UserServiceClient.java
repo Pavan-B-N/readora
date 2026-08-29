@@ -1,6 +1,7 @@
 package com.readora.commerce.client;
 
 import com.readora.commerce.dto.AdminStoreResponse;
+import com.readora.commerce.dto.StoreAdminResponse;
 import com.readora.commerce.dto.WalletBalance;
 import com.readora.commerce.exception.ServiceException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
@@ -71,6 +72,24 @@ public class UserServiceClient {
 
     private UUID getAdminStoreIdFallback(UUID userId, Throwable t) {
         throw translate(t);
+    }
+
+    /**
+     * The reverse of getAdminStoreId() — who to notify about a return at this store. Best-effort:
+     * a lookup failure just means the admin misses one notification, not a reason to fail the
+     * customer-facing return-request or chat-message action that triggered it.
+     */
+    @CircuitBreaker(name = "user-service", fallbackMethod = "getAdminUserIdForStoreFallback")
+    public UUID getAdminUserIdForStore(UUID storeId) {
+        StoreAdminResponse response = restClient.get()
+                .uri("/internal/admin-users/by-store/{storeId}", storeId)
+                .retrieve()
+                .body(StoreAdminResponse.class);
+        return response != null ? response.userId() : null;
+    }
+
+    private UUID getAdminUserIdForStoreFallback(UUID storeId, Throwable t) {
+        return null;
     }
 
     private RuntimeException translate(Throwable t) {

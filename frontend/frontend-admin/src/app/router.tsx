@@ -12,6 +12,7 @@ import { AuthorsPage } from '@/pages/AuthorsPage/AuthorsPage';
 import { EmbeddingsPage } from '@/pages/EmbeddingsPage/EmbeddingsPage';
 import { EmbeddingJobDetailPage } from '@/pages/EmbeddingJobDetailPage/EmbeddingJobDetailPage';
 import { ReturnsPage } from '@/pages/ReturnsPage/ReturnsPage';
+import { ReturnDetailPage } from '@/pages/ReturnDetailPage/ReturnDetailPage';
 import { DeliveryAgentsPage } from '@/pages/DeliveryAgentsPage/DeliveryAgentsPage';
 import { ProfilePage } from '@/pages/ProfilePage/ProfilePage';
 import { ROUTES } from '@/constants/routes';
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.embeddings, element: <EmbeddingsPage /> },
           { path: '/embeddings/:jobId', element: <EmbeddingJobDetailPage /> },
           { path: ROUTES.returns, element: <ReturnsPage /> },
+          { path: '/returns/:orderId', element: <ReturnDetailPage /> },
           { path: ROUTES.deliveryAgents, element: <DeliveryAgentsPage /> },
           { path: ROUTES.profile, element: <ProfilePage /> },
         ],

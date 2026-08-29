@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Info, History, Loader2, ChevronRight } from 'lucide-react';
+import { Sparkles, History, Loader2, ChevronRight } from 'lucide-react';
 import { listJobs, queueBackfill } from '@/api/embeddingsApi';
 import type { EmbeddingJob } from '@/types/embeddings';
 import { formatDuration, statusVariant } from '@/utils/embeddingJob';
@@ -96,46 +96,24 @@ export function EmbeddingsPage() {
       <PageHeader
         title="Embeddings"
         subtitle="Vector index powering semantic search and recommendations."
-      />
-
-      <div className={styles.layout}>
-        <Card>
-          <CardHeader
-            title="Vector index backfill"
-            actions={
-              activeJob && (
-                <Badge variant="info" dot pulse>
-                  {activeJob.status === 'QUEUED' ? 'Queued' : 'Running'}
-                </Badge>
-              )
-            }
-          />
-
-          <div className={styles.explainer}>
-            <Info size={16} className={styles.explainerIcon} />
-            <span>
-              Day-to-day changes re-embed automatically — saving a book publishes a{' '}
-              <code>book.upserted</code> event that re-indexes just that title. Running a backfill
-              only re-embeds books that are new or changed since their last embedding — it won't
-              redo work that's already current. Use it to bootstrap a fresh vector store, recover
-              from missed events, or after switching embedding models. The job runs asynchronously
-              on a Kafka consumer, so you can leave this page.
-            </span>
-          </div>
-
-          <div className={styles.runRow}>
+        actions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            {activeJob && (
+              <Badge variant="info" dot pulse>
+                {activeJob.status === 'QUEUED' ? 'Queued' : 'Running'}
+              </Badge>
+            )}
             <Button onClick={onQueue} disabled={queueing || Boolean(activeJob)}>
               {activeJob ? <Loader2 size={15} className="spin" /> : <Sparkles size={15} />}
               {activeJob ? 'Backfill in progress…' : queueing ? 'Queueing…' : 'Run backfill'}
             </Button>
-            {activeJob && (
-              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
-                Only one backfill can run at a time.
-              </span>
-            )}
           </div>
+        }
+      />
 
-          {activeJob && (
+      <div className={styles.layout}>
+        {activeJob && (
+          <Card>
             <div className={styles.progressWrap}>
               <div className={styles.progressHead}>
                 <span className={styles.progressLabel}>
@@ -164,8 +142,8 @@ export function EmbeddingsPage() {
                 </div>
               )}
             </div>
-          )}
-        </Card>
+          </Card>
+        )}
 
         <Card flush>
           <div style={{ padding: 'var(--space-5) var(--space-5) 0' }}>

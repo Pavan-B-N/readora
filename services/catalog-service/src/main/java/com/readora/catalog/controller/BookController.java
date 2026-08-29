@@ -56,6 +56,7 @@ public class BookController {
             @RequestParam(required = false) String q,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) UUID publisherId,
+            @RequestParam(required = false) UUID authorId,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) Boolean virtualOnly,
@@ -65,7 +66,7 @@ public class BookController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         UUID userId = CurrentUserContext.get().orElse(null);
-        return ResponseEntity.ok(catalogService.search(q, categoryId, publisherId, minPrice, maxPrice, virtualOnly, storeId, userId, pageable));
+        return ResponseEntity.ok(catalogService.search(q, categoryId, publisherId, authorId, minPrice, maxPrice, virtualOnly, storeId, userId, pageable));
     }
 
     @Operation(
@@ -83,6 +84,23 @@ public class BookController {
             return ResponseEntity.ok(List.of());
         }
         return ResponseEntity.ok(catalogService.getPurchasedBooks(userId));
+    }
+
+    @Operation(
+            summary = "The caller's readable virtual editions",
+            description = "Backs the \"My library\" page — every virtual edition the caller owns and can open in the in-app reader (unlike /purchased, this excludes physical-only purchases and any virtual edition since deactivated). Empty for anonymous callers or callers with no owned virtual editions — never an error.",
+            tags = {"Books"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Owned virtual editions returned (possibly empty)")
+    })
+    @GetMapping("/library")
+    public ResponseEntity<List<BookSummaryResponse>> library() {
+        UUID userId = CurrentUserContext.get().orElse(null);
+        if (userId == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(catalogService.getLibrary(userId));
     }
 
     @Operation(

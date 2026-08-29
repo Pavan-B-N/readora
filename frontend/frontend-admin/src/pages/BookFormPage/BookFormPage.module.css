@@ -23,6 +23,13 @@
   gap: var(--space-4);
 }
 
+.restockRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3);
+  align-items: end;
+}
+
 .stepBody {
   min-height: 320px;
 }
@@ -52,6 +59,11 @@
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
   margin-bottom: var(--space-4);
+}
+
+.fileMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
 }
 
 .toggleRow {

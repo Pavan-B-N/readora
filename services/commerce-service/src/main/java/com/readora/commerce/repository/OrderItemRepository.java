@@ -36,6 +36,28 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
             """)
     List<UUID> findDistinctBookIdsByUserId(@Param("userId") UUID userId);
 
+    /**
+     * Same live-access rule as findDistinctBookIdsByUserId, scoped to one book and to virtual
+     * lines specifically — a customer who owns the physical copy of a title is still free to also
+     * buy its virtual edition (and vice versa), so a plain "have they ever ordered this book"
+     * check would wrongly block that legitimate case.
+     */
+    @Query("""
+            SELECT COUNT(oi) > 0 FROM OrderItem oi
+            JOIN oi.order o
+            WHERE o.userId = :userId AND oi.bookId = :bookId AND oi.deliveryType = com.readora.commerce.entity.DeliveryType.VIRTUAL
+            AND o.status NOT IN (
+                com.readora.commerce.entity.OrderStatus.CANCELLED,
+                com.readora.commerce.entity.OrderStatus.RETURN_APPROVED,
+                com.readora.commerce.entity.OrderStatus.RETURN_ASSIGNED,
+                com.readora.commerce.entity.OrderStatus.RETURN_EN_ROUTE,
+                com.readora.commerce.entity.OrderStatus.RETURN_COLLECTED,
+                com.readora.commerce.entity.OrderStatus.REFUND_INITIATED,
+                com.readora.commerce.entity.OrderStatus.RETURNED
+            )
+            """)
+    boolean existsActiveVirtualPurchase(@Param("userId") UUID userId, @Param("bookId") UUID bookId);
+
     /** Newest-first, every status included (unlike findDistinctBookIdsByUserId) — this backs an order-history rail, so a cancelled/returned item's status is exactly the point of showing it. */
     @Query("""
             SELECT oi FROM OrderItem oi

@@ -6,9 +6,39 @@
     "storeId": "00000000-0000-0000-0000-0000000000b1"
   },
   {
+    "email": "agent.bangalore2@readora.dev",
+    "name": "Deepa Nair",
+    "phone": "+91-9000000018",
+    "storeId": "00000000-0000-0000-0000-0000000000b1"
+  },
+  {
+    "email": "agent.bangalore3@readora.dev",
+    "name": "Manoj Reddy",
+    "phone": "+91-9000000019",
+    "storeId": "00000000-0000-0000-0000-0000000000b1"
+  },
+  {
+    "email": "agent.bangalore4@readora.dev",
+    "name": "Ananya Iyer",
+    "phone": "+91-9000000020",
+    "storeId": "00000000-0000-0000-0000-0000000000b1"
+  },
+  {
+    "email": "agent.bangalore5@readora.dev",
+    "name": "Karthik Rao",
+    "phone": "+91-9000000021",
+    "storeId": "00000000-0000-0000-0000-0000000000b1"
+  },
+  {
     "email": "agent.mumbai@readora.dev",
     "name": "Sanjay Pawar",
     "phone": "+91-9000000016",
+    "storeId": "00000000-0000-0000-0000-0000000000b2"
+  },
+  {
+    "email": "agent.mumbai2@readora.dev",
+    "name": "Priya Deshmukh",
+    "phone": "+91-9000000022",
     "storeId": "00000000-0000-0000-0000-0000000000b2"
   },
   {
@@ -16,5 +46,23 @@
     "name": "Amit Yadav",
     "phone": "+91-9000000017",
     "storeId": "00000000-0000-0000-0000-0000000000b3"
+  },
+  {
+    "email": "agent.delhi2@readora.dev",
+    "name": "Rohit Sharma",
+    "phone": "+91-9000000023",
+    "storeId": "00000000-0000-0000-0000-0000000000b3"
+  },
+  {
+    "email": "agent.hyderabad@readora.dev",
+    "name": "Sneha Reddy",
+    "phone": "+91-9000000024",
+    "storeId": "00000000-0000-0000-0000-0000000000b4"
+  },
+  {
+    "email": "agent.chennai@readora.dev",
+    "name": "Vijay Kumar",
+    "phone": "+91-9000000025",
+    "storeId": "00000000-0000-0000-0000-0000000000b5"
   }
 ]

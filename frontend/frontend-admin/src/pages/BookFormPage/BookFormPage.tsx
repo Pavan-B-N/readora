@@ -13,7 +13,7 @@ import { Button } from '@/components/Button';
 import { Combobox } from '@/components/Combobox';
 import { Stepper, type Step } from '@/components/Stepper';
 import { PageHeader } from '@/components/PageHeader';
-import { TocBuilder, tocSectionsToJson, type TocSection } from '@/components/TocBuilder';
+import { TocBuilder, topicsToJson } from '@/components/TocBuilder';
 import { ROUTES } from '@/constants/routes';
 import styles from './BookFormPage.module.css';
 
@@ -71,7 +71,7 @@ export function BookFormPage() {
   const [step, setStepState] = useState(() => readStepParam(searchParams));
   const [furthest, setFurthest] = useState(step);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [toc, setToc] = useState<TocSection[]>([]);
+  const [toc, setToc] = useState<string[]>([]);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -150,6 +150,7 @@ export function BookFormPage() {
       if (!form.listPrice.trim()) next.listPrice = 'Price is required';
       else if (Number.isNaN(Number(form.listPrice))) next.listPrice = 'Price must be a number';
       if (form.currency.trim().length !== 3) next.currency = 'Use a 3-letter currency code';
+      if (!form.publishedOn) next.publishedOn = 'Published date is required';
     }
 
     if (index === 1) {
@@ -158,7 +159,10 @@ export function BookFormPage() {
           ? "Your account isn't assigned to a store — ask a super-admin to assign one"
           : 'Select a store';
       }
+      if (!form.categoryId) next.categoryId = 'Select a category';
+      if (!form.publisherId) next.publisherId = 'Select a publisher';
       if (form.authorIds.length === 0) next.authorIds = 'Select at least one author';
+      if (!form.coverImageUrl.trim()) next.coverImageUrl = 'Cover image URL is required';
     }
 
     if (index === 2) {
@@ -191,7 +195,7 @@ export function BookFormPage() {
         title: form.title.trim(),
         subtitle: form.subtitle.trim() || null,
         description: form.description.trim() || null,
-        tableOfContents: tocSectionsToJson(toc),
+        tableOfContents: topicsToJson(toc),
         categoryId: form.categoryId,
         publisherId: form.publisherId,
         storeId: form.storeId,
@@ -205,8 +209,15 @@ export function BookFormPage() {
       });
       showToast('Book created — now set stock and virtual edition');
       navigate(ROUTES.editBook(result.id), { replace: true });
-    } catch {
-      showToast('Failed to save book', 'error');
+    } catch (error: unknown) {
+      const errorCode = (error as { response?: { data?: { errorCode?: string } } })?.response?.data?.errorCode;
+      if (errorCode === 'ISBN_ALREADY_EXISTS') {
+        setStep(0);
+        setErrors((e) => ({ ...e, isbn13: 'A book with this ISBN already exists — increase its stock instead' }));
+        showToast('That ISBN is already in the catalogue', 'error');
+      } else {
+        showToast('Failed to save book', 'error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -293,7 +304,9 @@ export function BookFormPage() {
                 <Input
                   label="Published on"
                   type="date"
+                  required
                   value={form.publishedOn}
+                  error={errors.publishedOn}
                   onChange={(e) => set({ publishedOn: e.target.value })}
                 />
               </div>
@@ -329,16 +342,20 @@ export function BookFormPage() {
               <div className={styles.row2}>
                 <Combobox
                   label="Category"
+                  required
                   placeholder="Search categories…"
                   options={categoryOptions}
                   value={form.categoryId}
+                  error={errors.categoryId}
                   onChange={(v) => set({ categoryId: v })}
                 />
                 <Combobox
                   label="Publisher"
+                  required
                   placeholder="Search publishers…"
                   options={publisherOptions}
                   value={form.publisherId}
+                  error={errors.publisherId}
                   onChange={(v) => set({ publisherId: v })}
                 />
               </div>
@@ -359,8 +376,10 @@ export function BookFormPage() {
 
               <Input
                 label="Cover image URL"
+                required
                 placeholder="https://…"
                 value={form.coverImageUrl}
+                error={errors.coverImageUrl}
                 onChange={(e) => set({ coverImageUrl: e.target.value })}
               />
             </div>
@@ -424,7 +443,7 @@ export function BookFormPage() {
                     null
                   }
                 />
-                <ReviewItem label="Sections" value={toc.length ? `${toc.length}` : null} />
+                <ReviewItem label="Topics" value={toc.length ? `${toc.length}` : null} />
               </div>
 
               <div className={styles.postCreateNote}>

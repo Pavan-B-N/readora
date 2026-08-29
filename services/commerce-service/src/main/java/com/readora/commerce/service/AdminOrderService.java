@@ -80,6 +80,15 @@ public class AdminOrderService {
         return orders.map(order -> toSummary(order, refundStatuses.get(order.getId())));
     }
 
+    /** One return/cancellation case's full detail — backs the dedicated review page (not the list row). */
+    @Transactional(readOnly = true)
+    public AdminOrderSummaryResponse getReturn(UUID orderId) {
+        UUID storeId = resolveCallerStoreId();
+        Order order = orderRepository.findByIdAndStoreId(orderId, storeId).orElseThrow(AdminOrderNotFoundException::new);
+        RefundStatus refundStatus = paymentClient.getRefundStatuses(List.of(orderId)).get(orderId);
+        return toSummary(order, refundStatus);
+    }
+
     /**
      * decision is "APPROVE"/"REJECT" for a return awaiting review, or null for a plain
      * cancellation note (nothing to decide there — see ReviewOrderRequest's javadoc).

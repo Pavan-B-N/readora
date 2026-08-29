@@ -293,7 +293,11 @@ export function OrderDetailPage() {
           <Card>
             <CardHeader title="Items" />
             {order.items.map((item) => (
-              <div className={styles.item} key={`${item.bookId}:${item.deliveryType}`}>
+              <div
+                className={[styles.item, styles.itemClickable].join(' ')}
+                key={`${item.bookId}:${item.deliveryType}`}
+                onClick={() => navigate(ROUTES.bookDetail(item.bookId))}
+              >
                 <span className={styles.itemName}>
                   {item.title}
                   <div className={styles.itemMeta}>
@@ -304,7 +308,14 @@ export function OrderDetailPage() {
                 <span className={styles.itemTrailing}>
                   <span className={styles.itemTotal}>₹{item.lineTotal}</span>
                   {item.deliveryType === 'VIRTUAL' && READABLE_STATUSES.has(order.status) && (
-                    <Button variant="secondary" size="sm" onClick={() => navigate(ROUTES.read(item.bookId))}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(ROUTES.read(item.bookId));
+                      }}
+                    >
                       <BookOpen size={14} />
                       Read now
                     </Button>

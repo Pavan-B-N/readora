@@ -54,6 +54,20 @@ public class AdminOrderController {
     }
 
     @Operation(
+            summary = "One return/cancellation case's full detail",
+            description = "Backs the dedicated review page — same fields as the list row, fetched directly by id so a refresh or a shared link still works.",
+            tags = {"Admin Orders"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Case detail returned"),
+            @ApiResponse(responseCode = "404", description = "No such order at the caller's store")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<AdminOrderSummaryResponse> getReturn(@PathVariable UUID id) {
+        return ResponseEntity.ok(adminOrderService.getReturn(id));
+    }
+
+    @Operation(
             summary = "Review a return/cancellation case",
             description = "Records an internal note. If decision (\"APPROVE\"/\"REJECT\") is present and the order is RETURN_REQUESTED, also decides the return — approving queues a delivery-agent pickup, rejecting is terminal. Omitting decision keeps the plain acknowledgement behavior (e.g. for a cancelled order, which has nothing to decide).",
             tags = {"Admin Orders"}

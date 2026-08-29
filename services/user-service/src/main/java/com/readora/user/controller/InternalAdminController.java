@@ -1,6 +1,7 @@
 package com.readora.user.controller;
 
 import com.readora.user.dto.AdminStoreResponse;
+import com.readora.user.dto.StoreAdminResponse;
 import com.readora.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,5 +37,18 @@ public class InternalAdminController {
     @GetMapping("/{userId}/store")
     public ResponseEntity<AdminStoreResponse> getAdminStore(@PathVariable UUID userId) {
         return ResponseEntity.ok(new AdminStoreResponse(userService.getAdminStoreId(userId)));
+    }
+
+    @Operation(
+            summary = "Get the admin assigned to manage a store",
+            description = "Internal, service-to-service only. The reverse of GET /{userId}/store — called by commerce-service to find who to notify about a return at that store.",
+            tags = {"Internal"}
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "userId returned (null if the store has no assigned admin)")
+    })
+    @GetMapping("/by-store/{storeId}")
+    public ResponseEntity<StoreAdminResponse> getStoreAdmin(@PathVariable UUID storeId) {
+        return ResponseEntity.ok(new StoreAdminResponse(userService.getAdminUserIdForStore(storeId)));
     }
 }

@@ -39,14 +39,32 @@ public class VirtualContentService {
 
     @Transactional(readOnly = true)
     public Resource getContent(UUID userId, UUID bookId) {
+        if (!isOwned(userId, bookId)) {
+            throw new VirtualEditionNotOwnedException();
+        }
+        return resolveContent(bookId);
+    }
+
+    /**
+     * Same file resolution as getContent(), but for trusted internal callers (ai-service's reader
+     * embedding pipeline) that have already verified ownership themselves via isOwned() — skips
+     * the ownership check since there's no end-user request context to check it against here.
+     */
+    @Transactional(readOnly = true)
+    public Resource getContentForInternalUse(UUID bookId) {
+        return resolveContent(bookId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isOwned(UUID userId, UUID bookId) {
+        boolean hasActiveEdition = virtualEditionRepository.findById(bookId).filter(VirtualEdition::isActive).isPresent();
+        return hasActiveEdition && commerceClient.getPurchasedBookIds(userId).contains(bookId);
+    }
+
+    private Resource resolveContent(UUID bookId) {
         VirtualEdition edition = virtualEditionRepository.findById(bookId)
                 .filter(VirtualEdition::isActive)
                 .orElseThrow(VirtualEditionNotFoundException::new);
-
-        boolean owned = commerceClient.getPurchasedBookIds(userId).contains(bookId);
-        if (!owned) {
-            throw new VirtualEditionNotOwnedException();
-        }
 
         // fileUrl is just a filename (e.g. "java-and-spring.pdf") — resolve it strictly inside
         // storageRoot so it can never escape the directory via "../" or an absolute path.

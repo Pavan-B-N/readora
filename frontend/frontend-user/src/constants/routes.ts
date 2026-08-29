@@ -7,6 +7,7 @@ export const ROUTES = {
   wishlist: '/wishlist',
   checkout: '/checkout',
   orders: '/orders',
+  library: '/library',
   orderDetail: (orderId: string) => `/orders/${orderId}`,
   wallet: '/wallet',
   profile: '/profile',

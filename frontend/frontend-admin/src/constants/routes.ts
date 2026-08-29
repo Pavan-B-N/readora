@@ -10,6 +10,7 @@ export const ROUTES = {
   embeddings: '/embeddings',
   embeddingJobDetail: (jobId: string) => `/embeddings/${jobId}`,
   returns: '/returns',
+  returnDetail: (orderId: string) => `/returns/${orderId}`,
   deliveryAgents: '/delivery-agents',
   profile: '/profile',
 } as const;

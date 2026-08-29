@@ -1,11 +1,12 @@
 import { apiClient } from './client';
-import type { BookDetail, BookSuggestion, BookSummary, CategoryNode, PurchasedBook, RelatedBook, Review, Store } from '@/types/catalog';
+import type { Author, BookDetail, BookSuggestion, BookSummary, CategoryNode, PurchasedBook, RelatedBook, Review, Store } from '@/types/catalog';
 import type { PageResponse } from '@/types/api';
 
 export interface SearchParams {
   q?: string;
   categoryId?: string;
   publisherId?: string;
+  authorId?: string;
   minPrice?: string;
   maxPrice?: string;
   /** Omit for the unified storefront view (physical-at-store + virtual, together). true/false restrict to one or the other. */
@@ -35,6 +36,11 @@ export async function getCategoryTree(): Promise<CategoryNode[]> {
   return response.data;
 }
 
+export async function listAuthors(): Promise<Author[]> {
+  const response = await apiClient.get<Author[]>('/api/v1/authors');
+  return response.data;
+}
+
 export async function listStores(): Promise<Store[]> {
   const response = await apiClient.get<Store[]>('/api/v1/stores');
   return response.data;
@@ -53,6 +59,12 @@ export async function getRecommendations(storeId?: string): Promise<BookSummary[
 /** "Your orders" rail — the caller's most recent order line items, each with its order's status. Empty (not an error) for anonymous callers. */
 export async function getPurchasedBooks(): Promise<PurchasedBook[]> {
   const response = await apiClient.get<PurchasedBook[]>('/api/v1/books/purchased');
+  return response.data;
+}
+
+/** "My library" — every virtual edition the caller owns and can open in the in-app reader. Empty (not an error) for anonymous callers. */
+export async function getLibrary(): Promise<BookSummary[]> {
+  const response = await apiClient.get<BookSummary[]>('/api/v1/books/library');
   return response.data;
 }
 

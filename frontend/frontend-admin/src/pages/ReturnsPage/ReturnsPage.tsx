@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Check, X as XIcon } from 'lucide-react';
-import { listReturns, reviewOrder } from '@/api/orderApi';
+import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { listReturns } from '@/api/orderApi';
 import type { AdminOrderSummary } from '@/types/order';
 import { Card } from '@/components/Card';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
-import { Input } from '@/components/Input';
-import { Modal } from '@/components/Modal';
-import { ReturnChatPanel } from '@/components/ReturnChatPanel';
 import { PageHeader } from '@/components/PageHeader';
-import { useToast } from '@/components/Toast';
+import { ROUTES } from '@/constants/routes';
 import styles from './ReturnsPage.module.css';
 
 function prettyStatus(status: string) {
@@ -32,14 +30,11 @@ function refundVariant(status: string | null) {
 }
 
 export function ReturnsPage() {
-  const { showToast } = useToast();
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [orders, setOrders] = useState<AdminOrderSummary[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [reviewingOrder, setReviewingOrder] = useState<AdminOrderSummary | null>(null);
 
   const reload = () => {
     setLoading(true);
@@ -52,43 +47,6 @@ export function ReturnsPage() {
   };
 
   useEffect(reload, [page]);
-
-  const onReview = async (orderId: string) => {
-    const note = (noteDrafts[orderId] ?? '').trim();
-    if (!note) {
-      showToast('Add a note before marking this reviewed', 'error');
-      return;
-    }
-    setSavingId(orderId);
-    try {
-      await reviewOrder(orderId, note);
-      showToast('Marked reviewed');
-      reload();
-    } catch {
-      showToast('Could not save this review', 'error');
-    } finally {
-      setSavingId(null);
-    }
-  };
-
-  const onDecide = async (orderId: string, decision: 'APPROVE' | 'REJECT') => {
-    const note = (noteDrafts[orderId] ?? '').trim();
-    if (!note) {
-      showToast('Add a note explaining your decision first', 'error');
-      return;
-    }
-    setSavingId(orderId);
-    try {
-      await reviewOrder(orderId, note, decision);
-      showToast(decision === 'APPROVE' ? 'Return approved — a pickup was queued' : 'Return rejected');
-      setReviewingOrder(null);
-      reload();
-    } catch {
-      showToast('Could not save this decision', 'error');
-    } finally {
-      setSavingId(null);
-    }
-  };
 
   return (
     <div>
@@ -127,7 +85,11 @@ export function ReturnsPage() {
               </tr>
             ) : (
               orders.map((order) => (
-                <tr key={order.orderId}>
+                <tr
+                  key={order.orderId}
+                  className={styles.row}
+                  onClick={() => navigate(ROUTES.returnDetail(order.orderId))}
+                >
                   <td>
                     <div className={styles.orderCell}>
                       <span className={styles.orderNumber}>{order.orderNumber}</span>
@@ -149,25 +111,22 @@ export function ReturnsPage() {
                   </td>
                   <td className={styles.reason}>{order.cancelReason ?? '—'}</td>
                   <td>
-                    {order.status === 'RETURN_REQUESTED' ? (
-                      <Button size="sm" variant="secondary" onClick={() => setReviewingOrder(order)}>
+                    {order.status === 'RETURN_REQUESTED' || (order.status === 'CANCELLED' && !order.adminReviewedAt) ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(ROUTES.returnDetail(order.orderId));
+                        }}
+                      >
                         Review
+                        <ChevronRight size={13} />
                       </Button>
                     ) : order.adminReviewedAt ? (
                       <div className={styles.reviewed}>
                         <span className={styles.reviewedLabel}>Reviewed</span>
                         <span className={styles.reviewedNote}>{order.adminNote}</span>
-                      </div>
-                    ) : order.status === 'CANCELLED' ? (
-                      <div className={styles.reviewForm}>
-                        <Input
-                          placeholder="Add a note…"
-                          value={noteDrafts[order.orderId] ?? ''}
-                          onChange={(e) => setNoteDrafts((d) => ({ ...d, [order.orderId]: e.target.value }))}
-                        />
-                        <Button size="sm" variant="secondary" onClick={() => onReview(order.orderId)} disabled={savingId === order.orderId}>
-                          {savingId === order.orderId ? 'Saving…' : 'Mark reviewed'}
-                        </Button>
                       </div>
                     ) : (
                       <span className={styles.pending}>In progress</span>
@@ -197,41 +156,6 @@ export function ReturnsPage() {
           </div>
         )}
       </Card>
-
-      <Modal open={reviewingOrder !== null} onClose={() => setReviewingOrder(null)} title="Review return" width={480}>
-        {reviewingOrder && (
-          <div className={styles.reviewModal}>
-            <div className={styles.reviewModalSummary}>
-              <span className={styles.orderNumber}>{reviewingOrder.orderNumber}</span>
-              <span className={styles.orderMeta}>
-                ₹{reviewingOrder.grandTotal} · {reviewingOrder.cancelReason ?? 'No reason given'}
-              </span>
-            </div>
-
-            <ReturnChatPanel orderId={reviewingOrder.orderId} locked={false} />
-
-            <Input
-              placeholder="Note explaining your decision…"
-              value={noteDrafts[reviewingOrder.orderId] ?? ''}
-              onChange={(e) => setNoteDrafts((d) => ({ ...d, [reviewingOrder.orderId]: e.target.value }))}
-            />
-            <div className={styles.reviewModalActions}>
-              <Button
-                variant="danger"
-                onClick={() => onDecide(reviewingOrder.orderId, 'REJECT')}
-                disabled={savingId === reviewingOrder.orderId}
-              >
-                <XIcon size={14} />
-                Reject
-              </Button>
-              <Button onClick={() => onDecide(reviewingOrder.orderId, 'APPROVE')} disabled={savingId === reviewingOrder.orderId}>
-                <Check size={14} />
-                Approve
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }

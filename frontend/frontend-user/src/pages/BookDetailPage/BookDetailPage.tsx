@@ -12,7 +12,7 @@ import {
   User,
   Zap,
 } from 'lucide-react';
-import { getBookDetail, getRelatedBooks } from '@/api/catalogApi';
+import { getBookDetail, getLibrary, getRelatedBooks } from '@/api/catalogApi';
 import type { BookDetail, RelatedBook } from '@/types/catalog';
 import type { DeliveryType } from '@/types/cart';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -42,6 +42,7 @@ export function BookDetailPage() {
   const [related, setRelated] = useState<RelatedBook[]>([]);
   const [busy, setBusy] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [ownedBookIds, setOwnedBookIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!bookId || !storeResolved) return;
@@ -53,12 +54,25 @@ export function BookDetailPage() {
     if (accessToken) dispatch(fetchCart());
   }, [accessToken, dispatch]);
 
+  // Whether the signed-in caller already owns this book's virtual edition — if so, there's
+  // nothing left to sell them here; the purchase UI gives way to a "Read now" prompt instead.
+  useEffect(() => {
+    if (!accessToken) {
+      setOwnedBookIds(new Set());
+      return;
+    }
+    getLibrary().then((books) => setOwnedBookIds(new Set(books.map((b) => b.id))));
+  }, [accessToken]);
+
   if (!book) return <Spinner />;
 
   const inStock = book.availability.status === 'IN_STOCK';
   const notAvailableAtStore = book.availability.status === 'NOT_AVAILABLE_AT_STORE';
   const noPhysicalEdition = book.availability.status === 'NO_PHYSICAL_EDITION';
-  const hasVirtual = book.virtualEdition !== null;
+  const ownsVirtual = ownedBookIds.has(book.id);
+  // Once owned, the virtual edition is no longer something to buy — every purchase-flow check
+  // below (the picker modal, the add-to-cart click) should behave exactly as if it didn't exist.
+  const hasVirtual = book.virtualEdition !== null && !ownsVirtual;
 
   const physicalLine = cartItems.find((i) => i.bookId === book.id && i.deliveryType === 'PHYSICAL');
   const virtualLine = cartItems.find((i) => i.bookId === book.id && i.deliveryType === 'VIRTUAL');
@@ -84,8 +98,13 @@ export function BookDetailPage() {
   };
 
   const onAddToCartClick = () => {
-    if (hasVirtual) {
+    // Only actually a "choice" when both editions are real options here — a virtual-only book
+    // (or one whose physical copy is out of stock / not stocked at this store) has exactly one
+    // buyable edition, so there's nothing to pick between and the modal should never appear.
+    if (hasVirtual && inStock) {
       setPickerOpen(true);
+    } else if (hasVirtual) {
+      addOne('VIRTUAL');
     } else {
       addOne('PHYSICAL');
     }
@@ -161,6 +180,19 @@ export function BookDetailPage() {
           </div>
 
           <div className={styles.purchaseBox}>
+            {noPhysicalEdition && ownsVirtual ? (
+              <>
+                <div className={[styles.availability, styles.virtualOnly].join(' ')}>
+                  <Check size={14} />
+                  You own the virtual edition
+                </div>
+                <Button onClick={() => navigate(ROUTES.read(book.id))}>
+                  <BookOpen size={15} />
+                  Read now
+                </Button>
+              </>
+            ) : (
+              <>
             <div className={styles.priceRow}>
               <span className={styles.price}>₹{book.listPrice}</span>
               <span className={styles.currency}>{book.currency}</span>
@@ -188,13 +220,19 @@ export function BookDetailPage() {
             )}
 
             <div className={styles.purchaseRow}>
-              <Button
-                onClick={onAddToCartClick}
-                disabled={((!inStock || notAvailableAtStore) && !hasVirtual) || busy}
-              >
-                <ShoppingCart size={15} />
-                {busy ? 'Adding…' : 'Add to cart'}
-              </Button>
+              {/* A virtual edition is a single digital copy — once it's in the cart there's
+                  nothing left to add, so the button would just look unresponsive on a second
+                  click. Only ever hidden for a virtual-only book; a mixed book still needs it
+                  for adding physical copies even after the virtual one's in the cart. */}
+              {!(noPhysicalEdition && virtualLine) && (
+                <Button
+                  onClick={onAddToCartClick}
+                  disabled={((!inStock || notAvailableAtStore) && !hasVirtual) || busy}
+                >
+                  <ShoppingCart size={15} />
+                  {busy ? 'Adding…' : 'Add to cart'}
+                </Button>
+              )}
               {(physicalLine || virtualLine) && (
                 <Button variant="secondary" onClick={() => navigate(ROUTES.cart)}>
                   Go to cart
@@ -204,10 +242,6 @@ export function BookDetailPage() {
 
             {physicalLine && (
               <div className={styles.inCartRow}>
-                <span className={styles.inCartLabel}>
-                  <Truck size={13} />
-                  Physical
-                </span>
                 <div className={styles.qtyStepper}>
                   <button
                     type="button"
@@ -234,10 +268,6 @@ export function BookDetailPage() {
 
             {virtualLine && (
               <div className={styles.inCartRow}>
-                <span className={styles.inCartLabel}>
-                  <Download size={13} />
-                  Virtual
-                </span>
                 <button
                   type="button"
                   className={styles.qtyButton}
@@ -253,6 +283,8 @@ export function BookDetailPage() {
             )}
 
             {inStock && <p className={styles.limitNote}>Up to {MAX_PER_TITLE} copies per title.</p>}
+              </>
+            )}
           </div>
 
           {book.description && (

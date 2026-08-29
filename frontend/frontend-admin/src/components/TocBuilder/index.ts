@@ -1,2 +1,1 @@
-export { TocBuilder, tocSectionsToJson, jsonToTocSections } from './TocBuilder';
-export type { TocSection } from './TocBuilder';
+export { TocBuilder, topicsToJson, jsonToTopics } from './TocBuilder';

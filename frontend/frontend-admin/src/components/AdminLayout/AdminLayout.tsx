@@ -5,6 +5,7 @@ import { BookOpen, FolderTree, Building2, Users, Sparkles, Library, Store, Undo2
 import { useAppSelector } from '@/redux/hooks';
 import { getMe } from '@/api/userApi';
 import { listStores } from '@/api/catalogApi';
+import { NotificationBell } from '@/components/NotificationBell';
 import { ROUTES } from '@/constants/routes';
 import styles from './AdminLayout.module.css';
 
@@ -60,6 +61,8 @@ export function AdminLayout() {
             {storeName}
           </div>
         )}
+
+        <NotificationBell />
 
         {NAV_GROUPS.map((group) => (
           <nav className={styles.navGroup} key={group.label}>

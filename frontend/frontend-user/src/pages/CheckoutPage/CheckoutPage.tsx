@@ -1,20 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Check, Loader2, Lock, Plus, QrCode, Wallet as WalletIcon } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  AlertTriangle,
+  BookOpen,
+  Check,
+  Loader2,
+  Lock,
+  Plus,
+  QrCode,
+  ShoppingCart,
+  Wallet as WalletIcon,
+} from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchCart, cartCleared } from '@/redux/slices/cartSlice';
 import { checkout, getOrderDetail } from '@/api/orderApi';
 import { addAddress, getMe, listAddresses } from '@/api/userApi';
-import { listStores } from '@/api/catalogApi';
 import type { Address, AddressRecipientType, MeResponse } from '@/types/user';
-import type { Store } from '@/types/catalog';
 import type { CheckoutRequest, PaymentMethod } from '@/types/order';
-import { pickDefaultStore } from '@/utils/store';
 import { useToast } from '@/components/Toast';
 import { Badge } from '@/components/Badge';
 import { Card, CardHeader } from '@/components/Card';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';
+import { EmptyState } from '@/components/EmptyState';
 import { ROUTES } from '@/constants/routes';
 import styles from './CheckoutPage.module.css';
 
@@ -41,11 +49,12 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { items, subtotal, currency, requiresShippingAddress } = useAppSelector((state) => state.cart);
+  const { stores, selectedId: storeId } = useAppSelector((state) => state.store);
+  const store = stores.find((s) => s.id === storeId) ?? null;
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [addingAddress, setAddingAddress] = useState(false);
-  const [store, setStore] = useState<Store | null>(null);
   const [me, setMe] = useState<MeResponse | null>(null);
   const [newAddress, setNewAddress] = useState<NewAddressForm | null>(null);
 
@@ -70,13 +79,18 @@ export function CheckoutPage() {
   useEffect(() => {
     dispatch(fetchCart());
     getMe().then(setMe);
-    listStores().then((stores) => setStore(pickDefaultStore(stores)));
-    listAddresses().then((list) => {
-      setAddresses(list);
-      const preferred = list.find((a) => a.isDefault) ?? list[0];
-      if (preferred) setSelectedAddressId(preferred.id);
-    });
+    listAddresses().then(setAddresses);
   }, [dispatch]);
+
+  // Only ever pre-select an address that's actually eligible for delivery from the current
+  // store — waits for the store to resolve so it doesn't briefly default to an ineligible one.
+  useEffect(() => {
+    if (!store || addresses.length === 0) return;
+    const eligible = addresses.filter((a) => a.city === store.city);
+    const preferred = eligible.find((a) => a.isDefault) ?? eligible[0];
+    setSelectedAddressId(preferred?.id ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addresses, store?.id]);
 
   const pricing = useMemo(() => {
     const sub = Number(subtotal);
@@ -167,6 +181,10 @@ export function CheckoutPage() {
     const selected = addresses.find((a) => a.id === selectedAddressId);
     if (!selected) {
       showToast('Select a delivery address', 'error');
+      return null;
+    }
+    if (store && selected.city !== store.city) {
+      showToast(`That address isn't deliverable from ${store.name} — pick one in ${store.city}`, 'error');
       return null;
     }
     return selected;
@@ -296,10 +314,29 @@ export function CheckoutPage() {
   };
 
   if (items.length === 0) {
-    return <p style={{ color: 'var(--color-text-muted)' }}>Your cart is empty.</p>;
+    return (
+      <div>
+        <h1>Checkout</h1>
+        <Card style={{ marginTop: 'var(--space-5)' }}>
+          <EmptyState
+            icon={ShoppingCart}
+            title="Your cart is empty"
+            description="Add a few books to your cart before checking out."
+            action={
+              <Button onClick={() => navigate(ROUTES.home)}>
+                <BookOpen size={15} />
+                Browse books
+              </Button>
+            }
+          />
+        </Card>
+      </div>
+    );
   }
 
   const canSubmit = paymentMethod !== 'WALLET' || walletSufficient;
+  const eligibleAddresses = store ? addresses.filter((a) => a.city === store.city) : addresses;
+  const ineligibleAddresses = store ? addresses.filter((a) => a.city !== store.city) : [];
 
   return (
     <div>
@@ -345,18 +382,24 @@ export function CheckoutPage() {
                       For someone else
                     </button>
                   </div>
+                  {newAddress.recipientType === 'OWNER' && (!me?.displayName || !me?.phone) && (
+                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-subtle)' }}>
+                      Your profile is missing a {!me?.displayName && !me?.phone ? 'name and phone number' : !me?.displayName ? 'name' : 'phone number'} — fill it in below, or{' '}
+                      <Link to={ROUTES.profile}>update your profile</Link>.
+                    </p>
+                  )}
                   <div className={styles.row2}>
                     <Input
                       label="Recipient name"
                       required
-                      disabled={newAddress.recipientType === 'OWNER'}
+                      disabled={newAddress.recipientType === 'OWNER' && Boolean(me?.displayName)}
                       value={newAddress.recipientName}
                       onChange={(e) => setNewAddress((f) => (f ? { ...f, recipientName: e.target.value } : f))}
                     />
                     <Input
                       label="Recipient phone"
                       required
-                      disabled={newAddress.recipientType === 'OWNER'}
+                      disabled={newAddress.recipientType === 'OWNER' && Boolean(me?.phone)}
                       value={newAddress.recipientPhone}
                       onChange={(e) => setNewAddress((f) => (f ? { ...f, recipientPhone: e.target.value } : f))}
                     />
@@ -382,9 +425,13 @@ export function CheckoutPage() {
                 <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
                   No saved addresses yet — add one above.
                 </p>
+              ) : eligibleAddresses.length === 0 ? (
+                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
+                  None of your saved addresses are in {store?.city} — add a new one above.
+                </p>
               ) : (
                 <div className={styles.addressList}>
-                  {addresses.map((address) => (
+                  {eligibleAddresses.map((address) => (
                     <label
                       key={address.id}
                       className={[styles.addressOption, selectedAddressId === address.id && styles.addressOptionActive]
@@ -408,6 +455,20 @@ export function CheckoutPage() {
                         </span>
                       </span>
                     </label>
+                  ))}
+                  {ineligibleAddresses.map((address) => (
+                    <div key={address.id} className={styles.addressOptionDisabled} title={`Not deliverable from ${store?.name}`}>
+                      <span className={styles.addressOptionText}>
+                        <span className={styles.addressOptionLabel}>
+                          {address.label.charAt(0) + address.label.slice(1).toLowerCase()} · {address.recipientName}
+                        </span>
+                        <span className={styles.addressOptionDetail}>
+                          {address.line1}
+                          {address.line2 ? `, ${address.line2}` : ''}, {address.city}
+                        </span>
+                      </span>
+                      <span className={styles.addressOptionUnavailable}>Not available from {store?.city}</span>
+                    </div>
                   ))}
                 </div>
               )}

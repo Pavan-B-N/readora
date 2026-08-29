@@ -1,6 +1,7 @@
 package com.readora.notification.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.readora.notification.dto.NotificationRequestedEvent;
 import com.readora.notification.dto.OrderStatusChangedEvent;
 import com.readora.notification.dto.RefundCompletedEvent;
 import com.readora.notification.service.NotificationService;
@@ -38,6 +39,18 @@ public class NotificationEventsListener {
                 event.userId(), "REFUND_ISSUED", "Refund processed",
                 "₹" + event.amount() + " was refunded to your wallet.", event.orderId()
         );
+    }
+
+    /**
+     * Generic, arbitrarily-targeted notifications — currently used for a store admin's
+     * "return awaiting review" alert and both sides' "new return chat message" alert. Unlike
+     * onOrderStatusChanged above, the sender already rendered title/message, so this just passes
+     * them straight through.
+     */
+    @KafkaListener(topics = KafkaTopics.NOTIFICATION_REQUESTED, groupId = "notification-service")
+    public void onNotificationRequested(String payload) throws Exception {
+        NotificationRequestedEvent event = objectMapper.readValue(payload, NotificationRequestedEvent.class);
+        notificationService.create(event.userId(), event.type(), event.title(), event.message(), event.orderId());
     }
 
     private String[] textFor(String status, String orderNumber) {

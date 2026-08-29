@@ -23,6 +23,7 @@ import com.readora.catalog.exception.AdminStoreNotAssignedException;
 import com.readora.catalog.exception.AuthorNotFoundException;
 import com.readora.catalog.exception.BookNotFoundException;
 import com.readora.catalog.exception.CategoryNotFoundException;
+import com.readora.catalog.exception.IsbnAlreadyExistsException;
 import com.readora.catalog.exception.PublisherNotFoundException;
 import com.readora.catalog.exception.StoreNotFoundException;
 import com.readora.catalog.kafka.KafkaTopics;
@@ -35,9 +36,16 @@ import com.readora.catalog.repository.PublisherRepository;
 import com.readora.catalog.repository.StoreRepository;
 import com.readora.catalog.repository.VirtualEditionRepository;
 import com.readora.catalog.security.CurrentUserContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -46,6 +54,12 @@ import java.util.stream.Collectors;
 /** Admin creation/update of books, their stock levels, and their virtual editions. */
 @Service
 public class AdminBookService {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminBookService.class);
+    private static final HttpClient FILE_SIZE_CLIENT = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(3))
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
 
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
@@ -144,6 +158,10 @@ public class AdminBookService {
 
     @Transactional
     public IdResponse createBook(CreateBookRequest request) {
+        if (bookRepository.existsByIsbn13(request.isbn13())) {
+            throw new IsbnAlreadyExistsException(request.isbn13());
+        }
+
         Category category = request.categoryId() != null
                 ? categoryRepository.findById(request.categoryId()).orElseThrow(CategoryNotFoundException::new)
                 : null;
@@ -229,19 +247,45 @@ public class AdminBookService {
 
     @Transactional
     public void upsertVirtualEdition(UUID bookId, UpsertVirtualEditionRequest request) {
+        Long fileSizeBytes = detectFileSize(request.fileUrl());
         VirtualEdition edition = virtualEditionRepository.findById(bookId).orElse(null);
 
         if (edition != null) {
-            edition.update(request.fileUrl(), request.fileFormat(), request.fileSizeBytes(), request.price(), request.currency());
+            edition.update(request.fileUrl(), request.fileFormat(), fileSizeBytes, request.price(), request.currency());
         } else {
             Book book = bookRepository.findById(bookId).orElseThrow(BookNotFoundException::new);
             edition = new VirtualEdition(
-                    book, request.fileUrl(), request.fileFormat(), request.fileSizeBytes(),
+                    book, request.fileUrl(), request.fileFormat(), fileSizeBytes,
                     request.price(), request.currency(), CurrentUserContext.get().orElse(null)
             );
         }
 
         virtualEditionRepository.save(edition);
+    }
+
+    /**
+     * File size isn't something an admin should have to type in by hand — for a real http(s) URL
+     * (as opposed to an s3:// storage key with no reachable object in this demo setup), a HEAD
+     * request's Content-Length gives the real answer. Best-effort: any failure just leaves it
+     * unset rather than blocking the save, the same degrade-gracefully approach CatalogClient
+     * uses for cover images.
+     */
+    private Long detectFileSize(String fileUrl) {
+        if (fileUrl == null || !(fileUrl.startsWith("http://") || fileUrl.startsWith("https://"))) {
+            return null;
+        }
+        try {
+            HttpRequest request = HttpRequest.newBuilder(URI.create(fileUrl))
+                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                    .timeout(Duration.ofSeconds(5))
+                    .build();
+            HttpResponse<Void> response = FILE_SIZE_CLIENT.send(request, HttpResponse.BodyHandlers.discarding());
+            String contentLength = response.headers().firstValue("Content-Length").orElse(null);
+            return contentLength != null ? Long.parseLong(contentLength) : null;
+        } catch (Exception e) {
+            log.warn("Could not auto-detect file size for {}", fileUrl, e);
+            return null;
+        }
     }
 
     @Transactional
