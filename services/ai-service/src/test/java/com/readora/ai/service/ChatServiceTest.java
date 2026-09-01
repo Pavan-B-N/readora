@@ -108,16 +108,15 @@ class ChatServiceTest {
     }
 
     /**
-     * Documents real, observed behavior of stripLeadingReferenceMarker's buffering: since Flux's
-     * handle() gets no final callback on completion, a short reply (under MAX_MARKER_HEADER_CHARS)
-     * that never matches the marker pattern is buffered forever and never flushed to the client —
-     * only the trailing bookIds frame comes through. This looks like an unintended gap (a model
-     * reply that skips the REFERENCE_BOOKS marker and stays under ~400 chars would render as
-     * empty), flagged separately rather than "fixed" here since this task is about coverage, not
-     * behavior changes.
+     * Regression test for the completion-flush bug: Flux's handle() gets no final callback on
+     * completion, so a short reply (under MAX_MARKER_HEADER_CHARS) that never matches the marker
+     * pattern used to sit in `pending` forever and never reach the client — only the trailing
+     * bookIds frame came through. stripLeadingReferenceMarker now appends a final Mono (via
+     * concatWith, same pattern chat() already uses for the bookIds frame) that flushes whatever's
+     * left in `pending` once the upstream completes.
      */
     @Test
-    void chat_shortReplyWithoutMarker_currentlyNeverFlushesReplyText() {
+    void chat_shortReplyWithoutMarker_stillFlushesReplyTextOnCompletion() {
         Conversation created = conversation(UUID.randomUUID());
         when(conversationRepository.save(any())).thenReturn(created);
         when(messageRepository.findAllByConversationIdOrderByCreatedAt(any())).thenReturn(List.of());
@@ -127,6 +126,29 @@ class ChatServiceTest {
         List<String> frames = result.tokens().collectList().block();
         String joined = String.join("", frames);
 
+        assertThat(joined).isEqualTo("Sure, here's a recommendation.@@RDX_BOOK_IDS@@:[]");
+        org.mockito.Mockito.verify(messageRepository).save(org.mockito.Mockito.argThat(
+                (Message m) -> m.getContent().equals("Sure, here's a recommendation.")));
+    }
+
+    /**
+     * Same completion-flush path, but for the marker-found branch: the marker itself can be
+     * consumed with nothing but trailing whitespace left in `pending` when the stream ends (e.g.
+     * the model's reply is just the marker, no body text). That must resolve to no visible reply
+     * text — not a leaked whitespace-only frame.
+     */
+    @Test
+    void chat_markerConsumedWithOnlyTrailingWhitespaceLeft_emitsNoEmptyFrame() {
+        Conversation created = conversation(UUID.randomUUID());
+        when(conversationRepository.save(any())).thenReturn(created);
+        when(messageRepository.findAllByConversationIdOrderByCreatedAt(any())).thenReturn(List.of());
+        streamTokens("<!--REFERENCE_BOOKS:[]-->", "\n");
+
+        var result = chatService.chat(userId, new ChatRequest(null, "recommend a book", null));
+        List<String> frames = result.tokens().collectList().block();
+
+        assertThat(frames).doesNotContain("");
+        String joined = String.join("", frames);
         assertThat(joined).isEqualTo("@@RDX_BOOK_IDS@@:[]");
         org.mockito.Mockito.verify(messageRepository).save(org.mockito.Mockito.argThat(
                 (Message m) -> m.getContent().isEmpty()));

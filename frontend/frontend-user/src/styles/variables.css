@@ -10,7 +10,11 @@
   /* Text */
   --color-text: #14161a;
   --color-text-muted: #6b7280;
-  --color-text-subtle: #9aa0a9;
+  /* Was #9aa0a9 (2.5:1 on this page's background — fails WCAG AA's 4.5:1 for normal text).
+     Darkened to clear AA on both --color-bg and --color-surface; still reads as the lowest tier
+     of the text/text-muted/text-subtle hierarchy since sizes and font-weight do the rest of that
+     work, but no longer relies on unreadably-low contrast to do it. */
+  --color-text-subtle: #6c727a;
 
   /* Brand / actions */
   --color-primary: #2563eb;

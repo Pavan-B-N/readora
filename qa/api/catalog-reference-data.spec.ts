@@ -107,6 +107,35 @@ test.describe('reviews', () => {
     expect(deleteResponse.status()).toBe(204);
   });
 
+  test('resubmitting a review updates the existing one in place rather than duplicating it', async ({ request }) => {
+    const searchResponse = await request.get('/api/v1/books', { params: { virtualOnly: 'true', page: '0', size: '1' } });
+    const page = await searchResponse.json();
+    test.skip(page.items.length === 0, 'no book in this dataset to review');
+    if (page.items.length === 0) return;
+    const bookId = page.items[0].id;
+
+    const user = await registerAndLogin(request, 'review-edit');
+    const headers = authHeaders(user.accessToken);
+
+    const first = await request.post(`/api/v1/books/${bookId}/reviews`, { headers, data: { rating: 3, comment: 'Decent.' } });
+    expect(first.status()).toBe(200);
+    const firstReview = await first.json();
+
+    const second = await request.post(`/api/v1/books/${bookId}/reviews`, { headers, data: { rating: 5, comment: 'Changed my mind — loved it.' } });
+    expect(second.status()).toBe(200);
+    const secondReview = await second.json();
+
+    expect(secondReview.id).toBe(firstReview.id);
+    expect(secondReview.rating).toBe(5);
+
+    const listResponse = await request.get(`/api/v1/books/${bookId}/reviews`, { params: { page: '0', size: '50' } });
+    const reviewsPage = await listResponse.json();
+    const mineCount = (reviewsPage.content as Array<{ id: string }>).filter((r) => r.id === firstReview.id).length;
+    expect(mineCount).toBe(1);
+
+    await request.delete(`/api/v1/books/${bookId}/reviews/me`, { headers });
+  });
+
   test('an out-of-range rating is rejected with 400', async ({ request }) => {
     const searchResponse = await request.get('/api/v1/books', { params: { virtualOnly: 'true', page: '0', size: '1' } });
     const page = await searchResponse.json();

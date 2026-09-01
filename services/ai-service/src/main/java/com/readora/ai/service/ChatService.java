@@ -182,7 +182,7 @@ public class ChatService {
         AtomicBoolean markerFound = new AtomicBoolean(false);
         AtomicBoolean fullyResolved = new AtomicBoolean(false);
 
-        return tokens.handle((chunk, sink) -> {
+        Flux<String> handled = tokens.handle((chunk, sink) -> {
             if (fullyResolved.get()) {
                 sink.next(chunk);
                 return;
@@ -218,6 +218,28 @@ public class ChatService {
                 pending.setLength(0);
             }
         });
+
+        // Flux.handle() has no onComplete callback, so a reply that's both shorter than
+        // MAX_MARKER_HEADER_CHARS and never produces the marker would otherwise leave whatever's
+        // sitting in `pending` buffered forever — the client would see nothing but the trailing
+        // bookIds frame. This runs once `handled` completes and flushes it, mirroring the
+        // give-up-and-flush behavior above (just triggered by completion instead of by length).
+        Mono<String> flushPendingOnComplete = Mono.fromCallable(() -> {
+            if (fullyResolved.get()) {
+                return "";
+            }
+            if (!markerFound.get()) {
+                // Never even matched a partial marker — same "the model didn't include one"
+                // verdict as the MAX_MARKER_HEADER_CHARS branch, just reached via completion.
+                bookIdsSink.accept(List.of());
+                return pending.toString();
+            }
+            // Marker matched, but whatever followed it was whitespace-only (or nothing) on every
+            // chunk seen so far — trim it the same way the steady-state path does.
+            return stripLeadingWhitespace(pending.toString());
+        }).filter(text -> !text.isEmpty());
+
+        return handled.concatWith(flushPendingOnComplete);
     }
 
     private static String stripLeadingWhitespace(String s) {

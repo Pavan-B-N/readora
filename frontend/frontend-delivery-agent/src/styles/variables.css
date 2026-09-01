@@ -10,7 +10,9 @@
   /* Text */
   --color-text: #14161a;
   --color-text-muted: #6b7280;
-  --color-text-subtle: #9aa0a9;
+  /* Was #9aa0a9 (2.5:1 — fails WCAG AA's 4.5:1 for normal text). Darkened to clear AA on both
+     --color-bg and --color-surface. */
+  --color-text-subtle: #6c727a;
 
   /* Brand / actions */
   --color-primary: #2563eb;
