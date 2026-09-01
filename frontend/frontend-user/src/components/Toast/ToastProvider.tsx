@@ -39,7 +39,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <motion.div
               key={toast.id}
               className={[styles.toast, styles[toast.variant]].join(' ')}
-              role="status"
+              role={toast.variant === 'error' ? 'alert' : 'status'}
+              aria-atomic="true"
               initial={{ opacity: 0, y: -12, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, x: -40, transition: { duration: 0.15 } }}

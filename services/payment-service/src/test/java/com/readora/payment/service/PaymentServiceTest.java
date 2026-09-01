@@ -1,9 +1,11 @@
 package com.readora.payment.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.readora.payment.dto.OrderCancelledEvent;
 import com.readora.payment.dto.OrderCreatedEvent;
 import com.readora.payment.dto.OrderReturnedEvent;
 import com.readora.payment.dto.PaymentResponse;
+import com.readora.payment.dto.RefundStatusResponse;
 import com.readora.payment.entity.Payment;
 import com.readora.payment.entity.PaymentMethod;
 import com.readora.payment.entity.PaymentStatus;
@@ -126,6 +128,82 @@ class PaymentServiceTest {
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
         verify(refundRepository, times(1)).save(any(Refund.class));
         verify(outboxEventRepository).save(any());
+    }
+
+    @Test
+    void handleOrderCreated_serializationFailure_wrapsInIllegalStateException() throws Exception {
+        com.fasterxml.jackson.databind.ObjectMapper failingMapper = org.mockito.Mockito.mock(com.fasterxml.jackson.databind.ObjectMapper.class);
+        when(failingMapper.writeValueAsString(any())).thenThrow(new com.fasterxml.jackson.core.JsonProcessingException("boom") { });
+        PaymentService serviceWithFailingMapper = new PaymentService(
+                paymentRepository, paymentAttemptRepository, refundRepository, outboxEventRepository, failingMapper
+        );
+        when(paymentRepository.findByIdempotencyKey(any())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> serviceWithFailingMapper.handleOrderCreated(
+                new OrderCreatedEvent(orderId, userId, List.of(), new BigDecimal("500.00"), new BigDecimal("500.00"), "WALLET")))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void captureUpiPayment_capturesAndPublishesEvent() {
+        Payment payment = new Payment(orderId, userId, PaymentMethod.UPI, new BigDecimal("500.00"), "order:" + orderId);
+        payment.authorize();
+
+        paymentService.captureUpiPayment(payment);
+
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CAPTURED);
+        verify(paymentAttemptRepository).save(any());
+        verify(outboxEventRepository).save(any());
+    }
+
+    @Test
+    void handleOrderCancelled_firstTime_completesRefund() {
+        Payment payment = new Payment(orderId, userId, PaymentMethod.WALLET, new BigDecimal("500.00"), "order:" + orderId);
+        payment.authorize();
+        payment.capture();
+        when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(payment));
+        when(refundRepository.findByPayment_Id(any())).thenReturn(Optional.empty());
+
+        paymentService.handleOrderCancelled(new OrderCancelledEvent(orderId, userId, "changed mind", new BigDecimal("500.00")));
+
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REFUNDED);
+        verify(refundRepository).save(any(Refund.class));
+    }
+
+    @Test
+    void getByOrderId_internalLookup_notFound_throws() {
+        when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> paymentService.getByOrderId(orderId)).isInstanceOf(PaymentNotFoundException.class);
+    }
+
+    @Test
+    void getByOrderId_internalLookup_found_returnsResponse() {
+        Payment payment = new Payment(orderId, userId, PaymentMethod.WALLET, new BigDecimal("500.00"), "order:" + orderId);
+        when(paymentRepository.findByOrderId(orderId)).thenReturn(Optional.of(payment));
+
+        PaymentResponse response = paymentService.getByOrderId(orderId);
+
+        assertThat(response.orderId()).isEqualTo(orderId);
+    }
+
+    @Test
+    void getRefundStatuses_emptyInput_returnsEmptyWithoutQuerying() {
+        assertThat(paymentService.getRefundStatuses(List.of())).isEmpty();
+        verify(refundRepository, never()).findAllByPayment_OrderIdIn(any());
+    }
+
+    @Test
+    void getRefundStatuses_mapsRepositoryResults() {
+        Payment payment = new Payment(orderId, userId, PaymentMethod.WALLET, new BigDecimal("500.00"), "order:" + orderId);
+        Refund refund = new Refund(payment, new BigDecimal("500.00"), "damaged");
+        refund.complete();
+        when(refundRepository.findAllByPayment_OrderIdIn(any())).thenReturn(List.of(refund));
+
+        List<RefundStatusResponse> statuses = paymentService.getRefundStatuses(List.of(orderId));
+
+        assertThat(statuses).hasSize(1);
+        assertThat(statuses.get(0).orderId()).isEqualTo(orderId);
     }
 
     @Test

@@ -20,8 +20,15 @@ export function StoreSwitcher() {
         setOpen(false);
       }
     }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false);
+    }
     document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, []);
 
   useEffect(() => {
@@ -57,6 +64,8 @@ export function StoreSwitcher() {
         onClick={() => setOpen((o) => !o)}
         disabled={switching || stores.length === 0}
         aria-label="Switch delivery store"
+        aria-haspopup="listbox"
+        aria-expanded={open}
       >
         <MapPin size={13} />
         <span className={styles.triggerText}>
@@ -86,7 +95,7 @@ export function StoreSwitcher() {
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
-            <div className={styles.optionList}>
+            <div className={styles.optionList} role="listbox" aria-label="Stores">
               {filteredStores.length === 0 && (
                 <p className={styles.noResults}>No stores match &quot;{query}&quot;</p>
               )}
@@ -96,6 +105,8 @@ export function StoreSwitcher() {
                   key={store.id}
                   className={styles.option}
                   onClick={() => onSelect(store.id)}
+                  role="option"
+                  aria-selected={store.id === selectedId}
                 >
                   <span className={styles.optionText}>
                     <span className={styles.optionName}>{store.name}</span>

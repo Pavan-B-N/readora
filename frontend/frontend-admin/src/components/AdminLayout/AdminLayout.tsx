@@ -60,6 +60,9 @@ export function AdminLayout() {
 
   return (
     <div className={styles.shell}>
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to main content
+      </a>
       <header className={styles.mobileHeader}>
         <Link to={ROUTES.books} className={styles.mobileBrand}>
           <span className={styles.brandMark}>
@@ -146,7 +149,7 @@ export function AdminLayout() {
         </div>
       </aside>
 
-      <main className={styles.main}>
+      <main id="main-content" tabIndex={-1} className={styles.main}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location.pathname}

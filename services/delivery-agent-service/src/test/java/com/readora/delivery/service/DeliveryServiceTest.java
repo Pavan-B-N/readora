@@ -62,6 +62,94 @@ class DeliveryServiceTest {
     }
 
     @Test
+    void getMe_agentNotFound_throws() {
+        when(agentRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> deliveryService.getMe(userId))
+                .isInstanceOf(com.readora.delivery.exception.AgentNotFoundException.class);
+    }
+
+    @Test
+    void getMe_found_mapsToResponse() {
+        DeliveryAgent agent = new DeliveryAgent(userId, "Agent Smith", "9999999999", storeId);
+        when(agentRepository.findById(userId)).thenReturn(Optional.of(agent));
+
+        var response = deliveryService.getMe(userId);
+
+        assertThat(response.name()).isEqualTo("Agent Smith");
+    }
+
+    @Test
+    void getMine_mapsAllAssignmentsRegardlessOfStatus() {
+        DeliveryAgent agent = new DeliveryAgent(userId, "Agent Smith", "9999999999", storeId);
+        when(agentRepository.findById(userId)).thenReturn(Optional.of(agent));
+        when(assignmentRepository.findAllByAgentIdOrderByCreatedAtDesc(userId)).thenReturn(List.of(newAssignment(UUID.randomUUID())));
+
+        var mine = deliveryService.getMine(userId);
+
+        assertThat(mine).hasSize(1);
+    }
+
+    @Test
+    void getDetail_assignmentAtAnotherStore_isTreatedAsNotFound() {
+        DeliveryAgent agent = new DeliveryAgent(userId, "Agent Smith", "9999999999", storeId);
+        UUID assignmentId = UUID.randomUUID();
+        DeliveryAssignment assignmentAtOtherStore = new DeliveryAssignment(UUID.randomUUID(), "ORD-3", UUID.randomUUID(),
+                "Mumbai", "Asha Rao", "8888888888", "[]", new BigDecimal("40.00"));
+        ReflectionTestUtils.setField(assignmentAtOtherStore, "id", assignmentId);
+        when(agentRepository.findById(userId)).thenReturn(Optional.of(agent));
+        when(assignmentRepository.findById(assignmentId)).thenReturn(Optional.of(assignmentAtOtherStore));
+
+        assertThatThrownBy(() -> deliveryService.getDetail(userId, assignmentId)).isInstanceOf(AssignmentNotFoundException.class);
+    }
+
+    @Test
+    void getDetail_ownStoreAssignment_returnsDetailWithCommerceLookup() {
+        DeliveryAgent agent = new DeliveryAgent(userId, "Agent Smith", "9999999999", storeId);
+        UUID assignmentId = UUID.randomUUID();
+        DeliveryAssignment assignment = newAssignment(assignmentId);
+        when(agentRepository.findById(userId)).thenReturn(Optional.of(agent));
+        when(assignmentRepository.findById(assignmentId)).thenReturn(Optional.of(assignment));
+        when(commerceClient.getDeliveryDetail(assignment.getOrderId())).thenReturn(
+                org.mockito.Mockito.mock(com.readora.delivery.dto.OrderDeliveryDetailResponse.class));
+
+        var detail = deliveryService.getDetail(userId, assignmentId);
+
+        assertThat(detail.assignment().id()).isEqualTo(assignmentId);
+    }
+
+    @Test
+    void toResponse_malformedItemsJson_degradesToEmptyListRatherThanFailing() {
+        DeliveryAgent agent = new DeliveryAgent(userId, "Agent Smith", "9999999999", storeId);
+        DeliveryAssignment assignment = new DeliveryAssignment(UUID.randomUUID(), "ORD-4", storeId,
+                "Bengaluru", "Ravi Kumar", "9999999999", "not valid json", new BigDecimal("40.00"));
+        UUID assignmentId = UUID.randomUUID();
+        ReflectionTestUtils.setField(assignment, "id", assignmentId);
+        when(agentRepository.findById(userId)).thenReturn(Optional.of(agent));
+        when(assignmentRepository.findById(assignmentId)).thenReturn(Optional.of(assignment));
+        when(commerceClient.getDeliveryDetail(any())).thenReturn(
+                org.mockito.Mockito.mock(com.readora.delivery.dto.OrderDeliveryDetailResponse.class));
+
+        var detail = deliveryService.getDetail(userId, assignmentId);
+
+        assertThat(detail.assignment().items()).isEmpty();
+    }
+
+    @Test
+    void markOutForDelivery_fromAssignedState_succeeds() {
+        UUID assignmentId = UUID.randomUUID();
+        DeliveryAssignment assignment = newAssignment(assignmentId);
+        assignment.claim(userId);
+        when(agentRepository.findById(userId)).thenReturn(Optional.of(new DeliveryAgent(userId, "Agent Smith", null, storeId)));
+        when(assignmentRepository.findByIdAndAgentId(assignmentId, userId)).thenReturn(Optional.of(assignment));
+
+        deliveryService.markOutForDelivery(userId, assignmentId);
+
+        assertThat(assignment.getStatus()).isEqualTo(DeliveryAssignmentStatus.OUT_FOR_DELIVERY);
+        verify(commerceClient).updateDeliveryStatus(assignment.getOrderId(), "SHIPPED", null, null);
+    }
+
+    @Test
     void setOnDuty_goingOffDutyWithAnActiveDelivery_throwsAndLeavesAgentOnDuty() {
         DeliveryAgent agent = new DeliveryAgent(userId, "Agent Smith", "9999999999", storeId);
         DeliveryAssignment activeAssignment = newAssignment(UUID.randomUUID());

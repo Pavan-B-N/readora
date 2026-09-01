@@ -5,8 +5,12 @@ import com.readora.commerce.cart.CartRepository;
 import com.readora.commerce.client.CatalogClient;
 import com.readora.commerce.dto.AddCartItemRequest;
 import com.readora.commerce.dto.BookInfo;
+import com.readora.commerce.dto.CartResponse;
 import com.readora.commerce.dto.CartSummaryResponse;
 import com.readora.commerce.entity.DeliveryType;
+import com.readora.commerce.exception.BookNotAvailableAtStoreException;
+import com.readora.commerce.exception.CartItemNotFoundException;
+import com.readora.commerce.exception.InsufficientStockException;
 import com.readora.commerce.exception.QtyLimitExceededException;
 import com.readora.commerce.exception.StoreIdRequiredException;
 import com.readora.commerce.exception.VirtualEditionAlreadyOwnedException;
@@ -129,6 +133,98 @@ class CartServiceTest {
 
         assertThat(response.itemCount()).isEqualTo(5);
         assertThat(response.subtotal()).isEqualByComparingTo(new BigDecimal("299.00").multiply(BigDecimal.valueOf(5)));
+        verify(cartRepository).saveItems(any(), any());
+    }
+
+    @Test
+    void addItem_wrongStore_throwsBookNotAvailableAtStore() {
+        when(cartRepository.getItems(userId)).thenReturn(new ArrayList<>());
+        BookInfo book = new BookInfo(bookId, "Some Title", "9781234567897", new BigDecimal("299.00"), "INR",
+                new BookInfo.Availability("NOT_AVAILABLE_AT_STORE", 0), null);
+        when(catalogClient.getBook(bookId, storeId)).thenReturn(book);
+
+        assertThatThrownBy(() -> cartService.addItem(userId, new AddCartItemRequest(bookId, 1, DeliveryType.PHYSICAL, storeId)))
+                .isInstanceOf(BookNotAvailableAtStoreException.class);
+    }
+
+    @Test
+    void addItem_insufficientStock_throws() {
+        when(cartRepository.getItems(userId)).thenReturn(new ArrayList<>());
+        when(catalogClient.getBook(bookId, storeId)).thenReturn(physicalBook(1));
+
+        assertThatThrownBy(() -> cartService.addItem(userId, new AddCartItemRequest(bookId, 5, DeliveryType.PHYSICAL, storeId)))
+                .isInstanceOf(InsufficientStockException.class);
+    }
+
+    @Test
+    void getCart_mapsItemsAndFlagsShippingRequiredForPhysical() {
+        List<CartItemData> items = List.of(
+                new CartItemData(bookId, "Some Title", 2, new BigDecimal("299.00"), DeliveryType.PHYSICAL, Instant.now())
+        );
+        when(cartRepository.getItems(userId)).thenReturn(items);
+
+        CartResponse response = cartService.getCart(userId);
+
+        assertThat(response.requiresShippingAddress()).isTrue();
+        assertThat(response.itemCount()).isEqualTo(2);
+    }
+
+    @Test
+    void setItemQty_itemNotInCart_throws() {
+        when(cartRepository.getItems(userId)).thenReturn(new ArrayList<>());
+
+        assertThatThrownBy(() -> cartService.setItemQty(userId, bookId, DeliveryType.PHYSICAL, 3))
+                .isInstanceOf(CartItemNotFoundException.class);
+    }
+
+    @Test
+    void setItemQty_zero_removesItem() {
+        List<CartItemData> items = new ArrayList<>(List.of(
+                new CartItemData(bookId, "Some Title", 2, new BigDecimal("299.00"), DeliveryType.PHYSICAL, Instant.now())
+        ));
+        when(cartRepository.getItems(userId)).thenReturn(items);
+
+        CartSummaryResponse response = cartService.setItemQty(userId, bookId, DeliveryType.PHYSICAL, 0);
+
+        assertThat(response.itemCount()).isZero();
+        verify(catalogClient, never()).getBook(any(), any());
+    }
+
+    @Test
+    void setItemQty_exceedsLimit_throws() {
+        List<CartItemData> items = new ArrayList<>(List.of(
+                new CartItemData(bookId, "Some Title", 2, new BigDecimal("299.00"), DeliveryType.PHYSICAL, Instant.now())
+        ));
+        when(cartRepository.getItems(userId)).thenReturn(items);
+
+        assertThatThrownBy(() -> cartService.setItemQty(userId, bookId, DeliveryType.PHYSICAL, 11))
+                .isInstanceOf(QtyLimitExceededException.class);
+    }
+
+    @Test
+    void setItemQty_virtual_clampsToOneRegardlessOfRequestedQty() {
+        List<CartItemData> items = new ArrayList<>(List.of(
+                new CartItemData(bookId, "Some Title", 1, new BigDecimal("199.00"), DeliveryType.VIRTUAL, Instant.now())
+        ));
+        when(cartRepository.getItems(userId)).thenReturn(items);
+        when(catalogClient.getBook(bookId, null)).thenReturn(virtualBook());
+
+        CartSummaryResponse response = cartService.setItemQty(userId, bookId, DeliveryType.VIRTUAL, 5);
+
+        assertThat(response.itemCount()).isEqualTo(1);
+    }
+
+    @Test
+    void setItemQty_valid_updatesQtyAndSaves() {
+        List<CartItemData> items = new ArrayList<>(List.of(
+                new CartItemData(bookId, "Some Title", 2, new BigDecimal("299.00"), DeliveryType.PHYSICAL, Instant.now())
+        ));
+        when(cartRepository.getItems(userId)).thenReturn(items);
+        when(catalogClient.getBook(bookId, null)).thenReturn(physicalBook(20));
+
+        CartSummaryResponse response = cartService.setItemQty(userId, bookId, DeliveryType.PHYSICAL, 4);
+
+        assertThat(response.itemCount()).isEqualTo(4);
         verify(cartRepository).saveItems(any(), any());
     }
 }

@@ -1,0 +1,53 @@
+# Activated via SPRING_PROFILES_ACTIVE=docker (see /docker-compose.yml).
+#
+# Spring Boot's relaxed binding replaces an indexed list property (like
+# spring.cloud.gateway.routes) wholesale from whichever source defines index
+# 0 — it does not merge element-by-element with application.yml — so the
+# full route list is repeated here with container DNS names in place of
+# localhost. CORS origins are deliberately NOT overridden: the browser runs
+# on the host, not in a container, so it still calls this gateway as
+# http://localhost:5173 etc. via the port mappings in docker-compose.yml.
+spring:
+  data:
+    redis:
+      host: redis
+
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://auth-service:8081
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: user-service
+          uri: http://user-service:8082
+          predicates:
+            - Path=/api/v1/users/**
+        - id: catalog-service
+          uri: http://catalog-service:8083
+          predicates:
+            - Path=/api/v1/books/**,/api/v1/categories/**,/api/v1/publishers/**,/api/v1/authors/**,/api/v1/stores/**,/api/v1/admin/books/**,/api/v1/admin/categories/**,/api/v1/admin/publishers/**,/api/v1/admin/authors/**,/api/v1/admin/reviews/**
+        - id: commerce-service
+          uri: http://commerce-service:8084
+          predicates:
+            - Path=/api/v1/cart/**,/api/v1/orders/**,/api/v1/admin/orders/**
+        - id: payment-service
+          uri: http://payment-service:8085
+          predicates:
+            - Path=/api/v1/payments/**
+        - id: ai-service
+          uri: http://ai-service:8088
+          predicates:
+            - Path=/api/v1/ai/**,/api/v1/admin/embeddings/**
+        - id: notification-service
+          uri: ws://notification-service:8086
+          predicates:
+            - Path=/ws/**
+        - id: notification-service-rest
+          uri: http://notification-service:8086
+          predicates:
+            - Path=/api/v1/notifications/**
+        - id: delivery-agent-service
+          uri: http://delivery-agent-service:8089
+          predicates:
+            - Path=/api/v1/delivery/**,/api/v1/returns/**,/api/v1/admin/delivery/**

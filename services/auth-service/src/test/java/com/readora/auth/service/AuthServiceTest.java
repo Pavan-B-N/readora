@@ -2,7 +2,9 @@ package com.readora.auth.service;
 
 import com.readora.auth.dto.LoginRequest;
 import com.readora.auth.dto.LoginResponse;
+import com.readora.auth.dto.LogoutRequest;
 import com.readora.auth.dto.RefreshRequest;
+import com.readora.auth.dto.RefreshResponse;
 import com.readora.auth.dto.RegisterRequest;
 import com.readora.auth.entity.RefreshToken;
 import com.readora.auth.entity.RoleCode;
@@ -11,6 +13,7 @@ import com.readora.auth.entity.UserStatus;
 import com.readora.auth.exception.AccountLockedException;
 import com.readora.auth.exception.EmailAlreadyRegisteredException;
 import com.readora.auth.exception.InvalidCredentialsException;
+import com.readora.auth.exception.RefreshTokenInvalidException;
 import com.readora.auth.exception.RefreshTokenReusedException;
 import com.readora.auth.repository.RefreshTokenRepository;
 import com.readora.auth.repository.UserRepository;
@@ -156,5 +159,66 @@ class AuthServiceTest {
 
         verify(userRepository, times(1)).save(any(User.class));
         verify(roleService).getOrCreate(RoleCode.CUSTOMER);
+    }
+
+    @Test
+    void refresh_unknownToken_throwsInvalidBeforeIssuingAnything() {
+        when(refreshTokenRepository.findByTokenHash(any())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.refresh(new RefreshRequest("unknown-token")))
+                .isInstanceOf(RefreshTokenInvalidException.class);
+
+        verify(jwtService, never()).generateAccessToken(any());
+    }
+
+    @Test
+    void refresh_expiredButNotRevokedToken_throwsInvalidWithoutRevokingOthers() {
+        User user = new User("reader@example.com", "hashed");
+        RefreshToken expired = new RefreshToken(user, "hash", Instant.now().minusSeconds(1), null, null);
+
+        when(refreshTokenRepository.findByTokenHash(any())).thenReturn(Optional.of(expired));
+
+        assertThatThrownBy(() -> authService.refresh(new RefreshRequest("expired-token")))
+                .isInstanceOf(RefreshTokenInvalidException.class);
+
+        verify(refreshTokenRepository, never()).findAllByUserAndRevokedAtIsNull(any());
+        verify(jwtService, never()).generateAccessToken(any());
+    }
+
+    @Test
+    void refresh_validToken_revokesItAndIssuesANewPairCarryingForwardDeviceInfo() {
+        User user = new User("reader@example.com", "hashed");
+        RefreshToken existing = new RefreshToken(user, "hash", Instant.now().plusSeconds(3600), "some-agent", "10.0.0.1");
+
+        when(refreshTokenRepository.findByTokenHash(any())).thenReturn(Optional.of(existing));
+        when(jwtService.generateAccessToken(user)).thenReturn("new-access-token");
+        when(jwtService.getAccessTokenTtlSeconds()).thenReturn(900L);
+
+        RefreshResponse response = authService.refresh(new RefreshRequest("presented-token"));
+
+        assertThat(existing.isRevoked()).isTrue();
+        assertThat(response.accessToken()).isEqualTo("new-access-token");
+        assertThat(response.expiresIn()).isEqualTo(900L);
+        verify(refreshTokenRepository, times(2)).save(any(RefreshToken.class));
+    }
+
+    @Test
+    void logout_knownToken_revokesIt() {
+        User user = new User("reader@example.com", "hashed");
+        RefreshToken existing = new RefreshToken(user, "hash", Instant.now().plusSeconds(3600), null, null);
+        when(refreshTokenRepository.findByTokenHash(any())).thenReturn(Optional.of(existing));
+
+        authService.logout(new LogoutRequest("presented-token"));
+
+        assertThat(existing.isRevoked()).isTrue();
+    }
+
+    @Test
+    void logout_unknownToken_silentlyNoOps() {
+        when(refreshTokenRepository.findByTokenHash(any())).thenReturn(Optional.empty());
+
+        authService.logout(new LogoutRequest("unknown-token"));
+
+        verify(refreshTokenRepository, never()).save(any());
     }
 }

@@ -52,6 +52,19 @@ class NotificationServiceTest {
     }
 
     @Test
+    void list_mapsPageOfNotifications() {
+        UUID orderId = UUID.randomUUID();
+        Notification notification = new Notification(userId, "ORDER_DELIVERED", "Delivered", "Your order arrived", orderId);
+        when(notificationRepository.findAllByUserIdOrderByCreatedAtDesc(any(), any()))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(notification)));
+
+        var page = notificationService.list(userId, org.springframework.data.domain.Pageable.unpaged());
+
+        assertThat(page.getContent()).hasSize(1);
+        assertThat(page.getContent().get(0).title()).isEqualTo("Delivered");
+    }
+
+    @Test
     void markRead_wrongUser_throwsNotFoundRatherThanLeakingItExists() {
         UUID notificationId = UUID.randomUUID();
         when(notificationRepository.findByIdAndUserId(notificationId, userId)).thenReturn(Optional.empty());

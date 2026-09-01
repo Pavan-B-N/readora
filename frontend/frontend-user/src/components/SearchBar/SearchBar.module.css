@@ -1,7 +1,18 @@
 .wrapper {
   flex: 1;
+  min-width: 0;
   max-width: 600px;
   position: relative;
+}
+
+@media (max-width: 640px) {
+  .wrapper {
+    max-width: none;
+  }
+
+  .searchInput {
+    padding: 0 var(--space-6);
+  }
 }
 
 .searchForm {

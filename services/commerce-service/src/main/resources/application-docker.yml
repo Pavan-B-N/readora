@@ -1,0 +1,17 @@
+# Activated via SPRING_PROFILES_ACTIVE=docker (see /docker-compose.yml).
+# Overrides only the properties that are container-network-dependent; every
+# other key inherits from application.yml.
+spring:
+  data:
+    redis:
+      host: redis
+  kafka:
+    bootstrap-servers: kafka:9092
+
+app:
+  catalog-service:
+    base-url: http://catalog-service:8083
+  user-service:
+    base-url: http://user-service:8082
+  payment-service:
+    base-url: http://payment-service:8085

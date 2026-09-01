@@ -8,6 +8,7 @@ export interface TestUser {
   email: string;
   password: string;
   accessToken: string;
+  refreshToken: string;
 }
 
 export function uniqueEmail(prefix: string): string {
@@ -30,9 +31,9 @@ export async function registerAndLogin(request: APIRequestContext, emailPrefix =
   if (!loginResponse.ok()) {
     throw new Error(`Login failed (${loginResponse.status()}): ${await loginResponse.text()}`);
   }
-  const { accessToken } = await loginResponse.json();
+  const { accessToken, refreshToken } = await loginResponse.json();
 
-  return { email, password, accessToken };
+  return { email, password, accessToken, refreshToken };
 }
 
 export function authHeaders(accessToken: string): Record<string, string> {

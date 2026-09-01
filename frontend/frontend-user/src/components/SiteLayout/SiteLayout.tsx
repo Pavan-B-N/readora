@@ -31,8 +31,15 @@ export function SiteLayout() {
         setMenuOpen(false);
       }
     };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
     document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside);
+      document.removeEventListener('keydown', onKeyDown);
+    };
   }, []);
 
   // AssistantPage owns switching between conversations itself (via the conversationId route
@@ -76,6 +83,9 @@ export function SiteLayout() {
 
   return (
     <div className={styles.shell}>
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to main content
+      </a>
       {!isAuthPage && (
         <header className={styles.header}>
           <div className={styles.headerInner}>
@@ -109,11 +119,13 @@ export function SiteLayout() {
                     <span className={styles.navLabel}>Wishlist</span>
                   </NavLink>
                   <div className={styles.profileMenuWrap} ref={menuRef}>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className={[styles.navLink, menuOpen && styles.profileMenuActive].filter(Boolean).join(' ')}
                       onClick={() => setMenuOpen(!menuOpen)}
                       aria-label="Profile menu"
+                      aria-haspopup="menu"
+                      aria-expanded={menuOpen}
                     >
                       <User size={18} />
                       <span className={styles.navLabel}>Profile</span>
@@ -122,29 +134,31 @@ export function SiteLayout() {
                       {menuOpen && (
                         <motion.div
                           className={styles.profileMenu}
+                          role="menu"
+                          aria-label="Profile"
                           initial={{ opacity: 0, y: 4, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
                           transition={{ type: 'spring', bounce: 0, duration: 0.2 }}
                         >
-                          <Link to={ROUTES.profile} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                          <Link to={ROUTES.profile} className={styles.menuItem} role="menuitem" onClick={() => setMenuOpen(false)}>
                             <User size={15} />
                             Your Profile
                           </Link>
-                          <Link to={ROUTES.orders} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                          <Link to={ROUTES.orders} className={styles.menuItem} role="menuitem" onClick={() => setMenuOpen(false)}>
                             <Package size={15} />
                             Orders
                           </Link>
-                          <Link to={ROUTES.library} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                          <Link to={ROUTES.library} className={styles.menuItem} role="menuitem" onClick={() => setMenuOpen(false)}>
                             <Library size={15} />
                             Library
                           </Link>
-                          <Link to={ROUTES.wallet} className={styles.menuItem} onClick={() => setMenuOpen(false)}>
+                          <Link to={ROUTES.wallet} className={styles.menuItem} role="menuitem" onClick={() => setMenuOpen(false)}>
                             <Wallet size={15} />
                             Wallet
                           </Link>
-                          <div className={styles.menuDivider} />
-                          <button type="button" className={styles.menuItem} onClick={() => { setMenuOpen(false); onLogout(); }}>
+                          <div className={styles.menuDivider} role="separator" />
+                          <button type="button" className={styles.menuItem} role="menuitem" onClick={() => { setMenuOpen(false); onLogout(); }}>
                             <LogOut size={15} />
                             Log out
                           </button>
@@ -164,6 +178,8 @@ export function SiteLayout() {
       )}
 
       <main
+        id="main-content"
+        tabIndex={-1}
         className={[styles.main, isAuthPage && styles.mainFullBleed]
           .filter(Boolean)
           .join(' ')}

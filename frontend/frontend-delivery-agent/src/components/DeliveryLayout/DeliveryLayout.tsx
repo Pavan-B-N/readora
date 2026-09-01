@@ -51,6 +51,9 @@ export function DeliveryLayout() {
 
   return (
     <div className={styles.shell}>
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to main content
+      </a>
       <header className={styles.header}>
         <div className={styles.brand}>
           <span className={styles.brandMark}>
@@ -65,11 +68,11 @@ export function DeliveryLayout() {
         <nav className={styles.nav}>
           <NavLink to={ROUTES.orders} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
             <ListChecks size={15} />
-            Orders
+            <span className={styles.navLabel}>Orders</span>
           </NavLink>
           <NavLink to={ROUTES.profile} className={({ isActive }) => [styles.navLink, isActive && styles.navLinkActive].filter(Boolean).join(' ')}>
             <UserCircle size={15} />
-            Profile
+            <span className={styles.navLabel}>Profile</span>
           </NavLink>
         </nav>
 
@@ -93,7 +96,7 @@ export function DeliveryLayout() {
         </div>
       </header>
 
-      <main className={styles.content}>
+      <main id="main-content" tabIndex={-1} className={styles.content}>
         <Outlet context={{ me, reloadMe } satisfies DeliveryLayoutContext} />
       </main>
     </div>
