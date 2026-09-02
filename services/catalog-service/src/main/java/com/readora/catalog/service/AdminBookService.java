@@ -35,7 +35,7 @@ import com.readora.catalog.repository.OutboxEventRepository;
 import com.readora.catalog.repository.PublisherRepository;
 import com.readora.catalog.repository.StoreRepository;
 import com.readora.catalog.repository.VirtualEditionRepository;
-import com.readora.catalog.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

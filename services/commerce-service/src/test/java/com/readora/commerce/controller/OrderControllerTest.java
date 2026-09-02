@@ -9,10 +9,12 @@ import com.readora.commerce.dto.CheckoutResponse;
 import com.readora.commerce.dto.PostReturnMessageRequest;
 import com.readora.commerce.dto.ReturnOrderRequest;
 import com.readora.commerce.entity.DeliveryType;
-import com.readora.commerce.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.commerce.exception.OrderNotFoundException;
-import com.readora.commerce.security.CurrentUserContext;
-import com.readora.commerce.service.OrderService;
+import com.readora.sharedcore.security.CurrentUserContext;
+import com.readora.commerce.service.CheckoutService;
+import com.readora.commerce.service.OrderQueryService;
+import com.readora.commerce.service.ReturnService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,14 +39,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class OrderControllerTest {
 
-    @Mock private OrderService orderService;
+    @Mock private CheckoutService checkoutService;
+    @Mock private OrderQueryService orderQueryService;
+    @Mock private ReturnService returnService;
 
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new OrderController(orderService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new OrderController(checkoutService, orderQueryService, returnService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
         CurrentUserContext.set(UUID.randomUUID(), List.of("CUSTOMER"));
@@ -57,7 +61,7 @@ class OrderControllerTest {
 
     @Test
     void checkout_valid_returns201() throws Exception {
-        when(orderService.checkout(any(), any(), any())).thenReturn(new CheckoutResponse(
+        when(checkoutService.checkout(any(), any(), any())).thenReturn(new CheckoutResponse(
                 UUID.randomUUID(), "RDA-2026-000001", "PENDING_PAYMENT", "VIRTUAL", BigDecimal.TEN, BigDecimal.ZERO,
                 BigDecimal.ZERO, BigDecimal.ONE, new BigDecimal("11.00"), BigDecimal.ZERO, "WALLET", "INR", Instant.now()));
 
@@ -84,21 +88,21 @@ class OrderControllerTest {
 
     @Test
     void list_delegatesToService() throws Exception {
-        when(orderService.listOrders(any(), any())).thenReturn(new PageImpl<>(List.of(), org.springframework.data.domain.PageRequest.of(0, 20), 0));
+        when(orderQueryService.listOrders(any(), any())).thenReturn(new PageImpl<>(List.of(), org.springframework.data.domain.PageRequest.of(0, 20), 0));
 
         mockMvc.perform(get("/api/v1/orders")).andExpect(status().isOk());
     }
 
     @Test
     void getDetail_notFound_mapsTo404() throws Exception {
-        when(orderService.getDetail(any(), any())).thenThrow(new OrderNotFoundException());
+        when(orderQueryService.getDetail(any(), any())).thenThrow(new OrderNotFoundException());
 
         mockMvc.perform(get("/api/v1/orders/" + UUID.randomUUID())).andExpect(status().isNotFound());
     }
 
     @Test
     void cancel_delegatesToService() throws Exception {
-        when(orderService.cancel(any(), any(), any())).thenReturn(
+        when(returnService.cancel(any(), any(), any())).thenReturn(
                 new CancelOrderResponse(UUID.randomUUID(), "CANCELLED", Instant.now()));
 
         mockMvc.perform(post("/api/v1/orders/" + UUID.randomUUID() + "/cancel")
@@ -117,7 +121,7 @@ class OrderControllerTest {
 
     @Test
     void returnMessages_delegatesToService() throws Exception {
-        when(orderService.listReturnMessages(any(), any())).thenReturn(List.of());
+        when(returnService.listReturnMessages(any(), any())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/orders/" + UUID.randomUUID() + "/return/messages")).andExpect(status().isOk());
     }

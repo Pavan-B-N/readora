@@ -19,10 +19,10 @@ import { getMyReturns, markReturnCollected, markReturnEnRoute } from '@/api/retu
 import { extractErrorMessage } from '@/api/client';
 import { fromAssignment, fromReturnPickup } from '@/types/delivery';
 import type { AgentMe, AgentStats, UnifiedJob } from '@/types/delivery';
-import { Card } from '@/components/Card';
-import { Badge } from '@/components/Badge';
-import { Button } from '@/components/Button';
-import { useToast } from '@/components/Toast';
+import { Card } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './ProfilePage.module.css';
 

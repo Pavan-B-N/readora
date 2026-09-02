@@ -1,7 +1,7 @@
 package com.readora.ai.controller;
 
 import com.readora.ai.dto.ChatRequest;
-import com.readora.ai.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.ai.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

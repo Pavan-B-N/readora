@@ -5,10 +5,11 @@ import com.readora.commerce.client.UserServiceClient;
 import com.readora.commerce.entity.DeliveryType;
 import com.readora.commerce.entity.Order;
 import com.readora.commerce.entity.OrderStatus;
+import com.readora.commerce.entity.PaymentMethod;
 import com.readora.commerce.exception.AdminOrderNotFoundException;
 import com.readora.commerce.exception.AdminStoreNotAssignedException;
 import com.readora.commerce.repository.OrderRepository;
-import com.readora.commerce.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class AdminOrderServiceTest {
     @Mock private OrderRepository orderRepository;
     @Mock private UserServiceClient userServiceClient;
     @Mock private PaymentClient paymentClient;
-    @Mock private OrderService orderService;
+    @Mock private ReturnService returnService;
     @Mock private ReturnMessageService returnMessageService;
 
     private AdminOrderService adminOrderService;
@@ -47,7 +48,7 @@ class AdminOrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        adminOrderService = new AdminOrderService(orderRepository, userServiceClient, paymentClient, orderService, returnMessageService);
+        adminOrderService = new AdminOrderService(orderRepository, userServiceClient, paymentClient, returnService, returnMessageService);
         CurrentUserContext.set(adminId, List.of("ADMIN"));
     }
 
@@ -58,7 +59,7 @@ class AdminOrderServiceTest {
 
     private static Order order(OrderStatus status) {
         Order order = new Order("RDA-2026-000001", UUID.randomUUID(), "INR", new BigDecimal("100.00"), BigDecimal.ZERO,
-                BigDecimal.ZERO, new BigDecimal("9.00"), new BigDecimal("109.00"), BigDecimal.ZERO, "WALLET",
+                BigDecimal.ZERO, new BigDecimal("9.00"), new BigDecimal("109.00"), BigDecimal.ZERO, PaymentMethod.WALLET,
                 UUID.randomUUID().toString(), DeliveryType.PHYSICAL);
         ReflectionTestUtils.setField(order, "id", UUID.randomUUID());
         ReflectionTestUtils.setField(order, "placedAt", Instant.now());
@@ -133,7 +134,7 @@ class AdminOrderServiceTest {
     }
 
     @Test
-    void reviewOrder_withDecision_delegatesToOrderServiceReviewReturn() {
+    void reviewOrder_withDecision_delegatesToReturnServiceReviewReturn() {
         when(userServiceClient.getAdminStoreId(adminId)).thenReturn(storeId);
         Order order = order(OrderStatus.RETURN_APPROVED);
         when(orderRepository.findByIdAndStoreId(order.getId(), storeId)).thenReturn(Optional.of(order));
@@ -141,7 +142,7 @@ class AdminOrderServiceTest {
 
         adminOrderService.reviewOrder(order.getId(), "looks good", "APPROVE");
 
-        verify(orderService).reviewReturn(adminId, order.getId(), storeId, "APPROVE", "looks good");
+        verify(returnService).reviewReturn(adminId, order.getId(), storeId, "APPROVE", "looks good");
     }
 
     @Test
@@ -155,7 +156,7 @@ class AdminOrderServiceTest {
 
         assertThat(order.getAdminNote()).isEqualTo("acknowledged");
         verify(orderRepository).save(order);
-        verify(orderService, org.mockito.Mockito.never()).reviewReturn(any(), any(), any(), any(), any());
+        verify(returnService, org.mockito.Mockito.never()).reviewReturn(any(), any(), any(), any(), any());
     }
 
     @Test

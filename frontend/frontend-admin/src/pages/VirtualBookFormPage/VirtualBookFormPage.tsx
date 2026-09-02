@@ -11,9 +11,9 @@ import {
 } from '@/api/catalogApi';
 import type { Author } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
-import { useToast } from '@/components/Toast';
-import { Input, Textarea } from '@/components/Input';
-import { Button } from '@/components/Button';
+import { useToast } from '@readora/shared-ui';
+import { Input, Textarea } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
 import { Combobox } from '@/components/Combobox';
 import { ROUTES } from '@/constants/routes';
 import styles from '../BookFormPage/BookFormPage.module.css';

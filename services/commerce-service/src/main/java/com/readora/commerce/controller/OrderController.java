@@ -10,8 +10,10 @@ import com.readora.commerce.dto.PostReturnMessageRequest;
 import com.readora.commerce.dto.ReturnMessageResponse;
 import com.readora.commerce.dto.ReturnOrderRequest;
 import com.readora.commerce.dto.ReturnOrderResponse;
-import com.readora.commerce.security.CurrentUserContext;
-import com.readora.commerce.service.OrderService;
+import com.readora.sharedcore.security.CurrentUserContext;
+import com.readora.commerce.service.CheckoutService;
+import com.readora.commerce.service.OrderQueryService;
+import com.readora.commerce.service.ReturnService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -39,10 +41,14 @@ import java.util.UUID;
 @RequestMapping("/api/v1/orders")
 public class OrderController {
 
-    private final OrderService orderService;
+    private final CheckoutService checkoutService;
+    private final OrderQueryService orderQueryService;
+    private final ReturnService returnService;
 
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
+    public OrderController(CheckoutService checkoutService, OrderQueryService orderQueryService, ReturnService returnService) {
+        this.checkoutService = checkoutService;
+        this.orderQueryService = orderQueryService;
+        this.returnService = returnService;
     }
 
     @Operation(
@@ -61,7 +67,7 @@ public class OrderController {
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @Valid @RequestBody CheckoutRequest request
     ) {
-        CheckoutResponse response = orderService.checkout(CurrentUserContext.require(), idempotencyKey, request);
+        CheckoutResponse response = checkoutService.checkout(CurrentUserContext.require(), idempotencyKey, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -79,7 +85,7 @@ public class OrderController {
             @RequestParam(defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(orderService.listOrders(CurrentUserContext.require(), pageable));
+        return ResponseEntity.ok(orderQueryService.listOrders(CurrentUserContext.require(), pageable));
     }
 
     @Operation(
@@ -93,7 +99,7 @@ public class OrderController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<OrderDetailResponse> getDetail(@PathVariable UUID id) {
-        return ResponseEntity.ok(orderService.getDetail(CurrentUserContext.require(), id));
+        return ResponseEntity.ok(orderQueryService.getDetail(CurrentUserContext.require(), id));
     }
 
     @Operation(
@@ -108,7 +114,7 @@ public class OrderController {
     })
     @PostMapping("/{id}/cancel")
     public ResponseEntity<CancelOrderResponse> cancel(@PathVariable UUID id, @RequestBody CancelOrderRequest request) {
-        return ResponseEntity.ok(orderService.cancel(CurrentUserContext.require(), id, request));
+        return ResponseEntity.ok(returnService.cancel(CurrentUserContext.require(), id, request));
     }
 
     @Operation(
@@ -124,7 +130,7 @@ public class OrderController {
     })
     @PostMapping("/{id}/return")
     public ResponseEntity<ReturnOrderResponse> returnOrder(@PathVariable UUID id, @Valid @RequestBody ReturnOrderRequest request) {
-        return ResponseEntity.ok(orderService.returnOrder(CurrentUserContext.require(), id, request));
+        return ResponseEntity.ok(returnService.returnOrder(CurrentUserContext.require(), id, request));
     }
 
     @Operation(
@@ -138,7 +144,7 @@ public class OrderController {
     })
     @GetMapping("/{id}/return/messages")
     public ResponseEntity<List<ReturnMessageResponse>> returnMessages(@PathVariable UUID id) {
-        return ResponseEntity.ok(orderService.listReturnMessages(CurrentUserContext.require(), id));
+        return ResponseEntity.ok(returnService.listReturnMessages(CurrentUserContext.require(), id));
     }
 
     @Operation(
@@ -153,6 +159,6 @@ public class OrderController {
     })
     @PostMapping("/{id}/return/messages")
     public ResponseEntity<ReturnMessageResponse> postReturnMessage(@PathVariable UUID id, @Valid @RequestBody PostReturnMessageRequest request) {
-        return ResponseEntity.ok(orderService.postReturnMessage(CurrentUserContext.require(), id, request.content()));
+        return ResponseEntity.ok(returnService.postReturnMessage(CurrentUserContext.require(), id, request.content()));
     }
 }

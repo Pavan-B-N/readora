@@ -50,6 +50,9 @@ app:
   security:
     public-routes:
       - /internal/**
+    role-gates:
+      - path-prefix: /api/v1/admin/
+        role: ADMIN
   catalog-service:
     base-url: http://localhost:8083
   user-service:

@@ -3,7 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from '@/redux/store';
 import { bootstrapSession } from '@/api/client';
-import { ToastProvider } from '@/components/Toast';
+import { ToastProvider } from '@readora/shared-ui';
 import { router } from './router';
 
 function AppRoutes() {
@@ -27,7 +27,7 @@ function AppRoutes() {
 export function App() {
   return (
     <Provider store={store}>
-      <ToastProvider>
+      <ToastProvider direction="bottom">
         <AppRoutes />
       </ToastProvider>
     </Provider>

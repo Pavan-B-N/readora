@@ -1,6 +1,6 @@
 package com.readora.notification.config;
 
-import com.readora.notification.security.JwtService;
+import com.readora.sharedcore.security.JwtService;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
@@ -45,6 +45,6 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return Optional.empty();
         }
-        return jwtService.validate(authHeader.substring(7));
+        return jwtService.extractUserId(authHeader.substring(7));
     }
 }

@@ -16,8 +16,8 @@ import type { Author, BookSummary, CategoryNode, PurchasedBook } from '@/types/c
 import { useDebounced } from '@/hooks/useDebounced';
 import { useAppSelector } from '@/redux/hooks';
 import { BookCard } from '@/components/BookCard';
-import { Button } from '@/components/Button';
-import { EmptyState } from '@/components/EmptyState';
+import { Button } from '@readora/shared-ui';
+import { EmptyState } from '@readora/shared-ui';
 import { Spinner } from '@/components/Spinner';
 import { statusVariant, displayStatus } from '@/utils/orderStatus';
 import { ROUTES } from '@/constants/routes';

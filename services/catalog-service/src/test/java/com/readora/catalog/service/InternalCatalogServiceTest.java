@@ -2,6 +2,7 @@ package com.readora.catalog.service;
 
 import com.readora.catalog.dto.BookAvailabilityResponse;
 import com.readora.catalog.dto.BookCoverLookupResponse;
+import com.readora.catalog.dto.BookExportPage;
 import com.readora.catalog.dto.StoreResponse;
 import com.readora.catalog.dto.VirtualEditionLookupResponse;
 import com.readora.catalog.entity.Book;
@@ -97,6 +98,21 @@ class InternalCatalogServiceTest {
         service.exportBooks(Pageable.unpaged(), false);
 
         verify(bookRepository).findAll(any(Pageable.class));
+    }
+
+    @Test
+    void exportBooks_mapsEachBookIncludingItsAuthorNames() throws Exception {
+        service = newService();
+        Store store = new Store("Name", "City", "L1", "L2", "State", "000000", "IN");
+        setField(store, "id", UUID.randomUUID());
+        Book book = book(store, true);
+        when(bookRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(book)));
+
+        BookExportPage page = service.exportBooks(Pageable.unpaged(), false);
+
+        assertThat(page.items()).hasSize(1);
+        assertThat(page.items().get(0).id()).isEqualTo(book.getId());
+        assertThat(page.items().get(0).title()).isEqualTo(book.getTitle());
     }
 
     @Test

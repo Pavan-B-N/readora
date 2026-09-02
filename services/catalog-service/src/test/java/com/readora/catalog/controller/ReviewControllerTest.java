@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.catalog.dto.PageResponse;
 import com.readora.catalog.dto.ReviewResponse;
 import com.readora.catalog.dto.UpsertReviewRequest;
-import com.readora.catalog.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.catalog.service.ReviewService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

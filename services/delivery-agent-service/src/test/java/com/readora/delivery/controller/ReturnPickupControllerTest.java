@@ -1,8 +1,8 @@
 package com.readora.delivery.controller;
 
-import com.readora.delivery.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.delivery.exception.ReturnPickupNotFoundException;
-import com.readora.delivery.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.delivery.service.ReturnPickupService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +54,15 @@ class ReturnPickupControllerTest {
         when(returnPickupService.getMine(any())).thenReturn(List.of());
 
         mockMvc.perform(get("/api/v1/returns/mine")).andExpect(status().isOk());
+    }
+
+    @Test
+    void detail_found_returns200() throws Exception {
+        when(returnPickupService.getDetail(any(), any())).thenReturn(
+                new com.readora.delivery.dto.ReturnPickupDetailResponse(null, null)
+        );
+
+        mockMvc.perform(get("/api/v1/returns/" + UUID.randomUUID())).andExpect(status().isOk());
     }
 
     @Test

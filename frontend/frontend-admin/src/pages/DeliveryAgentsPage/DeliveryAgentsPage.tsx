@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { Bike, MapPin, Phone, Truck, Undo2 } from 'lucide-react';
 import { listDeliveryAgents } from '@/api/deliveryApi';
 import type { AdminAgent } from '@/types/delivery';
-import { Card } from '@/components/Card';
-import { Badge } from '@/components/Badge';
+import { Card } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState } from '@readora/shared-ui';
 import styles from './DeliveryAgentsPage.module.css';
 
 /** Live-ish view, not a real push feed — a short poll is enough for a store-sized agent roster. */

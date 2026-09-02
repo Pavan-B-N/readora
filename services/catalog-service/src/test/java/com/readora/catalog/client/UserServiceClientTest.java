@@ -1,6 +1,6 @@
 package com.readora.catalog.client;
 
-import com.readora.catalog.exception.ServiceException;
+import com.readora.sharedcore.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -20,6 +20,12 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>com.readora</groupId>
+            <artifactId>shared-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Core REST com.readora.auth.controller support (@RestController, @GetMapping, embedded Tomcat) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

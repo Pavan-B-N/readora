@@ -1,7 +1,8 @@
 package com.readora.auth.config;
 
-import com.readora.auth.filter.CorrelationIdFilter;
-import com.readora.auth.filter.GatewaySecretFilter;
+import com.readora.sharedcore.filter.CorrelationIdFilter;
+import com.readora.sharedcore.filter.GatewaySecretFilter;
+import com.readora.sharedcore.config.SecurityProperties;
 import com.readora.auth.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

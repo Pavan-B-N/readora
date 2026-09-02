@@ -9,7 +9,7 @@ import com.readora.catalog.dto.UpdateAuthorRequest;
 import com.readora.catalog.dto.UpdateCategoryRequest;
 import com.readora.catalog.exception.AuthorInUseException;
 import com.readora.catalog.exception.CategoryNotFoundException;
-import com.readora.catalog.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.catalog.service.AdminCatalogService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

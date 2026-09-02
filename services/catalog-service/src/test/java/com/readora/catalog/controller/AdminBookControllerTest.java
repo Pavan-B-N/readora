@@ -9,7 +9,7 @@ import com.readora.catalog.dto.UpdateInventoryRequest;
 import com.readora.catalog.dto.UpsertVirtualEditionRequest;
 import com.readora.catalog.entity.VirtualFileFormat;
 import com.readora.catalog.exception.BookNotFoundException;
-import com.readora.catalog.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.catalog.service.AdminBookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

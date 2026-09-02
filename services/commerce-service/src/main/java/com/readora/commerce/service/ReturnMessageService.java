@@ -22,7 +22,7 @@ import java.util.UUID;
 
 /**
  * The small chat that opens on a return while it's RETURN_REQUESTED — shared by both
- * OrderService (customer side) and AdminOrderService (admin side), each of which does its own
+ * ReturnService (customer side) and AdminOrderService (admin side), each of which does its own
  * ownership/store check before calling in here with an already-loaded, already-authorized Order.
  */
 @Service

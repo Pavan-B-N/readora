@@ -1,6 +1,6 @@
 package com.readora.mcp.client;
 
-import com.readora.mcp.security.JwtService;
+import com.readora.sharedcore.security.JwtService;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

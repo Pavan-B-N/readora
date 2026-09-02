@@ -11,7 +11,7 @@ import com.readora.delivery.exception.AdminStoreNotAssignedException;
 import com.readora.delivery.repository.DeliveryAgentRepository;
 import com.readora.delivery.repository.DeliveryAssignmentRepository;
 import com.readora.delivery.repository.ReturnPickupAssignmentRepository;
-import com.readora.delivery.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

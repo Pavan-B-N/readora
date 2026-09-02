@@ -3,7 +3,7 @@ package com.readora.catalog.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.catalog.dto.ReserveStockRequest;
 import com.readora.catalog.dto.ReserveStockResponse;
-import com.readora.catalog.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.catalog.service.InventoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

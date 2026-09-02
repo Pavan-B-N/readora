@@ -23,7 +23,7 @@ import com.readora.catalog.repository.OutboxEventRepository;
 import com.readora.catalog.repository.PublisherRepository;
 import com.readora.catalog.repository.StoreRepository;
 import com.readora.catalog.repository.VirtualEditionRepository;
-import com.readora.catalog.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

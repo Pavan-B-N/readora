@@ -14,7 +14,7 @@ import com.readora.user.dto.UpdateProfileRequest;
 import com.readora.user.dto.WalletBalanceResponse;
 import com.readora.user.dto.WalletResponse;
 import com.readora.user.dto.WishlistItemResponse;
-import com.readora.user.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

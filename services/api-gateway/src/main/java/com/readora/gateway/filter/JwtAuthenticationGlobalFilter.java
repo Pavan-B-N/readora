@@ -1,7 +1,7 @@
 package com.readora.gateway.filter;
 
 import com.readora.gateway.config.SecurityProperties;
-import com.readora.gateway.security.JwtService;
+import com.readora.sharedcore.security.JwtService;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;

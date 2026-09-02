@@ -8,7 +8,7 @@ import com.readora.auth.dto.RefreshRequest;
 import com.readora.auth.dto.RegisterRequest;
 import com.readora.auth.dto.RegisterResponse;
 import com.readora.auth.exception.EmailAlreadyRegisteredException;
-import com.readora.auth.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.auth.exception.InvalidCredentialsException;
 import com.readora.auth.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;

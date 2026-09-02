@@ -11,7 +11,7 @@ import com.readora.catalog.dto.MarkEmbeddedRequest;
 import com.readora.catalog.dto.StoreResponse;
 import com.readora.catalog.dto.VirtualEditionLookupRequest;
 import com.readora.catalog.dto.VirtualEditionLookupResponse;
-import com.readora.catalog.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.catalog.exception.StoreNotFoundException;
 import com.readora.catalog.service.InternalCatalogService;
 import com.readora.catalog.service.VirtualContentService;

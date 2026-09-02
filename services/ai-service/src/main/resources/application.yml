@@ -73,6 +73,9 @@ app:
   security:
     public-routes:
       - /api/v1/ai/search
+    role-gates:
+      - path-prefix: /api/v1/admin/
+        role: ADMIN
   catalog-service:
     base-url: http://localhost:8083
 

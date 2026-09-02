@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle, X, Send, Sparkles, RotateCcw, Maximize2 } from 'lucide-react';
 import { listConversations } from '@/api/aiApi';
 import { useAppSelector } from '@/redux/hooks';
-import { Tooltip } from '@/components/Tooltip';
+import { Tooltip } from '@readora/shared-ui';
 import { RichText } from './RichText';
 import { ChatBookCarousel } from './ChatBookCarousel';
 import { useChatSession } from './useChatSession';

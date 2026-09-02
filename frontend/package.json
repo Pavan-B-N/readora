@@ -1,0 +1,11 @@
+{
+  "name": "readora-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "shared-ui",
+    "frontend-user",
+    "frontend-admin",
+    "frontend-delivery-agent"
+  ]
+}

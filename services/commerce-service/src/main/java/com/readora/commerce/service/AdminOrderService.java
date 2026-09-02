@@ -11,7 +11,7 @@ import com.readora.commerce.entity.ReturnSenderRole;
 import com.readora.commerce.exception.AdminOrderNotFoundException;
 import com.readora.commerce.exception.AdminStoreNotAssignedException;
 import com.readora.commerce.repository.OrderRepository;
-import com.readora.commerce.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,20 +44,20 @@ public class AdminOrderService {
     private final OrderRepository orderRepository;
     private final UserServiceClient userServiceClient;
     private final PaymentClient paymentClient;
-    private final OrderService orderService;
+    private final ReturnService returnService;
     private final ReturnMessageService returnMessageService;
 
     public AdminOrderService(
             OrderRepository orderRepository,
             UserServiceClient userServiceClient,
             PaymentClient paymentClient,
-            OrderService orderService,
+            ReturnService returnService,
             ReturnMessageService returnMessageService
     ) {
         this.orderRepository = orderRepository;
         this.userServiceClient = userServiceClient;
         this.paymentClient = paymentClient;
-        this.orderService = orderService;
+        this.returnService = returnService;
         this.returnMessageService = returnMessageService;
     }
 
@@ -133,7 +133,7 @@ public class AdminOrderService {
         Order order = orderRepository.findByIdAndStoreId(orderId, storeId).orElseThrow(AdminOrderNotFoundException::new);
 
         if (decision != null && !decision.isBlank()) {
-            orderService.reviewReturn(CurrentUserContext.require(), orderId, storeId, decision, note);
+            returnService.reviewReturn(CurrentUserContext.require(), orderId, storeId, decision, note);
             order = orderRepository.findByIdAndStoreId(orderId, storeId).orElseThrow(AdminOrderNotFoundException::new);
         } else {
             order.markReviewed(CurrentUserContext.require(), note);

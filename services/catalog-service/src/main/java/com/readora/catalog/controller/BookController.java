@@ -6,7 +6,7 @@ import com.readora.catalog.dto.BookSummaryResponse;
 import com.readora.catalog.dto.PageResponse;
 import com.readora.catalog.dto.PurchasedBookResponse;
 import com.readora.catalog.dto.RelatedBookResponse;
-import com.readora.catalog.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.catalog.service.CatalogService;
 import com.readora.catalog.service.VirtualContentService;
 import io.swagger.v3.oas.annotations.Operation;

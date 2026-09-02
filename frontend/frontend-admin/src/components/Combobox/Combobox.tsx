@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, ChevronDown, Plus } from 'lucide-react';
-import { FieldWrapper } from '@/components/Input';
+import { FieldWrapper } from '@readora/shared-ui';
 import styles from './Combobox.module.css';
 
 export interface ComboboxOption {

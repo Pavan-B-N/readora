@@ -18,12 +18,12 @@ import { checkout, getOrderDetail } from '@/api/orderApi';
 import { addAddress, getMe, listAddresses } from '@/api/userApi';
 import type { Address, AddressRecipientType, MeResponse } from '@/types/user';
 import type { CheckoutRequest, PaymentMethod } from '@/types/order';
-import { useToast } from '@/components/Toast';
-import { Badge } from '@/components/Badge';
-import { Card, CardHeader } from '@/components/Card';
-import { Input } from '@/components/Input';
-import { Button } from '@/components/Button';
-import { EmptyState } from '@/components/EmptyState';
+import { useToast } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Input } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { EmptyState } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './CheckoutPage.module.css';
 

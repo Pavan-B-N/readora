@@ -55,8 +55,9 @@ public class Order {
     @Column(name = "wallet_amount_used", nullable = false, precision = 10, scale = 2)
     private BigDecimal walletAmountUsed;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
-    private String paymentMethod;
+    private PaymentMethod paymentMethod;
 
     @Column(name = "placed_at", nullable = false, updatable = false)
     private Instant placedAt;
@@ -122,7 +123,7 @@ public class Order {
     public Order(
             String orderNumber, UUID userId, String currency, BigDecimal subtotal,
             BigDecimal shippingFee, BigDecimal packagingFee, BigDecimal taxAmount, BigDecimal grandTotal,
-            BigDecimal walletAmountUsed, String paymentMethod, String idempotencyKey, DeliveryType deliveryType
+            BigDecimal walletAmountUsed, PaymentMethod paymentMethod, String idempotencyKey, DeliveryType deliveryType
     ) {
         this.orderNumber = orderNumber;
         this.userId = userId;
@@ -230,7 +231,7 @@ public class Order {
         this.status = OrderStatus.RETURN_COLLECTED;
     }
 
-    /** Refund kicked off with payment-service — see OrderService.handleRefundCompleted() for the terminal hop. */
+    /** Refund kicked off with payment-service — see ReturnService.handleRefundCompleted() for the terminal hop. */
     public void initiateRefund() {
         this.status = OrderStatus.REFUND_INITIATED;
     }
@@ -293,7 +294,7 @@ public class Order {
         return walletAmountUsed;
     }
 
-    public String getPaymentMethod() {
+    public PaymentMethod getPaymentMethod() {
         return paymentMethod;
     }
 

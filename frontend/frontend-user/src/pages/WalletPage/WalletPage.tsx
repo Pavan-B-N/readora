@@ -3,12 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import { ArrowDownLeft, ArrowUpRight, Gift, Plus, Wallet } from 'lucide-react';
 import { getWallet, redeemCoupon, topUpWallet } from '@/api/userApi';
 import type { WalletResponse } from '@/types/user';
-import { useToast } from '@/components/Toast';
-import { Card, CardHeader } from '@/components/Card';
-import { Button } from '@/components/Button';
-import { Input } from '@/components/Input';
-import { Modal } from '@/components/Modal';
-import { EmptyState } from '@/components/EmptyState';
+import { useToast } from '@readora/shared-ui';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { Input } from '@readora/shared-ui';
+import { Modal } from '@readora/shared-ui';
+import { EmptyState } from '@readora/shared-ui';
 import { Spinner } from '@/components/Spinner';
 import styles from './WalletPage.module.css';
 

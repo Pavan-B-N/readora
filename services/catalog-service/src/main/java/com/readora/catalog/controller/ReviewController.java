@@ -3,7 +3,7 @@ package com.readora.catalog.controller;
 import com.readora.catalog.dto.PageResponse;
 import com.readora.catalog.dto.ReviewResponse;
 import com.readora.catalog.dto.UpsertReviewRequest;
-import com.readora.catalog.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.catalog.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

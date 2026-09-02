@@ -1,7 +1,7 @@
 package com.readora.ai.client;
 
 import com.readora.ai.dto.BookDoc;
-import com.readora.ai.exception.ServiceException;
+import com.readora.sharedcore.exception.ServiceException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;

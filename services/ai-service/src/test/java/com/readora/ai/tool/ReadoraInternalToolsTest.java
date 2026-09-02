@@ -122,6 +122,17 @@ class ReadoraInternalToolsTest {
     }
 
     @Test
+    void filterAvailable_documentWithNoBookIdMetadataAtAll_isSkippedNotFailed() {
+        Document noBookIdDoc = new Document("text", Map.of());
+        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(noBookIdDoc));
+
+        List<String> results = tools.ragSearchBooks("q", 5, null);
+
+        assertThat(results).isEmpty();
+        org.mockito.Mockito.verify(catalogClient, org.mockito.Mockito.never()).checkAvailability(any(), any());
+    }
+
+    @Test
     void filterAvailable_malformedBookIdInMetadata_isSkippedNotFailed() {
         Document badDoc = new Document("text", Map.of("bookId", "not-a-uuid"));
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(badDoc));

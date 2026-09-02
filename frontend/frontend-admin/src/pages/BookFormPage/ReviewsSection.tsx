@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { BadgeCheck, Star, Trash2 } from 'lucide-react';
 import { deleteReview, getBookReviews } from '@/api/catalogApi';
 import type { Review } from '@/types/catalog';
-import { useToast } from '@/components/Toast';
-import { Card, CardHeader } from '@/components/Card';
-import { Button } from '@/components/Button';
+import { useToast } from '@readora/shared-ui';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
 import styles from './BookFormPage.module.css';
 
 export function ReviewsSection({ bookId }: { bookId: string }) {

@@ -13,7 +13,7 @@ import {
   type ReaderIndexStatus,
   type ReaderMessage,
 } from '@/api/aiApi';
-import { Button } from '@/components/Button';
+import { Button } from '@readora/shared-ui';
 import { Spinner } from '@/components/Spinner';
 import { RichText } from '@/components/ChatWidget/RichText';
 import styles from './VirtualReaderPage.module.css';

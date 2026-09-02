@@ -5,7 +5,7 @@ import com.readora.delivery.dto.AgentStatsResponse;
 import com.readora.delivery.dto.AssignmentDetailResponse;
 import com.readora.delivery.dto.AssignmentResponse;
 import com.readora.delivery.dto.SetDutyRequest;
-import com.readora.delivery.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.delivery.service.AgentStatsService;
 import com.readora.delivery.service.DeliveryService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,5 +1,6 @@
 package com.readora.commerce.exception;
 
+import com.readora.sharedcore.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 
 /** Thrown when delivery-agent-service requests a delivery-status transition out of sequence. */

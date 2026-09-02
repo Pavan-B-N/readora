@@ -3,7 +3,9 @@ package com.readora.commerce.controller;
 import com.readora.commerce.dto.OrderDeliveryDetailResponse;
 import com.readora.commerce.dto.UpdateDeliveryStatusRequest;
 import com.readora.commerce.dto.UpdateReturnStatusRequest;
-import com.readora.commerce.service.OrderService;
+import com.readora.commerce.service.OrderFulfillmentService;
+import com.readora.commerce.service.OrderQueryService;
+import com.readora.commerce.service.ReturnService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -24,10 +26,16 @@ import java.util.UUID;
 @RequestMapping("/internal/orders")
 public class InternalDeliveryController {
 
-    private final OrderService orderService;
+    private final OrderQueryService orderQueryService;
+    private final OrderFulfillmentService orderFulfillmentService;
+    private final ReturnService returnService;
 
-    public InternalDeliveryController(OrderService orderService) {
-        this.orderService = orderService;
+    public InternalDeliveryController(
+            OrderQueryService orderQueryService, OrderFulfillmentService orderFulfillmentService, ReturnService returnService
+    ) {
+        this.orderQueryService = orderQueryService;
+        this.orderFulfillmentService = orderFulfillmentService;
+        this.returnService = returnService;
     }
 
     @Operation(
@@ -41,7 +49,7 @@ public class InternalDeliveryController {
     })
     @GetMapping("/{id}/delivery-detail")
     public ResponseEntity<OrderDeliveryDetailResponse> getDeliveryDetail(@PathVariable UUID id) {
-        return ResponseEntity.ok(orderService.getDeliveryDetail(id));
+        return ResponseEntity.ok(orderQueryService.getDeliveryDetail(id));
     }
 
     @Operation(
@@ -56,7 +64,7 @@ public class InternalDeliveryController {
     })
     @PutMapping("/{id}/delivery-status")
     public ResponseEntity<Void> updateDeliveryStatus(@PathVariable UUID id, @Valid @RequestBody UpdateDeliveryStatusRequest request) {
-        orderService.updateDeliveryStatus(id, request.status(), request.deliveryAgentId(), request.deliveryAgentName());
+        orderFulfillmentService.updateDeliveryStatus(id, request.status(), request.deliveryAgentId(), request.deliveryAgentName());
         return ResponseEntity.noContent().build();
     }
 
@@ -72,7 +80,7 @@ public class InternalDeliveryController {
     })
     @PutMapping("/{id}/return-status")
     public ResponseEntity<Void> updateReturnStatus(@PathVariable UUID id, @Valid @RequestBody UpdateReturnStatusRequest request) {
-        orderService.updateReturnPickupStatus(id, request.status(), request.returnAgentId(), request.returnAgentName());
+        returnService.updateReturnPickupStatus(id, request.status(), request.returnAgentId(), request.returnAgentName());
         return ResponseEntity.noContent().build();
     }
 }

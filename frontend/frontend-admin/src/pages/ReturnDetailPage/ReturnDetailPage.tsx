@@ -3,13 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, X as XIcon } from 'lucide-react';
 import { getReturn, reviewOrder } from '@/api/orderApi';
 import type { AdminOrderSummary } from '@/types/order';
-import { Card, CardHeader } from '@/components/Card';
-import { Badge } from '@/components/Badge';
-import { Button } from '@/components/Button';
-import { Input } from '@/components/Input';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { Input } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
 import { ReturnChatPanel } from '@/components/ReturnChatPanel';
-import { useToast } from '@/components/Toast';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './ReturnDetailPage.module.css';
 

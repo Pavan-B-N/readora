@@ -62,3 +62,10 @@ app:
       - /api/v1/authors/**
       - /api/v1/stores/**
       - /internal/**
+    # Reading reviews is public, posting one isn't — the shared publicRoutes list has no
+    # per-method concept, so this one path gets its own narrow, GET-only exemption instead.
+    public-get-routes:
+      - /api/v1/books/*/reviews
+    role-gates:
+      - path-prefix: /api/v1/admin/
+        role: ADMIN

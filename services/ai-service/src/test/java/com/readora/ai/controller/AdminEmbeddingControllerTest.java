@@ -2,7 +2,7 @@ package com.readora.ai.controller;
 
 import com.readora.ai.dto.EmbeddingJobResponse;
 import com.readora.ai.entity.EmbeddingJobStatus;
-import com.readora.ai.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.ai.service.EmbeddingJobService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

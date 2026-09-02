@@ -16,7 +16,7 @@ class OrderTest {
         return new Order(
                 "ORD-1", UUID.randomUUID(), "INR", new BigDecimal("100.00"), new BigDecimal("0.00"),
                 new BigDecimal("0.00"), new BigDecimal("0.00"), new BigDecimal("100.00"),
-                BigDecimal.ZERO, "WALLET", UUID.randomUUID().toString(), deliveryType
+                BigDecimal.ZERO, PaymentMethod.WALLET, UUID.randomUUID().toString(), deliveryType
         );
     }
 

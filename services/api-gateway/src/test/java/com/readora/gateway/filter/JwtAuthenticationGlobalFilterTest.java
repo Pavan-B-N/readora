@@ -1,7 +1,7 @@
 package com.readora.gateway.filter;
 
 import com.readora.gateway.config.SecurityProperties;
-import com.readora.gateway.security.JwtService;
+import com.readora.sharedcore.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

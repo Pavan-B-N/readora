@@ -1,7 +1,7 @@
 package com.readora.payment.controller;
 
 import com.readora.payment.dto.PaymentResponse;
-import com.readora.payment.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

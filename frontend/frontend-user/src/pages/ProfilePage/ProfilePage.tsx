@@ -6,13 +6,13 @@ import { listStores } from '@/api/catalogApi';
 import type { Address, AddressLabel, AddressRecipientType, MeResponse } from '@/types/user';
 import type { Store } from '@/types/catalog';
 import { pickDefaultStore } from '@/utils/store';
-import { useToast } from '@/components/Toast';
-import { Card, CardHeader } from '@/components/Card';
-import { Input, Select } from '@/components/Input';
-import { Button } from '@/components/Button';
-import { Badge } from '@/components/Badge';
-import { Tooltip } from '@/components/Tooltip';
-import { EmptyState } from '@/components/EmptyState';
+import { useToast } from '@readora/shared-ui';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Input, Select } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Tooltip } from '@readora/shared-ui';
+import { EmptyState } from '@readora/shared-ui';
 import styles from './ProfilePage.module.css';
 
 interface AddressForm {

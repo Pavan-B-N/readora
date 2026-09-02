@@ -1,9 +1,10 @@
 package com.readora.auth.exception;
 
+import com.readora.sharedcore.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 
 /** Thrown at registration when an account already exists for the requested email. */
-public class EmailAlreadyRegisteredException extends AuthException {
+public class EmailAlreadyRegisteredException extends ServiceException {
 
     /** @param email the email address that is already registered */
     public EmailAlreadyRegisteredException(String email) {

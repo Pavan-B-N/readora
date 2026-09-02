@@ -4,10 +4,10 @@ import { ArrowLeft, CheckCheck, MapPin, Phone, Truck } from 'lucide-react';
 import { getAssignmentDetail, markDelivered, markOutForDelivery } from '@/api/deliveryApi';
 import { extractErrorMessage } from '@/api/client';
 import type { Assignment, AssignmentDetail } from '@/types/delivery';
-import { Card, CardHeader } from '@/components/Card';
-import { Badge } from '@/components/Badge';
-import { Button } from '@/components/Button';
-import { useToast } from '@/components/Toast';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import styles from './AssignmentDetailPage.module.css';
 
 export function AssignmentDetailPage() {

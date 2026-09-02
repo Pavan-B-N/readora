@@ -34,6 +34,11 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>com.readora</groupId>
+            <artifactId>shared-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Exposes @Tool-annotated beans as MCP tools over streamable HTTP -->
         <dependency>
             <groupId>org.springframework.ai</groupId>

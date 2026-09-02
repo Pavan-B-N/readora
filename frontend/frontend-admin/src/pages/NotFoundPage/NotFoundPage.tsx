@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Compass, Library } from 'lucide-react';
-import { Button } from '@/components/Button';
+import { Button } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './NotFoundPage.module.css';
 

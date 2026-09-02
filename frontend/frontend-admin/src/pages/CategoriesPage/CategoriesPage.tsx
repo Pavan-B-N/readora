@@ -4,14 +4,14 @@ import { createCategory, deleteCategory, getCategoryTree, updateCategory } from 
 import { extractErrorMessage } from '@/api/client';
 import type { CategoryNode } from '@/types/catalog';
 import { slugify } from '@/utils/slugify';
-import { useToast } from '@/components/Toast';
-import { Card } from '@/components/Card';
-import { Input } from '@/components/Input';
-import { Button } from '@/components/Button';
-import { Tooltip } from '@/components/Tooltip';
-import { Modal } from '@/components/Modal';
+import { useToast } from '@readora/shared-ui';
+import { Card } from '@readora/shared-ui';
+import { Input } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { Tooltip } from '@readora/shared-ui';
+import { Modal } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState } from '@readora/shared-ui';
 import styles from './CategoriesPage.module.css';
 
 export function CategoriesPage() {

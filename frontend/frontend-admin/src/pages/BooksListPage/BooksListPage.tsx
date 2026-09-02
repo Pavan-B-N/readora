@@ -6,11 +6,11 @@ import { getMe } from '@/api/userApi';
 import type { BookSummary, Author } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { useDebounced } from '@/hooks/useDebounced';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/Button';
+import { Card } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
 import { Combobox } from '@/components/Combobox';
-import { Badge } from '@/components/Badge';
-import { EmptyState } from '@/components/EmptyState';
+import { Badge } from '@readora/shared-ui';
+import { EmptyState } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './BooksListPage.module.css';
 

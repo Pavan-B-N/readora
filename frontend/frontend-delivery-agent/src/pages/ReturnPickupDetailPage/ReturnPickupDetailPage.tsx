@@ -4,10 +4,10 @@ import { ArrowLeft, MapPin, Navigation, PackageCheck, Phone } from 'lucide-react
 import { getReturnPickupDetail, markReturnCollected, markReturnEnRoute } from '@/api/returnApi';
 import { extractErrorMessage } from '@/api/client';
 import type { ReturnPickup, ReturnPickupDetail } from '@/types/delivery';
-import { Card, CardHeader } from '@/components/Card';
-import { Badge } from '@/components/Badge';
-import { Button } from '@/components/Button';
-import { useToast } from '@/components/Toast';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import styles from './ReturnPickupDetailPage.module.css';
 
 export function ReturnPickupDetailPage() {

@@ -18,8 +18,8 @@ import com.readora.user.dto.WishlistItemResponse;
 import com.readora.user.entity.AddressLabel;
 import com.readora.user.entity.AddressRecipientType;
 import com.readora.user.exception.AddressNotFoundException;
-import com.readora.user.exception.GlobalExceptionHandler;
-import com.readora.user.security.CurrentUserContext;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.user.service.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +61,7 @@ class UserControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
-        CurrentUserContext.set(userId, "reader@example.com");
+        CurrentUserContext.set(userId, List.of(), "reader@example.com");
     }
 
     @AfterEach

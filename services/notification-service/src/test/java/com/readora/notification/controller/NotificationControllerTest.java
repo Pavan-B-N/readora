@@ -1,9 +1,9 @@
 package com.readora.notification.controller;
 
 import com.readora.notification.dto.NotificationResponse;
-import com.readora.notification.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.notification.exception.NotificationNotFoundException;
-import com.readora.notification.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.notification.service.NotificationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

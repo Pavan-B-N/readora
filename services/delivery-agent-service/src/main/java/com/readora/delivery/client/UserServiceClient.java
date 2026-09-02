@@ -3,7 +3,7 @@ package com.readora.delivery.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.delivery.dto.AdminStoreResponse;
-import com.readora.delivery.exception.ServiceException;
+import com.readora.sharedcore.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

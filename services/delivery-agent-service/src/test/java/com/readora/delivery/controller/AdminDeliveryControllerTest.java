@@ -1,7 +1,7 @@
 package com.readora.delivery.controller;
 
 import com.readora.delivery.exception.AdminStoreNotAssignedException;
-import com.readora.delivery.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.delivery.service.AdminDeliveryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,7 +1,7 @@
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 import { NotFoundPage } from '@/pages/NotFoundPage/NotFoundPage';
-import { Button } from '@/components/Button';
+import { Button } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './RouteErrorBoundary.module.css';
 

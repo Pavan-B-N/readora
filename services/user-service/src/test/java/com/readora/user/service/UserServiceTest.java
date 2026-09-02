@@ -82,6 +82,52 @@ class UserServiceTest {
     // ---- Wishlist ----
 
     @Test
+    void listWishlist_mapsRepositoryResultsToResponses() {
+        WishlistItem item = new WishlistItem(userId, UUID.randomUUID());
+        when(wishlistRepository.findAllByUserIdOrderByAddedAtDesc(userId)).thenReturn(List.of(item));
+
+        List<com.readora.user.dto.WishlistItemResponse> results = userService.listWishlist(userId);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).bookId()).isEqualTo(item.getBookId());
+    }
+
+    @Test
+    void listBrowsingHistory_mapsRepositoryResultsToResponses() {
+        BrowsingHistoryItem item = new BrowsingHistoryItem(userId, UUID.randomUUID());
+        when(browsingHistoryRepository.findTop20ByUserIdOrderByViewedAtDesc(userId)).thenReturn(List.of(item));
+
+        List<com.readora.user.dto.BrowsingHistoryItemResponse> results = userService.listBrowsingHistory(userId);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).bookId()).isEqualTo(item.getBookId());
+    }
+
+    @Test
+    void listSearchHistory_mapsRepositoryResultsToResponses() {
+        SearchHistoryItem item = new SearchHistoryItem(userId, "clean code");
+        when(searchHistoryRepository.findTop20ByUserIdOrderBySearchedAtDesc(userId)).thenReturn(List.of(item));
+
+        List<com.readora.user.dto.SearchHistoryItemResponse> results = userService.listSearchHistory(userId);
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).query()).isEqualTo("clean code");
+    }
+
+    @Test
+    void getRecentBookViewIds_mapsAndCapsAtTheGivenLimit() {
+        UUID book1 = UUID.randomUUID();
+        UUID book2 = UUID.randomUUID();
+        when(browsingHistoryRepository.findTop20ByUserIdOrderByViewedAtDesc(userId)).thenReturn(
+                List.of(new BrowsingHistoryItem(userId, book1), new BrowsingHistoryItem(userId, book2))
+        );
+
+        List<UUID> results = userService.getRecentBookViewIds(userId, 1);
+
+        assertThat(results).containsExactly(book1);
+    }
+
+    @Test
     void addToWishlist_alreadyPresent_isANoOp() {
         UUID bookId = UUID.randomUUID();
         when(wishlistRepository.existsByUserIdAndBookId(userId, bookId)).thenReturn(true);

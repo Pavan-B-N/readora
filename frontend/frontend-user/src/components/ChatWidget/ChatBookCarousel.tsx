@@ -5,7 +5,7 @@ import type { BookDetail } from '@/types/catalog';
 import type { DeliveryType } from '@/types/cart';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { addToCart, updateCartItemQty } from '@/redux/slices/cartSlice';
-import { useToast } from '@/components/Toast';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './ChatBookCarousel.module.css';
 

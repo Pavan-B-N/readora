@@ -2,7 +2,7 @@ package com.readora.ai.controller;
 
 import com.readora.ai.dto.ConversationSummaryResponse;
 import com.readora.ai.dto.MessageResponse;
-import com.readora.ai.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.ai.service.ConversationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

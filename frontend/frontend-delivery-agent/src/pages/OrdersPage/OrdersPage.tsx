@@ -21,10 +21,10 @@ import { extractErrorMessage } from '@/api/client';
 import { fromAssignment, fromReturnPickup, isActiveStatus } from '@/types/delivery';
 import type { UnifiedJob } from '@/types/delivery';
 import type { DeliveryLayoutContext } from '@/components/DeliveryLayout/DeliveryLayout';
-import { Card } from '@/components/Card';
-import { Badge } from '@/components/Badge';
-import { Button } from '@/components/Button';
-import { useToast } from '@/components/Toast';
+import { Card } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import styles from './OrdersPage.module.css';
 
 function statusVariant(job: UnifiedJob) {

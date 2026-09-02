@@ -3,7 +3,7 @@ package com.readora.commerce.client;
 import com.readora.commerce.dto.AdminStoreResponse;
 import com.readora.commerce.dto.StoreAdminResponse;
 import com.readora.commerce.dto.WalletBalance;
-import com.readora.commerce.exception.ServiceException;
+import com.readora.sharedcore.exception.ServiceException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;

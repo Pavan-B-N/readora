@@ -1,5 +1,6 @@
 package com.readora.catalog.exception;
 
+import com.readora.sharedcore.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 
 /** Thrown when creating a book whose ISBN-13 already belongs to another book. */

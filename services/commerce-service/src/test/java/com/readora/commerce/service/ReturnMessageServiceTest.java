@@ -5,6 +5,7 @@ import com.readora.commerce.client.UserServiceClient;
 import com.readora.commerce.entity.DeliveryType;
 import com.readora.commerce.entity.Order;
 import com.readora.commerce.entity.OrderStatus;
+import com.readora.commerce.entity.PaymentMethod;
 import com.readora.commerce.entity.ReturnSenderRole;
 import com.readora.commerce.exception.ReturnNotUnderReviewException;
 import com.readora.commerce.repository.OutboxEventRepository;
@@ -44,7 +45,7 @@ class ReturnMessageServiceTest {
 
     private static Order order(OrderStatus status) {
         Order order = new Order("RDA-2026-000001", UUID.randomUUID(), "INR", new BigDecimal("100.00"), BigDecimal.ZERO,
-                BigDecimal.ZERO, new BigDecimal("9.00"), new BigDecimal("109.00"), BigDecimal.ZERO, "WALLET",
+                BigDecimal.ZERO, new BigDecimal("9.00"), new BigDecimal("109.00"), BigDecimal.ZERO, PaymentMethod.WALLET,
                 UUID.randomUUID().toString(), DeliveryType.PHYSICAL);
         ReflectionTestUtils.setField(order, "id", UUID.randomUUID());
         ReflectionTestUtils.setField(order, "placedAt", Instant.now());

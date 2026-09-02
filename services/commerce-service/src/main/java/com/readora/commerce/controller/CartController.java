@@ -5,7 +5,7 @@ import com.readora.commerce.dto.CartResponse;
 import com.readora.commerce.dto.CartSummaryResponse;
 import com.readora.commerce.dto.SetCartItemRequest;
 import com.readora.commerce.entity.DeliveryType;
-import com.readora.commerce.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.commerce.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

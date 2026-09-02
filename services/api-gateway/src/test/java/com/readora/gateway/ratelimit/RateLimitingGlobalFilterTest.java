@@ -3,7 +3,7 @@ package com.readora.gateway.ratelimit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.gateway.config.RateLimitProperties;
 import com.readora.gateway.config.RateLimitProperties.RateLimitRule;
-import com.readora.gateway.security.JwtService;
+import com.readora.sharedcore.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

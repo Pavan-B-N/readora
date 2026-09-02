@@ -1,7 +1,7 @@
 package com.readora.ai.controller;
 
 import com.readora.ai.entity.BookReaderIndexStatus;
-import com.readora.ai.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.ai.service.BookContentIndexService;
 import com.readora.ai.service.BookReaderChatService;
 import org.junit.jupiter.api.AfterEach;

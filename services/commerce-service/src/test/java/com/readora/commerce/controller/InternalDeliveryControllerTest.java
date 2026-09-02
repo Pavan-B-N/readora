@@ -5,10 +5,12 @@ import com.readora.commerce.dto.OrderDeliveryDetailResponse;
 import com.readora.commerce.dto.UpdateDeliveryStatusRequest;
 import com.readora.commerce.dto.UpdateReturnStatusRequest;
 import com.readora.commerce.entity.OrderStatus;
-import com.readora.commerce.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.commerce.exception.InvalidDeliveryTransitionException;
 import com.readora.commerce.exception.OrderNotFoundException;
-import com.readora.commerce.service.OrderService;
+import com.readora.commerce.service.OrderFulfillmentService;
+import com.readora.commerce.service.OrderQueryService;
+import com.readora.commerce.service.ReturnService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,21 +31,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class InternalDeliveryControllerTest {
 
-    @Mock private OrderService orderService;
+    @Mock private OrderQueryService orderQueryService;
+    @Mock private OrderFulfillmentService orderFulfillmentService;
+    @Mock private ReturnService returnService;
 
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new InternalDeliveryController(orderService))
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                        new InternalDeliveryController(orderQueryService, orderFulfillmentService, returnService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
 
     @Test
     void getDeliveryDetail_notFound_mapsTo404() throws Exception {
-        when(orderService.getDeliveryDetail(any())).thenThrow(new OrderNotFoundException());
+        when(orderQueryService.getDeliveryDetail(any())).thenThrow(new OrderNotFoundException());
 
         mockMvc.perform(get("/internal/orders/" + UUID.randomUUID() + "/delivery-detail"))
                 .andExpect(status().isNotFound());
@@ -51,7 +56,7 @@ class InternalDeliveryControllerTest {
 
     @Test
     void getDeliveryDetail_found_returns200() throws Exception {
-        when(orderService.getDeliveryDetail(any())).thenReturn(
+        when(orderQueryService.getDeliveryDetail(any())).thenReturn(
                 new OrderDeliveryDetailResponse(UUID.randomUUID(), "RDA-2026-000001", "CONFIRMED", UUID.randomUUID(),
                         null, List.of(), java.math.BigDecimal.TEN, java.time.Instant.now()));
 
@@ -62,7 +67,7 @@ class InternalDeliveryControllerTest {
     @Test
     void updateDeliveryStatus_illegalTransition_mapsTo409() throws Exception {
         org.mockito.Mockito.doThrow(new InvalidDeliveryTransitionException())
-                .when(orderService).updateDeliveryStatus(any(), any(), any(), any());
+                .when(orderFulfillmentService).updateDeliveryStatus(any(), any(), any(), any());
 
         mockMvc.perform(put("/internal/orders/" + UUID.randomUUID() + "/delivery-status")
                         .contentType("application/json")

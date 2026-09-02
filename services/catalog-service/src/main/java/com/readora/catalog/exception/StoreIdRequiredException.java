@@ -1,5 +1,6 @@
 package com.readora.catalog.exception;
 
+import com.readora.sharedcore.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 
 public class StoreIdRequiredException extends ServiceException {

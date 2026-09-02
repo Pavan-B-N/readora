@@ -5,7 +5,7 @@ import { getMe, setDuty } from '@/api/deliveryApi';
 import { extractErrorMessage } from '@/api/client';
 import { useAppDispatch } from '@/redux/hooks';
 import { loggedOut } from '@/redux/slices/authSlice';
-import { useToast } from '@/components/Toast';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import type { AgentMe } from '@/types/delivery';
 import styles from './DeliveryLayout.module.css';

@@ -48,9 +48,12 @@ class ChatServiceTest {
 
     @BeforeEach
     void setUp() {
+        ObjectMapper objectMapper = new ObjectMapper();
         chatService = new ChatService(
                 chatClient, conversationRepository, messageRepository,
-                List.<ToolCallback>of(), new ToolCallback[0], new ObjectMapper(), vectorStore, catalogClient
+                List.<ToolCallback>of(), new ToolCallback[0], objectMapper,
+                new ReferenceMarkerStreamParser(objectMapper),
+                new BookReferenceVerifier(vectorStore, catalogClient)
         );
 
         requestSpec = mock(ChatClient.ChatClientRequestSpec.class, RETURNS_SELF);
@@ -155,6 +158,22 @@ class ChatServiceTest {
     }
 
     @Test
+    void chat_chunksArrivingAfterResolution_passStraightThroughUnbuffered() {
+        Conversation created = conversation(UUID.randomUUID());
+        when(conversationRepository.save(any())).thenReturn(created);
+        when(messageRepository.findAllByConversationIdOrderByCreatedAt(any())).thenReturn(List.of());
+        // Marker consumed on chunk 1 (nothing left but a trailing newline); chunk 2 resolves
+        // (first real content); chunk 3 arrives once already fullyResolved, exercising the
+        // straight-passthrough branch rather than the buffering logic.
+        streamTokens("<!--REFERENCE_BOOKS:[]-->\n", "Hello", " world");
+
+        var result = chatService.chat(userId, new ChatRequest(null, "hi", null));
+        String joined = String.join("", result.tokens().collectList().block());
+
+        assertThat(joined).isEqualTo("Hello world@@RDX_BOOK_IDS@@:[]");
+    }
+
+    @Test
     void chat_replyLongEnoughToHitTheBuffer_flushesOnceThresholdReached() {
         Conversation created = conversation(UUID.randomUUID());
         when(conversationRepository.save(any())).thenReturn(created);
@@ -211,6 +230,41 @@ class ChatServiceTest {
 
         assertThat(joined).contains("@@RDX_BOOK_IDS@@:[]");
         org.mockito.Mockito.verify(catalogClient, org.mockito.Mockito.never()).checkAvailability(any(), any());
+    }
+
+    @Test
+    void chat_referencedBookNoLongerInVectorStore_isFilteredOutWithoutThrowing() {
+        Conversation created = conversation(UUID.randomUUID());
+        when(conversationRepository.save(any())).thenReturn(created);
+        when(messageRepository.findAllByConversationIdOrderByCreatedAt(any())).thenReturn(List.of());
+
+        UUID bookId = UUID.randomUUID();
+        String marker = "<!--REFERENCE_BOOKS:[\"" + bookId + "\"]-->\n";
+        streamTokens(marker + "I recommend Clean Code.");
+
+        // The book id the model cited no longer resolves to anything in the vector store at
+        // all — titleAppearsIn's found.isEmpty() branch, distinct from the "title mismatch" case.
+        when(vectorStore.similaritySearch(any(org.springframework.ai.vectorstore.SearchRequest.class))).thenReturn(List.of());
+
+        var result = chatService.chat(userId, new ChatRequest(null, "recommend a book", null));
+        String joined = String.join("", result.tokens().collectList().block());
+
+        assertThat(joined).contains("@@RDX_BOOK_IDS@@:[]");
+        org.mockito.Mockito.verify(catalogClient, org.mockito.Mockito.never()).checkAvailability(any(), any());
+    }
+
+    @Test
+    void chat_malformedReferenceBooksJson_dropsTheMarkerRatherThanFailing() {
+        Conversation created = conversation(UUID.randomUUID());
+        when(conversationRepository.save(any())).thenReturn(created);
+        when(messageRepository.findAllByConversationIdOrderByCreatedAt(any())).thenReturn(List.of());
+        streamTokens("<!--REFERENCE_BOOKS:[not valid json]-->\n", "Sure, here you go.");
+
+        var result = chatService.chat(userId, new ChatRequest(null, "recommend a book", null));
+        String joined = String.join("", result.tokens().collectList().block());
+
+        assertThat(joined).contains("Sure, here you go.");
+        assertThat(joined).contains("@@RDX_BOOK_IDS@@:[]");
     }
 
     @Test

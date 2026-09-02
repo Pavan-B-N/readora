@@ -12,11 +12,11 @@ import {
 import type { AdminBookDetail, Author, Publisher } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { slugify } from '@/utils/slugify';
-import { useToast } from '@/components/Toast';
-import { Card, CardHeader } from '@/components/Card';
-import { Badge } from '@/components/Badge';
-import { Input, Textarea } from '@/components/Input';
-import { Button } from '@/components/Button';
+import { useToast } from '@readora/shared-ui';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Input, Textarea } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
 import { Combobox } from '@/components/Combobox';
 import { PageHeader } from '@/components/PageHeader';
 import { TocBuilder, topicsToJson, jsonToTopics } from '@/components/TocBuilder';

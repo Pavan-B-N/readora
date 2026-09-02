@@ -5,8 +5,8 @@ import { ArrowLeft, BookOpen, Sparkles } from 'lucide-react';
 import { getJob, listJobBooks } from '@/api/embeddingsApi';
 import type { EmbeddingJob, EmbeddingJobBookLog } from '@/types/embeddings';
 import { formatDuration, statusVariant } from '@/utils/embeddingJob';
-import { Card, CardHeader } from '@/components/Card';
-import { Badge } from '@/components/Badge';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
 import styles from './EmbeddingJobDetailPage.module.css';
 
 const POLL_INTERVAL_MS = 1500;

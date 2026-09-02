@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { store } from '@/redux/store';
 import { bootstrapSession } from '@/api/client';
 import { fetchCart } from '@/redux/slices/cartSlice';
-import { ToastProvider } from '@/components/Toast';
+import { ToastProvider } from '@readora/shared-ui';
 import { router } from './router';
 
 function AppRoutes() {

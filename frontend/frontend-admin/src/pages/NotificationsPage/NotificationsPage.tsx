@@ -8,7 +8,7 @@ import {
   type NotificationItem,
 } from '@/api/notificationApi';
 import { ROUTES } from '@/constants/routes';
-import { Button } from '@/components/Button';
+import { Button } from '@readora/shared-ui';
 import styles from './NotificationsPage.module.css';
 
 function timeAgo(iso: string): string {

@@ -1,5 +1,6 @@
 package com.readora.commerce.exception;
 
+import com.readora.sharedcore.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 
 /** Thrown when an admin tries to approve/reject a return, or post a chat message, that isn't awaiting review. */

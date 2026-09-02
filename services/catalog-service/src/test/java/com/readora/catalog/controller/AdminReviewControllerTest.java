@@ -1,6 +1,6 @@
 package com.readora.catalog.controller;
 
-import com.readora.catalog.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.catalog.exception.ReviewNotFoundException;
 import com.readora.catalog.service.ReviewService;
 import org.junit.jupiter.api.BeforeEach;

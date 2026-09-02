@@ -3,6 +3,7 @@ package com.readora.commerce.repository;
 import com.readora.commerce.entity.DeliveryType;
 import com.readora.commerce.entity.Order;
 import com.readora.commerce.entity.OrderStatus;
+import com.readora.commerce.entity.PaymentMethod;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -44,7 +45,7 @@ class OrderRepositoryIT {
     private Order newOrder(String idempotencyKey) {
         return new Order(
                 "ORD-" + UUID.randomUUID(), UUID.randomUUID(), "INR", new BigDecimal("500.00"), BigDecimal.ZERO,
-                BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("500.00"), BigDecimal.ZERO, "WALLET", idempotencyKey, DeliveryType.PHYSICAL
+                BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("500.00"), BigDecimal.ZERO, PaymentMethod.WALLET, idempotencyKey, DeliveryType.PHYSICAL
         );
     }
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.commerce.dto.AdminOrderSummaryResponse;
 import com.readora.commerce.dto.ReviewOrderRequest;
 import com.readora.commerce.exception.AdminOrderNotFoundException;
-import com.readora.commerce.exception.GlobalExceptionHandler;
+import com.readora.sharedcore.exception.GlobalExceptionHandler;
 import com.readora.commerce.service.AdminOrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

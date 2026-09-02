@@ -1,5 +1,6 @@
 package com.readora.delivery.exception;
 
+import com.readora.sharedcore.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 
 /** Going off duty mid-job would let the agent walk away from a claimed delivery or pickup — must finish or the order gets stranded. */

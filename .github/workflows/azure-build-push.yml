@@ -83,19 +83,21 @@ jobs:
       # ==========================================
       # FRONTEND SERVICES
       # ==========================================
+      # Build context is now the whole frontend/ workspace root, not each app's own folder —
+      # every app depends on the shared-ui workspace package, so Docker needs to see it too.
       - name: Build & Push Frontend User
         run: |
-          docker build --build-arg VITE_API_BASE_URL=${{ env.VITE_API_URL }} -f frontend/frontend-user/Dockerfile -t ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-user:${{ env.IMAGE_TAG }} ./frontend/frontend-user
+          docker build --build-arg VITE_API_BASE_URL=${{ env.VITE_API_URL }} -f frontend/frontend-user/Dockerfile -t ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-user:${{ env.IMAGE_TAG }} ./frontend
           docker push ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-user:${{ env.IMAGE_TAG }}
 
       - name: Build & Push Frontend Admin
         run: |
-          docker build --build-arg VITE_API_BASE_URL=${{ env.VITE_API_URL }} -f frontend/frontend-admin/Dockerfile -t ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-admin:${{ env.IMAGE_TAG }} ./frontend/frontend-admin
+          docker build --build-arg VITE_API_BASE_URL=${{ env.VITE_API_URL }} -f frontend/frontend-admin/Dockerfile -t ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-admin:${{ env.IMAGE_TAG }} ./frontend
           docker push ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-admin:${{ env.IMAGE_TAG }}
 
       - name: Build & Push Frontend Delivery Agent
         run: |
-          docker build --build-arg VITE_API_BASE_URL=${{ env.VITE_API_URL }} -f frontend/frontend-delivery-agent/Dockerfile -t ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-delivery-agent:${{ env.IMAGE_TAG }} ./frontend/frontend-delivery-agent
+          docker build --build-arg VITE_API_BASE_URL=${{ env.VITE_API_URL }} -f frontend/frontend-delivery-agent/Dockerfile -t ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-delivery-agent:${{ env.IMAGE_TAG }} ./frontend
           docker push ${{ env.ACR_LOGIN_SERVER }}/readora-frontend-delivery-agent:${{ env.IMAGE_TAG }}
 
 

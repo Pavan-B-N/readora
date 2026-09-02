@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send } from 'lucide-react';
 import { getReturnMessages, postReturnMessage } from '@/api/orderApi';
 import type { ReturnMessage } from '@/types/order';
-import { useToast } from '@/components/Toast';
+import { useToast } from '@readora/shared-ui';
 import styles from './ReturnChatPanel.module.css';
 
 const POLL_INTERVAL_MS = 3000;

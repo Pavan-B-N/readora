@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Package, PackagePlus } from 'lucide-react';
 import { updateInventory } from '@/api/catalogApi';
-import { useToast } from '@/components/Toast';
-import { Card, CardHeader } from '@/components/Card';
-import { Input } from '@/components/Input';
-import { Button } from '@/components/Button';
-import { Badge } from '@/components/Badge';
+import { useToast } from '@readora/shared-ui';
+import { Card, CardHeader } from '@readora/shared-ui';
+import { Input } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
 import type { AdminBookDetail } from '@/types/catalog';
 import styles from './BookFormPage.module.css';
 

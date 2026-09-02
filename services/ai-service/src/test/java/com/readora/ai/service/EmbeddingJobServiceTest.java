@@ -94,23 +94,33 @@ class EmbeddingJobServiceTest {
     void runBackfill_queuedJob_runsToCompletion() {
         EmbeddingJob queuedJob = job(UUID.randomUUID());
         when(jobRepository.findById(queuedJob.getId())).thenReturn(Optional.of(queuedJob));
-        when(embeddingService.backfillAll(any())).thenReturn(42);
+        BookDoc book = new BookDoc(UUID.randomUUID().toString(), "Clean Code", List.of(), null, null);
+        when(embeddingService.backfillAll(any())).thenAnswer(inv -> {
+            java.util.function.BiConsumer<Integer, List<BookDoc>> callback = inv.getArgument(0);
+            callback.accept(1, List.of(book));
+            return 42;
+        });
 
         service.runBackfill(queuedJob.getId());
 
         assertThat(queuedJob.getStatus()).isEqualTo(EmbeddingJobStatus.COMPLETED);
         assertThat(queuedJob.getTotalBooks()).isEqualTo(42);
+        verify(bookLogRepository).save(any(EmbeddingJobBookLog.class));
     }
 
     @Test
-    void runBackfill_embeddingThrows_marksJobFailed() {
+    void runBackfill_embeddingThrows_marksJobFailedWithTheRootCauseMessage() {
         EmbeddingJob queuedJob = job(UUID.randomUUID());
         when(jobRepository.findById(queuedJob.getId())).thenReturn(Optional.of(queuedJob));
-        when(embeddingService.backfillAll(any())).thenThrow(new RuntimeException("embedding API down"));
+        // A wrapped exception — exercises rootMessage()'s cause-unwrapping loop, not just its
+        // no-cause short-circuit.
+        when(embeddingService.backfillAll(any()))
+                .thenThrow(new RuntimeException("wrapper", new IllegalStateException("embedding API down")));
 
         service.runBackfill(queuedJob.getId());
 
         assertThat(queuedJob.getStatus()).isEqualTo(EmbeddingJobStatus.FAILED);
+        assertThat(queuedJob.getErrorMessage()).isEqualTo("embedding API down");
     }
 
     @Test

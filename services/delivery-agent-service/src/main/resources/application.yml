@@ -46,3 +46,10 @@ app:
   security:
     public-routes:
       - /internal/**
+    role-gates:
+      - path-prefix: /api/v1/delivery/
+        role: DELIVERY_AGENT
+      - path-prefix: /api/v1/returns/
+        role: DELIVERY_AGENT
+      - path-prefix: /api/v1/admin/
+        role: ADMIN

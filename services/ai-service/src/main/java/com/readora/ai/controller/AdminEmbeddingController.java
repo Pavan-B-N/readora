@@ -2,7 +2,7 @@ package com.readora.ai.controller;
 
 import com.readora.ai.dto.EmbeddingJobBookLogResponse;
 import com.readora.ai.dto.EmbeddingJobResponse;
-import com.readora.ai.security.CurrentUserContext;
+import com.readora.sharedcore.security.CurrentUserContext;
 import com.readora.ai.service.EmbeddingJobService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Download, Minus, Plus, ShoppingCart, Trash2, Truck } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchCart, updateCartItemQty } from '@/redux/slices/cartSlice';
-import { Card } from '@/components/Card';
-import { Badge } from '@/components/Badge';
-import { Button } from '@/components/Button';
-import { Tooltip } from '@/components/Tooltip';
-import { EmptyState } from '@/components/EmptyState';
+import { Card } from '@readora/shared-ui';
+import { Badge } from '@readora/shared-ui';
+import { Button } from '@readora/shared-ui';
+import { Tooltip } from '@readora/shared-ui';
+import { EmptyState } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './CartPage.module.css';
 

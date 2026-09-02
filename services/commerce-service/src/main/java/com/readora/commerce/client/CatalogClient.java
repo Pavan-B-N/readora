@@ -11,7 +11,7 @@ import com.readora.commerce.dto.VirtualEditionLookupRequest;
 import com.readora.commerce.dto.VirtualEditionLookupResponse;
 import com.readora.commerce.exception.BookNotFoundException;
 import com.readora.commerce.exception.InsufficientStockException;
-import com.readora.commerce.exception.ServiceException;
+import com.readora.sharedcore.exception.ServiceException;
 import com.readora.commerce.exception.StoreNotFoundException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;

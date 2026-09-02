@@ -33,6 +33,16 @@
     </dependencyManagement>
 
     <dependencies>
+        <!--
+          Only JwtService (a plain POJO, no servlet dependency) is used from here — common's
+          spring-boot-starter-web dependency is `provided` scope precisely so this reactive
+          service never has Tomcat/spring-webmvc forced onto its WebFlux classpath.
+        -->
+        <dependency>
+            <groupId>com.readora</groupId>
+            <artifactId>shared-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- Reactive routing engine (WebFlux) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
