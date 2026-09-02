@@ -5,11 +5,13 @@ import com.readora.catalog.entity.VirtualEdition;
 import com.readora.catalog.exception.VirtualEditionNotFoundException;
 import com.readora.catalog.exception.VirtualEditionNotOwnedException;
 import com.readora.catalog.repository.VirtualEditionRepository;
+import com.readora.catalog.storage.VirtualContentStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
@@ -26,6 +28,7 @@ class VirtualContentServiceTest {
 
     @Mock private VirtualEditionRepository virtualEditionRepository;
     @Mock private CommerceClient commerceClient;
+    @Mock private VirtualContentStore contentStore;
 
     private VirtualContentService service;
     private final UUID userId = UUID.randomUUID();
@@ -33,7 +36,7 @@ class VirtualContentServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new VirtualContentService(virtualEditionRepository, commerceClient, System.getProperty("java.io.tmpdir"));
+        service = new VirtualContentService(virtualEditionRepository, commerceClient, contentStore);
     }
 
     private VirtualEdition activeEdition(String fileUrl) {
@@ -76,21 +79,24 @@ class VirtualContentServiceTest {
     }
 
     @Test
-    void getContent_owned_resolvesFileWithinStorageRoot() {
+    void getContent_owned_delegatesToContentStore() {
         VirtualEdition edition = activeEdition("book.pdf");
         when(virtualEditionRepository.findById(bookId)).thenReturn(Optional.of(edition));
         when(commerceClient.getPurchasedBookIds(userId)).thenReturn(List.of(bookId));
+        Resource expected = new ByteArrayResource(new byte[0]);
+        when(contentStore.resolve("book.pdf")).thenReturn(expected);
 
         Resource resource = service.getContent(userId, bookId);
 
-        assertThat(resource.getFilename()).isEqualTo("book.pdf");
+        assertThat(resource).isSameAs(expected);
     }
 
     @Test
-    void getContent_pathTraversalAttempt_isRejectedAsNotFound() {
-        VirtualEdition edition = activeEdition("../../etc/passwd");
+    void getContent_storeCannotResolveFile_propagatesNotFound() {
+        VirtualEdition edition = activeEdition("missing.pdf");
         when(virtualEditionRepository.findById(bookId)).thenReturn(Optional.of(edition));
         when(commerceClient.getPurchasedBookIds(userId)).thenReturn(List.of(bookId));
+        when(contentStore.resolve("missing.pdf")).thenThrow(new VirtualEditionNotFoundException());
 
         assertThatThrownBy(() -> service.getContent(userId, bookId)).isInstanceOf(VirtualEditionNotFoundException.class);
     }
@@ -99,10 +105,12 @@ class VirtualContentServiceTest {
     void getContentForInternalUse_skipsOwnershipCheck() {
         VirtualEdition edition = activeEdition("book.pdf");
         when(virtualEditionRepository.findById(bookId)).thenReturn(Optional.of(edition));
+        Resource expected = new ByteArrayResource(new byte[0]);
+        when(contentStore.resolve("book.pdf")).thenReturn(expected);
 
         Resource resource = service.getContentForInternalUse(bookId);
 
-        assertThat(resource.getFilename()).isEqualTo("book.pdf");
+        assertThat(resource).isSameAs(expected);
         org.mockito.Mockito.verifyNoInteractions(commerceClient);
     }
 

@@ -118,8 +118,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       GATEWAY_SECRET: ${GATEWAY_SECRET}
-    volumes:
-      - ./local-storage:/app/local-storage
+      AZURE_STORAGE_CONNECTION_STRING: ${AZURE_STORAGE_CONNECTION_STRING}
+      AZURE_STORAGE_CONTAINER_NAME: ${AZURE_STORAGE_CONTAINER_NAME}
     ports:
       - "8083:8083"
     depends_on:
