@@ -1,0 +1,13 @@
+# Non-secret config shared by every backend service — pulled in wholesale via envFrom.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: readora-config
+  namespace: readora
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  MCP_SERVER_URL: "http://mcp-server:8087"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  OTEL_LOGS_EXPORTER: "otlp"
+  OTEL_SDK_DISABLED: "false"

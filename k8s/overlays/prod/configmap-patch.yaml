@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: readora-config
+  namespace: readora
+data:
+  POSTGRES_DB_URL: "jdbc:postgresql://<your-server-name>.postgres.database.azure.com:5432/readora?sslmode=require"
+  POSTGRES_USER: "readora"
+  REDIS_HOST: "<your-cache-name>.redis.cache.windows.net"
+  REDIS_PORT: "6380"
+  REDIS_SSL_ENABLED: "true"

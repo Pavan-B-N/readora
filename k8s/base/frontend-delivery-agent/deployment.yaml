@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-delivery-agent
+  namespace: readora
+  labels:
+    app: frontend-delivery-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-delivery-agent
+  template:
+    metadata:
+      labels:
+        app: frontend-delivery-agent
+    spec:
+      containers:
+        - name: frontend-delivery-agent
+          image: readoracontainerregistry.azurecr.io/readora-frontend-delivery-agent:latest
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi

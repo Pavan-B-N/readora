@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - ingress.yaml
+  - kafka
+  - otel-collector
+  - auth-service
+  - user-service
+  - catalog-service
+  - commerce-service
+  - payment-service
+  - notification-service
+  - mcp-server
+  - ai-service
+  - delivery-agent-service
+  - api-gateway
+  - frontend-user
+  - frontend-admin
+  - frontend-delivery-agent

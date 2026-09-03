@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: commerce-service
+  namespace: readora
+spec:
+  selector:
+    app: commerce-service
+  ports:
+    - port: 8084
