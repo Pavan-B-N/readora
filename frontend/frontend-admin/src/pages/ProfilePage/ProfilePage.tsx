@@ -12,6 +12,7 @@ import { Card, CardHeader } from '@readora/shared-ui';
 import { Input } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
 import { ROUTES } from '@/constants/routes';
 import styles from './ProfilePage.module.css';
@@ -62,7 +63,7 @@ export function ProfilePage() {
     ? me.displayName.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase()
     : (me?.email.slice(0, 2).toUpperCase() ?? '?');
 
-  if (!me) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+  if (!me) return <Spinner />;
 
   return (
     <div>

@@ -1,29 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Clock, Package, X, ChevronLeft, ChevronRight, SlidersHorizontal, Zap } from 'lucide-react';
-import {
-  searchBooks,
-  getCategoryTree,
-  getRecommendations,
-  getPurchasedBooks,
-  getLibrary,
-  getBooksByIds,
-  listAuthors,
-} from '@/api/catalogApi';
-import { getBrowsingHistory } from '@/api/userApi';
-import type { Author, BookSummary, CategoryNode, PurchasedBook } from '@/types/catalog';
-import { useDebounced } from '@/hooks/useDebounced';
-import { useAppSelector } from '@/redux/hooks';
+import { BookOpen, Clock, Package, X, ChevronLeft, ChevronRight, SlidersHorizontal, Zap, AlertCircle } from 'lucide-react';
 import { BookCard } from '@/components/BookCard';
-import { Button } from '@readora/shared-ui';
-import { EmptyState } from '@readora/shared-ui';
-import { Spinner } from '@/components/Spinner';
+import { Button, EmptyState } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import { statusVariant, displayStatus } from '@/utils/orderStatus';
 import { ROUTES } from '@/constants/routes';
+import { useCatalogFilters } from './hooks/useCatalogFilters';
+import { useHomeFeedExtras } from './hooks/useHomeFeedExtras';
+import { useCatalogSearch } from './hooks/useCatalogSearch';
 import styles from './HomePage.module.css';
-
-const PAGE_SIZE = 18;
 
 const gridVariants = {
   hidden: {},
@@ -35,19 +21,6 @@ const cardVariants = {
   show: { opacity: 1, y: 0 },
 };
 
-interface FlatCategory {
-  id: string;
-  name: string;
-  depth: number;
-}
-
-function flatten(nodes: CategoryNode[], depth = 0): FlatCategory[] {
-  return nodes.flatMap((node) => [
-    { id: node.id, name: node.name, depth },
-    ...flatten(node.children, depth + 1),
-  ]);
-}
-
 const statusChipClassByVariant: Record<ReturnType<typeof statusVariant>, string> = {
   success: styles.statusSuccess,
   danger: styles.statusDanger,
@@ -58,131 +31,22 @@ const statusChipClassByVariant: Record<ReturnType<typeof statusVariant>, string>
 export function HomePage() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') ?? '';
-  const accessToken = useAppSelector((state) => state.auth.accessToken);
-  const { selectedId: storeId, resolved: storeResolved } = useAppSelector((state) => state.store);
 
-  const [books, setBooks] = useState<BookSummary[]>([]);
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const filters = useCatalogFilters();
+  const feed = useHomeFeedExtras();
+  const search = useCatalogSearch({
+    query,
+    categoryId: filters.debouncedCategoryId,
+    authorId: filters.authorId,
+    virtualOnly: filters.virtualOnly,
+    recommendedIds: feed.recommendedIds,
+  });
 
-  const [categories, setCategories] = useState<FlatCategory[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [categoryId, setCategoryId] = useState('');
-  const [recommendedIds, setRecommendedIds] = useState<Set<string>>(new Set());
-  const [orders, setOrders] = useState<PurchasedBook[]>([]);
-  const [ownedVirtualIds, setOwnedVirtualIds] = useState<Set<string>>(new Set());
-  const [recentlyViewed, setRecentlyViewed] = useState<BookSummary[]>([]);
-
-  const [authors, setAuthors] = useState<Author[]>([]);
-  const [authorId, setAuthorId] = useState('');
-  const [virtualOnly, setVirtualOnly] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const filtersRef = useRef<HTMLDivElement>(null);
-
-  const debouncedCategoryId = useDebounced(categoryId, 150);
-
-  useEffect(() => {
-    getCategoryTree().then((tree) => {
-      setCategories(flatten(tree));
-      setCategoriesLoading(false);
-    });
-    listAuthors().then(setAuthors);
-  }, []);
-
-  useEffect(() => {
-    if (!filtersOpen) return;
-    const onClickOutside = (e: MouseEvent) => {
-      if (filtersRef.current && !filtersRef.current.contains(e.target as Node)) setFiltersOpen(false);
-    };
-    document.addEventListener('mousedown', onClickOutside);
-    return () => document.removeEventListener('mousedown', onClickOutside);
-  }, [filtersOpen]);
-
-  // Recommended items aren't a separate rail — they're just sorted first in the main feed below.
-  useEffect(() => {
-    if (!accessToken || !storeResolved) {
-      setRecommendedIds(new Set());
-      return;
-    }
-    getRecommendations(storeId ?? undefined).then((items) => setRecommendedIds(new Set(items.map((b) => b.id))));
-  }, [accessToken, storeId, storeResolved]);
-
-  useEffect(() => {
-    if (!accessToken) {
-      setOrders([]);
-      setOwnedVirtualIds(new Set());
-      return;
-    }
-    getPurchasedBooks().then(setOrders);
-    getLibrary().then((books) => setOwnedVirtualIds(new Set(books.map((b) => b.id))));
-  }, [accessToken]);
-
-  useEffect(() => {
-    if (!accessToken) {
-      setRecentlyViewed([]);
-      return;
-    }
-    getBrowsingHistory().then((history) => {
-      const ids = history.map((item) => item.bookId);
-      if (ids.length === 0) {
-        setRecentlyViewed([]);
-        return;
-      }
-      // The batch lookup doesn't guarantee it preserves order, so re-sort by view recency here.
-      getBooksByIds(ids).then((books) => {
-        const byId = new Map(books.map((book) => [book.id, book]));
-        setRecentlyViewed(ids.map((id) => byId.get(id)).filter((book): book is BookSummary => Boolean(book)));
-      });
-    });
-  }, [accessToken]);
-
-  useEffect(() => {
-    setPage(0);
-  }, [query, debouncedCategoryId, authorId, virtualOnly]);
-
-  useEffect(() => {
-    if (!storeResolved) return;
-
-    let cancelled = false;
-    setLoading(true);
-
-    searchBooks({
-      q: query || undefined,
-      categoryId: debouncedCategoryId || undefined,
-      authorId: authorId || undefined,
-      virtualOnly: virtualOnly || undefined,
-      storeId: storeId ?? undefined,
-      page,
-      size: PAGE_SIZE,
-    })
-      .then((result) => {
-        if (cancelled) return;
-        const items = result.items ?? [];
-        // Stable partition: recommended-for-you titles surface first, everything else follows
-        // in the order the backend returned it — no separate "Recommended" rail, this is it.
-        const sorted = [...items].sort((a, b) => {
-          const aRec = recommendedIds.has(a.id) ? 0 : 1;
-          const bRec = recommendedIds.has(b.id) ? 0 : 1;
-          return aRec - bRec;
-        });
-        setBooks(sorted);
-        setTotalPages(result.totalPages);
-        setTotalElements(result.totalElements);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [query, page, debouncedCategoryId, authorId, virtualOnly, storeId, storeResolved, recommendedIds]);
-
-  const activeCategoryName = categories.find((c) => c.id === categoryId)?.name;
-  const activeAuthorName = authors.find((a) => a.id === authorId)?.name;
-  const activeFilterCount = (authorId ? 1 : 0) + (virtualOnly ? 1 : 0);
+  const { categories, categoriesLoading, categoryId, setCategoryId } = filters;
+  const { authors, authorId, setAuthorId, virtualOnly, setVirtualOnly } = filters;
+  const { filtersOpen, setFiltersOpen, filtersRef, activeCategoryName, activeAuthorName, activeFilterCount } = filters;
+  const { orders, ownedVirtualIds, recentlyViewed } = feed;
+  const { books, page, setPage, totalPages, totalElements, loading, error, retry, PAGE_SIZE } = search;
 
   return (
     <div className={styles.layout}>
@@ -373,11 +237,7 @@ export function HomePage() {
                     <button
                       type="button"
                       className={styles.filterClear}
-                      onClick={() => {
-                        setAuthorId('');
-                        setVirtualOnly(false);
-                        setCategoryId('');
-                      }}
+                      onClick={filters.clearAll}
                     >
                       Clear all filters
                     </button>
@@ -401,6 +261,17 @@ export function HomePage() {
               </div>
             ))}
           </div>
+        ) : error ? (
+          <EmptyState
+            icon={AlertCircle}
+            title="Couldn't load books"
+            description={error}
+            action={
+              <Button variant="secondary" size="sm" onClick={retry}>
+                Try again
+              </Button>
+            }
+          />
         ) : books.length === 0 ? (
           <EmptyState
             icon={BookOpen}
@@ -412,15 +283,7 @@ export function HomePage() {
             }
             action={
               categoryId || authorId || virtualOnly ? (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setCategoryId('');
-                    setAuthorId('');
-                    setVirtualOnly(false);
-                  }}
-                >
+                <Button variant="secondary" size="sm" onClick={filters.clearAll}>
                   Clear filters
                 </Button>
               ) : undefined
@@ -430,7 +293,7 @@ export function HomePage() {
           <>
             <motion.div
               className={styles.grid}
-              key={`${page}-${debouncedCategoryId}-${authorId}-${virtualOnly}-${query}`}
+              key={`${page}-${filters.debouncedCategoryId}-${authorId}-${virtualOnly}-${query}`}
               variants={gridVariants}
               initial="hidden"
               animate="show"

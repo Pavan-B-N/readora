@@ -1,9 +1,9 @@
 package com.readora.notification.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.readora.notification.dto.NotificationRequestedEvent;
-import com.readora.notification.dto.OrderStatusChangedEvent;
-import com.readora.notification.dto.RefundCompletedEvent;
+import com.readora.sharedcore.event.NotificationRequestedEvent;
+import com.readora.sharedcore.event.OrderStatusChangedEvent;
+import com.readora.sharedcore.event.RefundCompletedEvent;
 import com.readora.notification.service.NotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +34,7 @@ class NotificationEventsListenerTest {
         listener = new NotificationEventsListener(notificationService, objectMapper);
         UUID userId = UUID.randomUUID();
         UUID orderId = UUID.randomUUID();
-        OrderStatusChangedEvent event = new OrderStatusChangedEvent(orderId, userId, "RDA-2026-000001", "DELIVERED");
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(orderId, userId, "RDA-2026-000001", "DELIVERED", null, null);
 
         listener.onOrderStatusChanged(objectMapper.writeValueAsString(event));
 
@@ -51,7 +51,7 @@ class NotificationEventsListenerTest {
         listener = new NotificationEventsListener(notificationService, objectMapper);
         UUID userId = UUID.randomUUID();
         UUID orderId = UUID.randomUUID();
-        OrderStatusChangedEvent event = new OrderStatusChangedEvent(orderId, userId, "RDA-2026-000001", status);
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(orderId, userId, "RDA-2026-000001", status, null, null);
 
         listener.onOrderStatusChanged(objectMapper.writeValueAsString(event));
 
@@ -63,7 +63,7 @@ class NotificationEventsListenerTest {
         listener = new NotificationEventsListener(notificationService, objectMapper);
         UUID userId = UUID.randomUUID();
         UUID orderId = UUID.randomUUID();
-        OrderStatusChangedEvent event = new OrderStatusChangedEvent(orderId, userId, "RDA-2026-000001", "SOME_NEW_STATUS");
+        OrderStatusChangedEvent event = new OrderStatusChangedEvent(orderId, userId, "RDA-2026-000001", "SOME_NEW_STATUS", null, null);
 
         listener.onOrderStatusChanged(objectMapper.writeValueAsString(event));
 

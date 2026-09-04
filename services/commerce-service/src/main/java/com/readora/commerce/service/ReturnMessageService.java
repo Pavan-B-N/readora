@@ -3,7 +3,7 @@ package com.readora.commerce.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.commerce.client.UserServiceClient;
-import com.readora.commerce.dto.NotificationRequestedEvent;
+import com.readora.sharedcore.event.NotificationRequestedEvent;
 import com.readora.commerce.dto.ReturnMessageResponse;
 import com.readora.commerce.entity.Order;
 import com.readora.commerce.entity.OrderStatus;

@@ -8,6 +8,7 @@ import { Card, CardHeader } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { useToast } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import styles from './ReturnPickupDetailPage.module.css';
 
 export function ReturnPickupDetailPage() {
@@ -38,7 +39,7 @@ export function ReturnPickupDetailPage() {
     }
   };
 
-  if (!detail) return <p className={styles.loading}>Loading…</p>;
+  if (!detail) return <Spinner />;
 
   const { pickup, order } = detail;
   const address = order.shippingAddress;

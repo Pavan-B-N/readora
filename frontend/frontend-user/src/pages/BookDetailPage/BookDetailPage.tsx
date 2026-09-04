@@ -23,7 +23,7 @@ import { useToast } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Modal } from '@readora/shared-ui';
-import { Spinner } from '@/components/Spinner';
+import { Spinner } from '@readora/shared-ui';
 import { StarRating } from '@/components/StarRating';
 import { ROUTES } from '@/constants/routes';
 import { ReviewsSection } from './ReviewsSection';

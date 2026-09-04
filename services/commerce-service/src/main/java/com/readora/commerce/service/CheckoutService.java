@@ -5,7 +5,7 @@ import com.readora.commerce.client.CatalogClient;
 import com.readora.commerce.client.UserServiceClient;
 import com.readora.commerce.dto.CheckoutRequest;
 import com.readora.commerce.dto.CheckoutResponse;
-import com.readora.commerce.dto.OrderCreatedEvent;
+import com.readora.sharedcore.event.OrderCreatedEvent;
 import com.readora.commerce.dto.ReserveStockRequest;
 import com.readora.commerce.dto.ReserveStockResponse;
 import com.readora.commerce.dto.StoreInfo;

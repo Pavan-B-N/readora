@@ -10,6 +10,7 @@ import { Button } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './EmbeddingsPage.module.css';
 
@@ -151,7 +152,7 @@ export function EmbeddingsPage() {
           </div>
 
           {loading ? (
-            <p style={{ padding: 'var(--space-5)', color: 'var(--color-text-muted)' }}>Loading…</p>
+            <Spinner />
           ) : jobs.length === 0 ? (
             <EmptyState
               icon={History}

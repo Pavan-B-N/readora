@@ -14,7 +14,7 @@ import {
   type ReaderMessage,
 } from '@/api/aiApi';
 import { Button } from '@readora/shared-ui';
-import { Spinner } from '@/components/Spinner';
+import { Spinner } from '@readora/shared-ui';
 import { RichText } from '@/components/ChatWidget/RichText';
 import styles from './VirtualReaderPage.module.css';
 

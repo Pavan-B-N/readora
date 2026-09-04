@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.catalog.client.UserServiceClient;
 import com.readora.catalog.dto.AdminBookDetailResponse;
-import com.readora.catalog.dto.BookUpsertedEvent;
+import com.readora.sharedcore.event.BookUpsertedEvent;
 import com.readora.catalog.dto.CreateBookRequest;
 import com.readora.catalog.dto.IdResponse;
 import com.readora.catalog.dto.UpdateBookRequest;

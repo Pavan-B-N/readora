@@ -69,7 +69,7 @@ export function BookFormPage() {
   const [furthest, setFurthest] = useState(step);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [toc, setToc] = useState<string[]>([]);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'tableOfContents', string>>>({});
   const [submitting, setSubmitting] = useState(false);
 
   const [categories, setCategories] = useState<FlatCategory[]>([]);
@@ -184,10 +184,10 @@ export function BookFormPage() {
     if (index === 2) {
       if (!form.pageCount.trim()) next.pageCount = 'Page count is required';
       else if (!/^\d+$/.test(form.pageCount)) next.pageCount = 'Must be a whole number';
-      if (toc.length === 0) (next as any).tableOfContents = 'Table of contents is required';
+      if (toc.length === 0) next.tableOfContents = 'Table of contents is required';
     }
 
-    setErrors(next as any);
+    setErrors(next);
     return Object.keys(next).length === 0;
   };
 
@@ -434,9 +434,9 @@ export function BookFormPage() {
                   </span>
                 </span>
                 <TocBuilder value={toc} onChange={setToc} />
-                {(errors as any).tableOfContents && (
+                {errors.tableOfContents && (
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', marginTop: '4px' }}>
-                    {(errors as any).tableOfContents}
+                    {errors.tableOfContents}
                   </div>
                 )}
               </div>

@@ -6,6 +6,7 @@ import { Card } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import styles from './DeliveryAgentsPage.module.css';
 
 /** Live-ish view, not a real push feed — a short poll is enough for a store-sized agent roster. */
@@ -51,7 +52,7 @@ export function DeliveryAgentsPage() {
       />
 
       {loading ? (
-        <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
+        <Spinner />
       ) : agents.length === 0 ? (
         <Card>
           <EmptyState icon={Bike} title="No delivery agents yet" description="Agents assigned to your store will show up here." />

@@ -3,7 +3,7 @@ package com.readora.delivery.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readora.delivery.client.CommerceClient;
 import com.readora.delivery.dto.OrderDeliveryDetailResponse;
-import com.readora.delivery.dto.OrderStatusChangedEvent;
+import com.readora.sharedcore.event.OrderStatusChangedEvent;
 import com.readora.delivery.entity.DeliveryAssignment;
 import com.readora.delivery.entity.ReturnPickupAssignment;
 import com.readora.delivery.repository.DeliveryAssignmentRepository;

@@ -7,6 +7,7 @@ import type { EmbeddingJob, EmbeddingJobBookLog } from '@/types/embeddings';
 import { formatDuration, statusVariant } from '@/utils/embeddingJob';
 import { Card, CardHeader } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import styles from './EmbeddingJobDetailPage.module.css';
 
 const POLL_INTERVAL_MS = 1500;
@@ -52,7 +53,7 @@ export function EmbeddingJobDetailPage() {
   }, [job?.status]);
 
   if (loading) {
-    return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+    return <Spinner />;
   }
 
   if (!job) {

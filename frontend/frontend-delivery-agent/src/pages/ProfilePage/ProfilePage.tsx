@@ -23,6 +23,7 @@ import { Card } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { useToast } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './ProfilePage.module.css';
 
@@ -91,7 +92,7 @@ export function ProfilePage() {
     }
   };
 
-  if (!me || !stats) return <p className={styles.loading}>Loading…</p>;
+  if (!me || !stats) return <Spinner />;
 
   const totalCompleted = stats.completedDeliveries + stats.completedReturnPickups;
 
@@ -155,7 +156,7 @@ export function ProfilePage() {
       <p className={styles.sectionSubtitle}>Everything you've claimed, most recent first.</p>
 
       {jobsLoading ? (
-        <p className={styles.loading}>Loading…</p>
+        <Spinner />
       ) : jobs.length === 0 ? (
         <Card className={styles.empty}>
           <Package size={28} className={styles.emptyIcon} />

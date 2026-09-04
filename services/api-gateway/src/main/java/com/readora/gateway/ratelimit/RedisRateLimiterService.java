@@ -22,15 +22,7 @@ public class RedisRateLimiterService {
         this.proxyManager = proxyManager;
     }
 
-    /**
-     * Attempts to consume one token from the bucket for the given key, creating the bucket
-     * with the rule's capacity/refill rate on first use.
-     *
-     * @param key  the rate-limit key (route + user id or IP)
-     * @param rule the limit and window to enforce for this key
-     * @return a Mono emitting true if a token was available and consumed, false if the caller
-     *         is currently over the limit
-     */
+    /** Creates the bucket with the rule's capacity/refill rate on first use. */
     public Mono<Boolean> isAllowed(String key, RateLimitRule rule) {
         BucketConfiguration configuration = BucketConfiguration.builder()
                 .addLimit(Bandwidth.builder()

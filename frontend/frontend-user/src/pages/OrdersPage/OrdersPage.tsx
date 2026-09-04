@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, ChevronRight, Package } from 'lucide-react';
 import { listOrders } from '@/api/orderApi';
+import { extractErrorMessage } from '@/api/client';
 import type { OrderItemPreview, OrderSummary } from '@/types/order';
 import { useOrderStatusNotifications } from '@/hooks/useOrderStatusNotifications';
 import { Card } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { EmptyState } from '@readora/shared-ui';
-import { Spinner } from '@/components/Spinner';
+import { Spinner } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import { statusVariant, displayStatus } from '@/utils/orderStatus';
 import styles from './OrdersPage.module.css';
@@ -38,10 +40,14 @@ function CoverCollage({ previews, itemCount }: { previews: OrderItemPreview[]; i
 
 export function OrdersPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [orders, setOrders] = useState<OrderSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const refresh = () => listOrders(0, 20).then((result) => setOrders(result.content));
+  const refresh = () =>
+    listOrders(0, 20)
+      .then((result) => setOrders(result.content))
+      .catch((err) => showToast(extractErrorMessage(err, 'Could not load your orders'), 'error'));
 
   useEffect(() => {
     refresh().finally(() => setLoading(false));

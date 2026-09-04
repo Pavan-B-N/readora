@@ -1,7 +1,7 @@
 package com.readora.user.service;
 
-import com.readora.user.dto.PaymentCapturedEvent;
-import com.readora.user.dto.RefundCompletedEvent;
+import com.readora.sharedcore.event.PaymentCapturedEvent;
+import com.readora.sharedcore.event.RefundCompletedEvent;
 import com.readora.user.entity.WalletAccount;
 import com.readora.user.entity.WalletTransaction;
 import com.readora.user.entity.WalletTransactionType;

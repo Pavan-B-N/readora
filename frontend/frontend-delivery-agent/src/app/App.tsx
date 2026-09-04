@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { store } from '@/redux/store';
 import { bootstrapSession } from '@/api/client';
 import { ToastProvider } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import { router } from './router';
 
 function AppRoutes() {
@@ -16,7 +17,7 @@ function AppRoutes() {
   if (!ready) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
+        <Spinner />
       </div>
     );
   }

@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BookOpen, Loader2, RotateCcw, XCircle } from 'lucide-react';
-import { cancelOrder, getOrderDetail, returnOrder } from '@/api/orderApi';
+import { cancelOrder, getOrderDetail, getReturnMessages, postReturnMessage, returnOrder } from '@/api/orderApi';
 import type { OrderDetail } from '@/types/order';
 import { useOrderStatusNotifications } from '@/hooks/useOrderStatusNotifications';
 import { useToast } from '@readora/shared-ui';
 import { Card, CardHeader } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
-import { Spinner } from '@/components/Spinner';
-import { ReturnChatPanel } from '@/components/ReturnChatPanel';
+import { Spinner } from '@readora/shared-ui';
+import { ReturnChatPanel } from '@readora/shared-ui';
 import { Modal } from '@readora/shared-ui';
 import { Textarea } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
@@ -340,7 +340,13 @@ export function OrderDetailPage() {
           {hasPhysicalItem && isInReturnFlow && (
             <Card>
               <CardHeader title="Return conversation" />
-              <ReturnChatPanel orderId={order.orderId} locked={order.status !== 'RETURN_REQUESTED'} />
+              <ReturnChatPanel
+                orderId={order.orderId}
+                locked={order.status !== 'RETURN_REQUESTED'}
+                viewerRole="CUSTOMER"
+                fetchMessages={getReturnMessages}
+                sendMessage={postReturnMessage}
+              />
             </Card>
           )}
 

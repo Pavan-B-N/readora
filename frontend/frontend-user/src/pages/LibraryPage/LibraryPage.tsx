@@ -2,20 +2,28 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Library } from 'lucide-react';
 import { getLibrary } from '@/api/catalogApi';
+import { extractErrorMessage } from '@/api/client';
 import type { BookSummary } from '@/types/catalog';
 import { Button } from '@readora/shared-ui';
 import { EmptyState } from '@readora/shared-ui';
-import { Spinner } from '@/components/Spinner';
+import { Spinner } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './LibraryPage.module.css';
 
 export function LibraryPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [books, setBooks] = useState<BookSummary[] | null>(null);
 
   useEffect(() => {
-    getLibrary().then(setBooks);
-  }, []);
+    getLibrary()
+      .then(setBooks)
+      .catch((err) => {
+        showToast(extractErrorMessage(err, 'Could not load your library'), 'error');
+        setBooks([]);
+      });
+  }, [showToast]);
 
   if (books === null) {
     return (

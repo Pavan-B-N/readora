@@ -1,12 +1,14 @@
 package com.readora.user.service;
 
-import com.readora.user.dto.PaymentCapturedEvent;
-import com.readora.user.dto.RefundCompletedEvent;
+import com.readora.sharedcore.event.PaymentCapturedEvent;
+import com.readora.sharedcore.event.RefundCompletedEvent;
 import com.readora.user.entity.WalletAccount;
 import com.readora.user.entity.WalletTransaction;
 import com.readora.user.entity.WalletTransactionType;
 import com.readora.user.repository.WalletAccountRepository;
 import com.readora.user.repository.WalletTransactionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ import java.math.BigDecimal;
  */
 @Service
 public class WalletEventService {
+
+    private static final Logger log = LoggerFactory.getLogger(WalletEventService.class);
 
     /** Order value at/above which a tier's cashback rate applies — checked highest-first. */
     private static final BigDecimal[] CASHBACK_TIER_FLOORS = {
@@ -68,6 +72,9 @@ public class WalletEventService {
                 event.userId(), event.orderId(), walletAmountUsed.negate(), WalletTransactionType.REDEEMED,
                 wallet.getBalance(), idempotencyKey
         ));
+
+        log.info("Debited {} from wallet for user {} (order {}, new balance {})",
+                walletAmountUsed, event.userId(), event.orderId(), wallet.getBalance());
     }
 
     /**
@@ -96,6 +103,9 @@ public class WalletEventService {
                 event.userId(), event.orderId(), cashbackAmount, WalletTransactionType.CASHBACK,
                 wallet.getBalance(), idempotencyKey
         ));
+
+        log.info("Credited {} cashback to wallet for user {} (order {}, new balance {})",
+                cashbackAmount, event.userId(), event.orderId(), wallet.getBalance());
     }
 
     /** Tiered 1%-5% cashback — bigger baskets earn a higher rate. Package-private so tests can hit it directly. */
@@ -137,5 +147,8 @@ public class WalletEventService {
                 event.userId(), event.orderId(), amountToReverse, WalletTransactionType.REVERSED,
                 wallet.getBalance(), idempotencyKey
         ));
+
+        log.info("Reversed {} to wallet for user {} (order {}, refund {}, new balance {})",
+                amountToReverse, event.userId(), event.orderId(), event.refundId(), wallet.getBalance());
     }
 }

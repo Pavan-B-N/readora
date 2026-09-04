@@ -1,9 +1,9 @@
 package com.readora.commerce.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.readora.commerce.dto.PaymentCapturedEvent;
-import com.readora.commerce.dto.PaymentFailedEvent;
-import com.readora.commerce.dto.RefundCompletedEvent;
+import com.readora.sharedcore.event.PaymentCapturedEvent;
+import com.readora.sharedcore.event.PaymentFailedEvent;
+import com.readora.sharedcore.event.RefundCompletedEvent;
 import com.readora.commerce.service.OrderFulfillmentService;
 import com.readora.commerce.service.ReturnService;
 import org.springframework.kafka.annotation.KafkaListener;

@@ -8,6 +8,7 @@ import { cartCleared } from '@/redux/slices/cartSlice';
 import { initStore } from '@/redux/slices/storeSlice';
 import { fetchWishlist, wishlistCleared } from '@/redux/slices/wishlistSlice';
 import { Tooltip } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import { ChatWidget } from '@/components/ChatWidget';
 import { NotificationBell } from '@/components/NotificationBell';
 import { StoreSwitcher } from '@/components/StoreSwitcher';
@@ -19,9 +20,11 @@ export function SiteLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const { showToast } = useToast();
   const { accessToken } = useAppSelector((state) => state.auth);
   const itemCount = useAppSelector((state) => state.cart.itemCount);
   const wishlistCount = useAppSelector((state) => Object.keys(state.wishlist.ids).length);
+  const storeError = useAppSelector((state) => state.store.error);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -66,6 +69,10 @@ export function SiteLayout() {
   useEffect(() => {
     dispatch(initStore());
   }, [accessToken, dispatch]);
+
+  useEffect(() => {
+    if (storeError) showToast(storeError, 'error');
+  }, [storeError, showToast]);
 
   useEffect(() => {
     if (accessToken) dispatch(fetchWishlist());

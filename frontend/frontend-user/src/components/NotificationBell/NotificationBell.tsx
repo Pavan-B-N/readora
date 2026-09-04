@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { fetchNotifications, markAllRead, markRead, notificationReceived, notificationsCleared } from '@/redux/slices/notificationSlice';
 import type { NotificationItem } from '@/types/notification';
 import { playNotificationSound } from '@/utils/notificationSound';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './NotificationBell.module.css';
 
@@ -27,8 +28,9 @@ function timeAgo(iso: string): string {
 export function NotificationBell() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const accessToken = useAppSelector((state) => state.auth.accessToken);
-  const { items, unreadCount } = useAppSelector((state) => state.notifications);
+  const { items, unreadCount, error } = useAppSelector((state) => state.notifications);
   const [open, setOpen] = useState(false);
   const [livePopups, setLivePopups] = useState<NotificationItem[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -37,6 +39,10 @@ export function NotificationBell() {
   const dismissPopup = (id: string) => {
     setLivePopups((current) => current.filter((n) => n.id !== id));
   };
+
+  useEffect(() => {
+    if (error) showToast(error, 'error');
+  }, [error, showToast]);
 
   useEffect(() => {
     if (!accessToken) {

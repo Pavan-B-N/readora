@@ -1,7 +1,11 @@
 
-CREATE EXTENSION IF NOT EXISTS vector;
+-- Explicit SCHEMA public: Flyway sets search_path to the "ai" schema (see
+-- spring.flyway.schemas) while this migration runs, so an unqualified CREATE EXTENSION would
+-- install into "ai" instead — while every reference below is hardcoded to "public.vector"/
+-- "public.uuid_generate_v4()", matching where these extensions actually live everywhere else.
+CREATE EXTENSION IF NOT EXISTS vector SCHEMA public;
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public;
 
 CREATE SCHEMA IF NOT EXISTS ai;
 

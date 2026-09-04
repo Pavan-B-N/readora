@@ -8,6 +8,7 @@ import { Badge } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { Tooltip } from '@readora/shared-ui';
 import { EmptyState } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './CartPage.module.css';
 
@@ -16,11 +17,16 @@ const MAX_PER_TITLE = 10;
 export function CartPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { items, subtotal, currency, status } = useAppSelector((state) => state.cart);
+  const { showToast } = useToast();
+  const { items, subtotal, currency, status, error } = useAppSelector((state) => state.cart);
 
   useEffect(() => {
     dispatch(fetchCart());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (error) showToast(error, 'error');
+  }, [error, showToast]);
 
   const backButton = (
     <div style={{ marginBottom: 'var(--space-2)' }}>

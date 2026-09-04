@@ -23,12 +23,6 @@ public class SecurityConfig {
     private final GatewaySecretFilter gatewaySecretFilter;
     private final SecurityProperties securityProperties;
 
-    /**
-     * @param jwtAuthenticationFilter validates Bearer tokens and populates the security context
-     * @param correlationIdFilter     assigns/propagates the request's correlation id
-     * @param gatewaySecretFilter     rejects requests that didn't come through api-gateway
-     * @param securityProperties      supplies the config-driven list of routes that don't require authentication
-     */
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             CorrelationIdFilter correlationIdFilter,
@@ -41,20 +35,14 @@ public class SecurityConfig {
         this.securityProperties = securityProperties;
     }
 
-    /** @return the BCrypt password encoder used to hash and verify user passwords */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     /**
-     * Builds the security filter chain: stateless sessions, CSRF disabled (this is a stateless
-     * JSON API, not browser-form-based), register/login/refresh public, everything else
-     * requires authentication, with GatewaySecretFilter running first, then CorrelationIdFilter,
-     * then JwtAuthenticationFilter.
-     *
-     * @param http the HttpSecurity builder to configure
-     * @return the configured SecurityFilterChain
+     * CSRF disabled — this is a stateless JSON API, not browser-form-based. Filter order:
+     * GatewaySecretFilter, then CorrelationIdFilter, then JwtAuthenticationFilter.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

@@ -1,7 +1,7 @@
 package com.readora.ai.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.readora.ai.dto.BookUpsertedEvent;
+import com.readora.sharedcore.event.BookUpsertedEvent;
 import com.readora.ai.service.EmbeddingService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

@@ -1,9 +1,9 @@
 package com.readora.payment.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.readora.payment.dto.OrderCancelledEvent;
-import com.readora.payment.dto.OrderCreatedEvent;
-import com.readora.payment.dto.OrderReturnedEvent;
+import com.readora.sharedcore.event.OrderCancelledEvent;
+import com.readora.sharedcore.event.OrderCreatedEvent;
+import com.readora.sharedcore.event.OrderReturnedEvent;
 import com.readora.payment.service.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

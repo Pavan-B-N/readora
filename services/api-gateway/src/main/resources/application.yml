@@ -6,7 +6,7 @@ server:
 # context, bypassing UserContextFilter/JwtAuthenticationFilter/GatewaySecretFilter entirely.
 management:
   server:
-    port: 9000
+    port: 9080
   endpoint:
     health:
       probes:
@@ -99,6 +99,11 @@ app:
       - /api/v1/books
       - /api/v1/books/*
       - /api/v1/books/*/related
+      # GET is public (catalog-service enforces the write-side auth itself via its own
+      # public-get-routes — the gateway's own list has no per-method concept, so this
+      # necessarily also lets an unauthenticated POST/DELETE through the gateway, same as
+      # every other public-routes entry above).
+      - /api/v1/books/*/reviews
       - /api/v1/categories/**
       - /api/v1/publishers/**
       - /api/v1/authors/**

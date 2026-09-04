@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, X as XIcon } from 'lucide-react';
-import { getReturn, reviewOrder } from '@/api/orderApi';
+import { getReturn, getReturnMessages, postReturnMessage, reviewOrder } from '@/api/orderApi';
 import type { AdminOrderSummary } from '@/types/order';
 import { Card, CardHeader } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { Input } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
-import { ReturnChatPanel } from '@/components/ReturnChatPanel';
+import { ReturnChatPanel } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './ReturnDetailPage.module.css';
@@ -91,7 +92,7 @@ export function ReturnDetailPage() {
     }
   };
 
-  if (loading || !order) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+  if (loading || !order) return <Spinner />;
 
   const awaitingDecision = order.status === 'RETURN_REQUESTED';
   const canMarkCancelledReviewed = order.status === 'CANCELLED' && !order.adminReviewedAt;
@@ -166,7 +167,13 @@ export function ReturnDetailPage() {
 
           <Card>
             <CardHeader title="Conversation" subtitle="Messages between you and the customer about this case." />
-            <ReturnChatPanel orderId={order.orderId} locked={!awaitingDecision} />
+            <ReturnChatPanel
+              orderId={order.orderId}
+              locked={!awaitingDecision}
+              viewerRole="ADMIN"
+              fetchMessages={getReturnMessages}
+              sendMessage={postReturnMessage}
+            />
           </Card>
         </div>
 

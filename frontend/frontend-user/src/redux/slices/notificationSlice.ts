@@ -5,23 +5,34 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '@/api/notificationApi';
+import { extractErrorMessage } from '@/api/client';
 import type { NotificationItem } from '@/types/notification';
 
 interface NotificationState {
   items: NotificationItem[];
   unreadCount: number;
   status: 'idle' | 'loading';
+  error: string | null;
 }
 
 const initialState: NotificationState = {
   items: [],
   unreadCount: 0,
   status: 'idle',
+  error: null,
 };
 
-export const fetchNotifications = createAsyncThunk('notifications/fetch', async () => {
-  const [page, unreadCount] = await Promise.all([listNotifications(0, 20), getUnreadCount()]);
-  return { items: page.content, unreadCount };
+export const fetchNotifications = createAsyncThunk<
+  { items: NotificationItem[]; unreadCount: number },
+  void,
+  { rejectValue: string }
+>('notifications/fetch', async (_, { rejectWithValue }) => {
+  try {
+    const [page, unreadCount] = await Promise.all([listNotifications(0, 20), getUnreadCount()]);
+    return { items: page.content, unreadCount };
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error, 'Could not load notifications'));
+  }
 });
 
 export const markRead = createAsyncThunk('notifications/markRead', async (id: string) => {
@@ -51,14 +62,16 @@ const notificationSlice = createSlice({
     builder
       .addCase(fetchNotifications.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.status = 'idle';
         state.items = action.payload.items;
         state.unreadCount = action.payload.unreadCount;
       })
-      .addCase(fetchNotifications.rejected, (state) => {
+      .addCase(fetchNotifications.rejected, (state, action) => {
         state.status = 'idle';
+        state.error = action.payload ?? action.error.message ?? 'Could not load notifications';
       })
       .addCase(markRead.fulfilled, (state, action) => {
         const item = state.items.find((n) => n.id === action.payload);

@@ -12,15 +12,17 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompAuthChannelInterceptor stompAuthChannelInterceptor;
+    private final WebSocketProperties webSocketProperties;
 
-    public WebSocketConfig(StompAuthChannelInterceptor stompAuthChannelInterceptor) {
+    public WebSocketConfig(StompAuthChannelInterceptor stompAuthChannelInterceptor, WebSocketProperties webSocketProperties) {
         this.stompAuthChannelInterceptor = stompAuthChannelInterceptor;
+        this.webSocketProperties = webSocketProperties;
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("http://localhost:5173", "http://localhost:5174")
+                .setAllowedOriginPatterns(webSocketProperties.allowedOrigins().toArray(String[]::new))
                 .withSockJS();
     }
 

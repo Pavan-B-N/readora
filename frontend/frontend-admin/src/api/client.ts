@@ -9,9 +9,15 @@ export const apiClient = axios.create({
   baseURL: BASE_URL,
 });
 
+/** A request that never got a response at all (connection refused, DNS failure, timeout, offline) is called out by name rather than folded into the caller's generic fallback. */
 export function extractErrorMessage(error: unknown, fallback: string): string {
-  if (axios.isAxiosError<{ message?: string }>(error) && typeof error.response?.data?.message === 'string') {
-    return error.response.data.message;
+  if (axios.isAxiosError<{ message?: string }>(error)) {
+    if (typeof error.response?.data?.message === 'string') {
+      return error.response.data.message;
+    }
+    if (!error.response) {
+      return "Can't reach the server. Check your connection and try again.";
+    }
   }
   return fallback;
 }

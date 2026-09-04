@@ -17,6 +17,7 @@ import { Card, CardHeader } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Input, Textarea } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import { Combobox } from '@/components/Combobox';
 import { PageHeader } from '@/components/PageHeader';
 import { TocBuilder, topicsToJson, jsonToTopics } from '@/components/TocBuilder';
@@ -192,7 +193,7 @@ export function BookDetailPage() {
     }
   };
 
-  if (loading || !detail || !form) return <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>;
+  if (loading || !detail || !form) return <Spinner />;
 
   const isPhysical = Boolean(detail.storeId);
   const isVirtual = Boolean(detail.virtualEdition?.isActive);

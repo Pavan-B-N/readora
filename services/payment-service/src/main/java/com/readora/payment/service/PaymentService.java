@@ -2,12 +2,12 @@ package com.readora.payment.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.readora.payment.dto.OrderCancelledEvent;
-import com.readora.payment.dto.OrderCreatedEvent;
-import com.readora.payment.dto.OrderReturnedEvent;
-import com.readora.payment.dto.PaymentCapturedEvent;
+import com.readora.sharedcore.event.OrderCancelledEvent;
+import com.readora.sharedcore.event.OrderCreatedEvent;
+import com.readora.sharedcore.event.OrderReturnedEvent;
+import com.readora.sharedcore.event.PaymentCapturedEvent;
 import com.readora.payment.dto.PaymentResponse;
-import com.readora.payment.dto.RefundCompletedEvent;
+import com.readora.sharedcore.event.RefundCompletedEvent;
 import com.readora.payment.dto.RefundStatusResponse;
 import com.readora.payment.entity.OutboxEvent;
 import com.readora.payment.entity.Payment;
@@ -20,6 +20,8 @@ import com.readora.payment.repository.OutboxEventRepository;
 import com.readora.payment.repository.PaymentAttemptRepository;
 import com.readora.payment.repository.PaymentRepository;
 import com.readora.payment.repository.RefundRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,8 @@ import java.util.UUID;
  */
 @Service
 public class PaymentService {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepository paymentRepository;
     private final PaymentAttemptRepository paymentAttemptRepository;
@@ -67,6 +71,7 @@ public class PaymentService {
         String idempotencyKey = "order:" + event.orderId();
 
         if (paymentRepository.findByIdempotencyKey(idempotencyKey).isPresent()) {
+            log.debug("Ignoring redelivered order.created for order {} — payment already exists", event.orderId());
             return;
         }
 
@@ -79,10 +84,12 @@ public class PaymentService {
             payment.capture();
             paymentRepository.save(payment);
             paymentAttemptRepository.save(new PaymentAttempt(payment, 1, payment.getStatus(), "dummy provider: auto-approved"));
+            log.info("Captured WALLET payment {} for order {} (amount={})", payment.getId(), event.orderId(), event.grandTotal());
             publishCaptured(payment);
         } else {
             paymentRepository.save(payment);
             paymentAttemptRepository.save(new PaymentAttempt(payment, 1, payment.getStatus(), "dummy UPI provider: awaiting settlement"));
+            log.info("Authorized UPI payment {} for order {}, awaiting settlement", payment.getId(), event.orderId());
         }
     }
 
@@ -92,6 +99,7 @@ public class PaymentService {
         payment.capture();
         paymentRepository.save(payment);
         paymentAttemptRepository.save(new PaymentAttempt(payment, 2, payment.getStatus(), "dummy UPI provider: settled"));
+        log.info("Captured UPI payment {} for order {} after settlement", payment.getId(), payment.getOrderId());
         publishCaptured(payment);
     }
 
@@ -121,6 +129,7 @@ public class PaymentService {
     private void refund(UUID orderId, UUID userId, String reason, BigDecimal refundAmount) {
         Payment payment = paymentRepository.findByOrderId(orderId).orElse(null);
         if (payment == null) {
+            log.warn("No payment found for order {} — cannot refund (reason: {})", orderId, reason);
             return;
         }
 
@@ -128,6 +137,7 @@ public class PaymentService {
         // redelivery would mint a second Refund row (fresh UUID) and double-credit the wallet,
         // since downstream idempotency in user-service dedupes by refundId, which would differ.
         if (refundRepository.findByPayment_Id(payment.getId()).isPresent()) {
+            log.debug("Ignoring redelivered cancel/return for order {} — already refunded", orderId);
             return;
         }
 
@@ -137,6 +147,8 @@ public class PaymentService {
 
         payment.markRefunded();
         paymentRepository.save(payment);
+
+        log.info("Refunded {} for order {} (refund {}, reason: {})", refundAmount, orderId, refund.getId(), reason);
 
         publish(
                 "Refund",

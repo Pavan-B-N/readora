@@ -1,9 +1,9 @@
 package com.readora.commerce.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.readora.commerce.dto.PaymentCapturedEvent;
-import com.readora.commerce.dto.PaymentFailedEvent;
-import com.readora.commerce.dto.RefundCompletedEvent;
+import com.readora.sharedcore.event.PaymentCapturedEvent;
+import com.readora.sharedcore.event.PaymentFailedEvent;
+import com.readora.sharedcore.event.RefundCompletedEvent;
 import com.readora.commerce.service.OrderFulfillmentService;
 import com.readora.commerce.service.ReturnService;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,9 @@ class PaymentEventsListenerTest {
     void onPaymentCaptured_delegatesToOrderFulfillmentService() throws Exception {
         listener = new PaymentEventsListener(orderFulfillmentService, returnService, objectMapper);
         UUID orderId = UUID.randomUUID();
-        PaymentCapturedEvent event = new PaymentCapturedEvent(orderId, UUID.randomUUID());
+        PaymentCapturedEvent event = new PaymentCapturedEvent(
+                orderId, UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("50.00"), BigDecimal.ZERO
+        );
 
         listener.onPaymentCaptured(objectMapper.writeValueAsString(event));
 

@@ -25,6 +25,7 @@ import { Card } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { useToast } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import styles from './OrdersPage.module.css';
 
 function statusVariant(job: UnifiedJob) {
@@ -168,7 +169,7 @@ export function OrdersPage() {
       <p className={styles.subtitle}>What you're working on, and what's ready at your store.</p>
 
       {loading ? (
-        <p className={styles.loading}>Loading…</p>
+        <Spinner />
       ) : (
         <>
           {activeJobs.length > 0 && (

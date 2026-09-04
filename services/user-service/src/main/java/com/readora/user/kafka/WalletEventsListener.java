@@ -1,8 +1,8 @@
 package com.readora.user.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.readora.user.dto.PaymentCapturedEvent;
-import com.readora.user.dto.RefundCompletedEvent;
+import com.readora.sharedcore.event.PaymentCapturedEvent;
+import com.readora.sharedcore.event.RefundCompletedEvent;
 import com.readora.user.service.WalletEventService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

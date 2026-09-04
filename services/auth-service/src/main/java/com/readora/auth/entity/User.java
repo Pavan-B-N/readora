@@ -72,12 +72,7 @@ public class User {
     protected User() {
     }
 
-    /**
-     * Creates a new user with default status/verification/lockout state.
-     *
-     * @param email        the account's unique email address
-     * @param passwordHash the BCrypt hash of the account's password — never a plaintext password
-     */
+    /** passwordHash must already be a BCrypt hash — never a plaintext password. */
     public User(String email, String passwordHash) {
         this.email = email;
         this.passwordHash = passwordHash;
@@ -97,108 +92,83 @@ public class User {
         this.updatedAt = Instant.now();
     }
 
-    /** @return the user's primary key */
     public UUID getId() {
         return id;
     }
 
-    /** @return the user's email address */
     public String getEmail() {
         return email;
     }
 
-    /** @param email the new email address to set */
     public void setEmail(String email) {
         this.email = email;
     }
 
-    /** @return the BCrypt hash of the user's password */
     public String getPasswordHash() {
         return passwordHash;
     }
 
-    /** @param passwordHash the new BCrypt password hash to set */
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }
 
-    /** @return the account's current status (ACTIVE, LOCKED, or DISABLED) */
     public UserStatus getStatus() {
         return status;
     }
 
-    /** @param status the new account status to set */
     public void setStatus(UserStatus status) {
         this.status = status;
     }
 
-    /** @return true if the account's email address has been verified */
     public boolean isEmailVerified() {
         return emailVerified;
     }
 
-    /** @param emailVerified the new email-verified flag to set */
     public void setEmailVerified(boolean emailVerified) {
         this.emailVerified = emailVerified;
     }
 
-    /** @return the number of consecutive failed login attempts since the last successful login */
     public int getFailedLoginAttempts() {
         return failedLoginAttempts;
     }
 
-    /** Increments the consecutive-failed-login counter by one, called after a wrong password. */
     public void incrementFailedLoginAttempts() {
         this.failedLoginAttempts++;
     }
 
-    /** Resets the consecutive-failed-login counter to zero, called after a successful login. */
     public void resetFailedLoginAttempts() {
         this.failedLoginAttempts = 0;
     }
 
-    /** @return the timestamp of the user's last successful login, or null if never logged in */
     public Instant getLastLoginAt() {
         return lastLoginAt;
     }
 
-    /** @param lastLoginAt the new last-successful-login timestamp to set */
     public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
 
-    /** @return the timestamp the account was created */
     public Instant getCreatedAt() {
         return createdAt;
     }
 
-    /** @return the timestamp the account was last modified */
     public Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    /** @return the set of roles currently assigned to this user */
     public Set<Role> getRoles() {
         return roles;
     }
 
-    /** @param role the role to assign to this user */
     public void addRole(Role role) {
         this.roles.add(role);
     }
 
-    /** @param role the role to remove from this user */
     public void removeRole(Role role) {
         this.roles.remove(role);
     }
 
-    /**
-     * Equality is id-based only, and only for persisted entities — two transient (unsaved)
-     * users are never considered equal to each other even if otherwise identical.
-     *
-     * @param obj the object to compare against
-     * @return true if obj is a User with the same non-null id
-     */
+    /** Id-based equality, and only for persisted entities — two transient users are never equal. */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -214,7 +184,6 @@ public class User {
         return Objects.equals(id, user.id);
     }
 
-    /** @return a hash code consistent with the id-based equals() implementation */
     @Override
     public int hashCode() {
         return Objects.hashCode(id);

@@ -20,7 +20,7 @@ spec:
           image: myreadoraregistry.azurecr.io/readora-payment-service:latest
           ports:
             - containerPort: 8085
-            - containerPort: 9000
+            - containerPort: 9085
               name: management
           envFrom:
             - configMapRef:
@@ -31,13 +31,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 9000
+              port: 9085
             initialDelaySeconds: 30
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 9000
+              port: 9085
             initialDelaySeconds: 45
             periodSeconds: 15
           resources:

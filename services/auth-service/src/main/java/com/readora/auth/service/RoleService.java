@@ -16,13 +16,7 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
-    /**
-     * Returns the role for the given code, creating it with the code's enum-defined description
-     * if it doesn't exist yet.
-     *
-     * @param code the role code to look up
-     * @return the existing or newly created role
-     */
+    /** Creates the role with its enum-defined description if it doesn't exist yet. */
     @Transactional
     public Role getOrCreate(RoleCode code) {
         return roleRepository.findByCode(code)

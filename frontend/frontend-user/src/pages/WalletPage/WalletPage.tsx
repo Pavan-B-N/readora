@@ -9,7 +9,7 @@ import { Button } from '@readora/shared-ui';
 import { Input } from '@readora/shared-ui';
 import { Modal } from '@readora/shared-ui';
 import { EmptyState } from '@readora/shared-ui';
-import { Spinner } from '@/components/Spinner';
+import { Spinner } from '@readora/shared-ui';
 import styles from './WalletPage.module.css';
 
 const QUICK_AMOUNTS = ['200', '500', '1000'];

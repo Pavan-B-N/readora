@@ -12,6 +12,7 @@ import { Tooltip } from '@readora/shared-ui';
 import { Modal } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import formStyles from '../PublishersPage/PublishersPage.module.css';
 import styles from './AuthorsPage.module.css';
 
@@ -148,7 +149,7 @@ export function AuthorsPage() {
       </div>
 
       {loading ? (
-        <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
+        <Spinner />
       ) : filtered.length === 0 ? (
         <Card>
           <EmptyState

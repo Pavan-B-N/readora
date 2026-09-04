@@ -10,11 +10,6 @@ import java.util.UUID;
 /** Spring Data JPA repository for {@link Role}. */
 public interface RoleRepository extends JpaRepository<Role, UUID> {
 
-    /**
-     * Looks up a role by its code — used to assign the default CUSTOMER role at registration.
-     *
-     * @param code the role code to search for
-     * @return the matching role, or empty if it doesn't exist (e.g. not yet seeded)
-     */
+    /** Used to assign the default CUSTOMER role at registration. */
     Optional<Role> findByCode(RoleCode code);
 }

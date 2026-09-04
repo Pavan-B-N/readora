@@ -1,9 +1,9 @@
 package com.readora.notification.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.readora.notification.dto.NotificationRequestedEvent;
-import com.readora.notification.dto.OrderStatusChangedEvent;
-import com.readora.notification.dto.RefundCompletedEvent;
+import com.readora.sharedcore.event.NotificationRequestedEvent;
+import com.readora.sharedcore.event.OrderStatusChangedEvent;
+import com.readora.sharedcore.event.RefundCompletedEvent;
 import com.readora.notification.service.NotificationService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

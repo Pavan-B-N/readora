@@ -1,1 +1,0 @@
-export { ReturnChatPanel } from './ReturnChatPanel';

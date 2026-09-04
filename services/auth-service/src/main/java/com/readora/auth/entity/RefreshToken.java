@@ -47,15 +47,7 @@ public class RefreshToken {
     protected RefreshToken() {
     }
 
-    /**
-     * Creates a new, unrevoked refresh token.
-     *
-     * @param user      the user this token belongs to
-     * @param tokenHash the SHA-256 hash of the raw token value — the raw value is never stored
-     * @param expiresAt the instant after which this token is no longer valid
-     * @param userAgent the User-Agent header of the client that requested the token, or null
-     * @param ipAddress the IP address of the client that requested the token, or null
-     */
+    /** tokenHash must be the SHA-256 hash of the raw token — the raw value is never stored. */
     public RefreshToken(User user, String tokenHash, Instant expiresAt, String userAgent, String ipAddress) {
         this.user = user;
         this.tokenHash = tokenHash;
@@ -64,62 +56,48 @@ public class RefreshToken {
         this.ipAddress = ipAddress;
     }
 
-    /** @return the token's primary key */
     public UUID getId() {
         return id;
     }
 
-    /** @return the user this token belongs to */
     public User getUser() {
         return user;
     }
 
-    /** @return the SHA-256 hash of the raw token value */
     public String getTokenHash() {
         return tokenHash;
     }
 
-    /** @return the instant after which this token is no longer valid */
     public Instant getExpiresAt() {
         return expiresAt;
     }
 
-    /** @return the instant this token was revoked, or null if it has not been revoked */
     public Instant getRevokedAt() {
         return revokedAt;
     }
 
-    /** @return the User-Agent header captured when this token was issued, or null */
     public String getUserAgent() {
         return userAgent;
     }
 
-    /** @return the IP address captured when this token was issued, or null */
     public String getIpAddress() {
         return ipAddress;
     }
 
-    /** @return true if this token has been revoked (revokedAt is set) */
     public boolean isRevoked() {
         return revokedAt != null;
     }
 
-    /** @return true if the current time is after this token's expiresAt */
     public boolean isExpired() {
         return Instant.now().isAfter(expiresAt);
     }
 
-    /** Marks this token revoked as of now. Idempotent if called more than once. */
+    /** Idempotent if called more than once. */
     public void revoke() {
         this.revokedAt = Instant.now();
     }
 
-    /**
-     * Equality is id-based only, and only for persisted entities.
-     *
-     * @param obj the object to compare against
-     * @return true if obj is a RefreshToken with the same non-null id
-     */
+    /** Id-based equality, and only for persisted entities. */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -135,7 +113,6 @@ public class RefreshToken {
         return id != null && Objects.equals(id, that.id);
     }
 
-    /** @return a hash code consistent with the id-based equals() implementation */
     @Override
     public int hashCode() {
         return Objects.hashCode(id);

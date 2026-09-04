@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { listStores } from '@/api/catalogApi';
 import { getMe, updateProfile } from '@/api/userApi';
+import { extractErrorMessage } from '@/api/client';
 import type { Store } from '@/types/catalog';
 import { pickDefaultStore } from '@/utils/store';
 import type { RootState } from '../store';
@@ -10,6 +11,7 @@ interface StoreState {
   selectedId: string | null;
   resolved: boolean;
   switching: boolean;
+  error: string | null;
 }
 
 const initialState: StoreState = {
@@ -17,6 +19,7 @@ const initialState: StoreState = {
   selectedId: null,
   resolved: false,
   switching: false,
+  error: null,
 };
 
 // Resolves "the store we're delivering from" — the signed-in caller's preferred store, or the
@@ -26,15 +29,19 @@ const initialState: StoreState = {
 export const initStore = createAsyncThunk<
   { stores: Store[]; selectedId: string | null },
   void,
-  { state: RootState }
->('store/init', async (_, { getState }) => {
-  const stores = await listStores();
-  const { accessToken } = getState().auth;
-  if (!accessToken) {
-    return { stores, selectedId: pickDefaultStore(stores)?.id ?? null };
+  { state: RootState; rejectValue: string }
+>('store/init', async (_, { getState, rejectWithValue }) => {
+  try {
+    const stores = await listStores();
+    const { accessToken } = getState().auth;
+    if (!accessToken) {
+      return { stores, selectedId: pickDefaultStore(stores)?.id ?? null };
+    }
+    const me = await getMe();
+    return { stores, selectedId: me.preferredStoreId ?? pickDefaultStore(stores)?.id ?? null };
+  } catch (error) {
+    return rejectWithValue(extractErrorMessage(error, 'Could not load stores'));
   }
-  const me = await getMe();
-  return { stores, selectedId: me.preferredStoreId ?? pickDefaultStore(stores)?.id ?? null };
 });
 
 export const switchStore = createAsyncThunk<string, string, { state: RootState }>(
@@ -56,14 +63,16 @@ const storeSlice = createSlice({
     builder
       .addCase(initStore.pending, (state) => {
         state.resolved = false;
+        state.error = null;
       })
       .addCase(initStore.fulfilled, (state, action) => {
         state.stores = action.payload.stores;
         state.selectedId = action.payload.selectedId;
         state.resolved = true;
       })
-      .addCase(initStore.rejected, (state) => {
+      .addCase(initStore.rejected, (state, action) => {
         state.resolved = true;
+        state.error = action.payload ?? action.error.message ?? 'Could not load stores';
       })
       .addCase(switchStore.pending, (state) => {
         state.switching = true;

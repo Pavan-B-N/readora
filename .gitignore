@@ -44,3 +44,5 @@ playwright-report/
 # run-all.sh / stop-all.sh runtime output
 /logs/
 /pids/
+
+/video-edit-clips

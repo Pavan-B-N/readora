@@ -20,7 +20,7 @@ spec:
           image: myreadoraregistry.azurecr.io/readora-delivery-agent-service:latest
           ports:
             - containerPort: 8089
-            - containerPort: 9000
+            - containerPort: 9089
               name: management
           envFrom:
             - configMapRef:
@@ -31,13 +31,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 9000
+              port: 9089
             initialDelaySeconds: 30
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 9000
+              port: 9089
             initialDelaySeconds: 45
             periodSeconds: 15
           resources:

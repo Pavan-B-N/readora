@@ -2,18 +2,21 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Heart } from 'lucide-react';
 import { getBooksByIds, getLibrary } from '@/api/catalogApi';
+import { extractErrorMessage } from '@/api/client';
 import type { BookSummary } from '@/types/catalog';
 import { useAppSelector } from '@/redux/hooks';
 import { BookCard } from '@/components/BookCard';
 import { Button } from '@readora/shared-ui';
 import { Card } from '@readora/shared-ui';
 import { EmptyState } from '@readora/shared-ui';
-import { Spinner } from '@/components/Spinner';
+import { Spinner } from '@readora/shared-ui';
+import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './WishlistPage.module.css';
 
 export function WishlistPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const wishlistIds = useAppSelector((state) => state.wishlist.ids);
   const idList = useMemo(() => Object.keys(wishlistIds), [wishlistIds]);
 
@@ -22,8 +25,10 @@ export function WishlistPage() {
   const [ownedVirtualIds, setOwnedVirtualIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    getLibrary().then((owned) => setOwnedVirtualIds(new Set(owned.map((b) => b.id))));
-  }, []);
+    getLibrary()
+      .then((owned) => setOwnedVirtualIds(new Set(owned.map((b) => b.id))))
+      .catch((err) => showToast(extractErrorMessage(err, 'Could not load your library'), 'error'));
+  }, [showToast]);
 
   useEffect(() => {
     if (idList.length === 0) {
@@ -34,8 +39,9 @@ export function WishlistPage() {
     setLoading(true);
     getBooksByIds(idList)
       .then(setBooks)
+      .catch((err) => showToast(extractErrorMessage(err, 'Could not load your wishlist'), 'error'))
       .finally(() => setLoading(false));
-  }, [idList]);
+  }, [idList, showToast]);
 
   return (
     <div>

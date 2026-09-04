@@ -9,10 +9,20 @@ export const apiClient = axios.create({
   baseURL: BASE_URL,
 });
 
-/** Every Readora service returns `{ message: "human-readable text", ... }` on error — prefer that over axios's generic "Request failed with status code 401". */
+/**
+ * Every Readora service returns `{ message: "human-readable text", ... }` on error — prefer that
+ * over axios's generic "Request failed with status code 401". A request that never got a
+ * response at all (connection refused, DNS failure, timeout, offline) is a distinct case worth
+ * calling out by name rather than folding into the caller's generic fallback message.
+ */
 export function extractErrorMessage(error: unknown, fallback: string): string {
-  if (axios.isAxiosError<{ message?: string }>(error) && typeof error.response?.data?.message === 'string') {
-    return error.response.data.message;
+  if (axios.isAxiosError<{ message?: string }>(error)) {
+    if (typeof error.response?.data?.message === 'string') {
+      return error.response.data.message;
+    }
+    if (!error.response) {
+      return "Can't reach the server. Check your connection and try again.";
+    }
   }
   return fallback;
 }

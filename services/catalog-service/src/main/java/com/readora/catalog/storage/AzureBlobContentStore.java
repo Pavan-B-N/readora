@@ -6,6 +6,7 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.readora.catalog.config.VirtualStorageProperties;
 import com.readora.catalog.exception.VirtualEditionNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ public class AzureBlobContentStore implements VirtualContentStore {
     private final VirtualStorageProperties properties;
     private final BlobContainerClient injectedContainerClient;
 
+    @Autowired
     public AzureBlobContentStore(VirtualStorageProperties properties) {
         this.properties = properties;
         this.injectedContainerClient = null;

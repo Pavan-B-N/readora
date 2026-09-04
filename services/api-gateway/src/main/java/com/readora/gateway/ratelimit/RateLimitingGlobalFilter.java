@@ -6,6 +6,8 @@ import com.readora.gateway.config.RateLimitProperties.RateLimitRule;
 import com.readora.sharedcore.dto.ErrorResponse;
 import com.readora.gateway.filter.CorrelationIdGlobalFilter;
 import com.readora.sharedcore.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.route.Route;
@@ -33,6 +35,7 @@ import java.util.UUID;
 @Component
 public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
 
+    private static final Logger log = LoggerFactory.getLogger(RateLimitingGlobalFilter.class);
     private static final String DEFAULT_ROUTE_ID = "default";
 
     private final RedisRateLimiterService rateLimiterService;
@@ -52,15 +55,6 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
         this.jwtService = jwtService;
     }
 
-    /**
-     * Enforces the rate limit for the matched route, keyed by the caller's user id (if
-     * authenticated) or IP address otherwise.
-     *
-     * @param exchange the current HTTP request and response exchange
-     * @param chain    the remaining gateway filter chain
-     * @return a Mono that completes when the request is forwarded, or rejected with 429 if the
-     *         route's rate limit has been exceeded
-     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String routeId = resolveRouteId(exchange);
@@ -72,24 +66,12 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
                 .flatMap(allowed -> allowed ? chain.filter(exchange) : reject(exchange, rule));
     }
 
-    /**
-     * Reads which route matched this request, so rate-limit rules can be looked up per route.
-     *
-     * @param exchange the current HTTP request and response exchange
-     * @return the matched route's id, or {@link #DEFAULT_ROUTE_ID} if no route was matched
-     */
     private String resolveRouteId(ServerWebExchange exchange) {
         Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
         return route != null ? route.getId() : DEFAULT_ROUTE_ID;
     }
 
-    /**
-     * Resolves who to rate-limit the request against: the authenticated user id if present,
-     * otherwise the caller's IP address.
-     *
-     * @param exchange the current HTTP request and response exchange
-     * @return the user id if the request is authenticated, else the caller's IP, else "unknown"
-     */
+    /** Rate-limits by authenticated user id when present, falling back to the caller's IP. */
     private String resolveKey(ServerWebExchange exchange) {
         String header = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
@@ -108,15 +90,11 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
         return "unknown";
     }
 
-    /**
-     * Writes a 429 response in the shared error envelope shape, with a Retry-After header set
-     * to the rule's window so the caller knows when it's safe to retry.
-     *
-     * @param exchange the current HTTP request and response exchange, used to write the response
-     * @param rule     the rate-limit rule that was exceeded, used for the Retry-After value
-     * @return a Mono that completes once the rejection body has been written
-     */
+    /** Writes a 429 in the shared error envelope shape, with Retry-After set to the rule's window. */
     private Mono<Void> reject(ServerWebExchange exchange, RateLimitRule rule) {
+        log.warn("Rate limit exceeded for {} {} (key={})", exchange.getRequest().getMethod(),
+                exchange.getRequest().getURI().getPath(), resolveKey(exchange));
+
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
         response.getHeaders().add(HttpHeaders.RETRY_AFTER, String.valueOf(rule.windowSeconds()));
@@ -140,13 +118,7 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
         return response.writeWith(Mono.just(buffer));
     }
 
-    /**
-     * Serializes the error body to JSON, falling back to a minimal hand-written JSON string if
-     * serialization itself fails — the rejection response must never throw.
-     *
-     * @param body the error response to serialize
-     * @return the JSON-encoded body as bytes
-     */
+    /** Falls back to a minimal hand-written JSON string if serialization fails — this must never throw. */
     private byte[] writeBody(ErrorResponse body) {
         try {
             return objectMapper.writeValueAsBytes(body);
@@ -155,13 +127,7 @@ public class RateLimitingGlobalFilter implements GlobalFilter, Ordered {
         }
     }
 
-    /**
-     * Runs after the correlation-id, gateway-secret, and JWT filters (all negative orders), so
-     * the Authorization header has already been validated by the time this filter resolves its
-     * rate-limit key.
-     *
-     * @return this filter's order in the gateway filter chain
-     */
+    /** Runs after the correlation-id, gateway-secret, and JWT filters (all negative orders). */
     @Override
     public int getOrder() {
         return 0;

@@ -12,6 +12,7 @@ import { Tooltip } from '@readora/shared-ui';
 import { Modal } from '@readora/shared-ui';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import styles from './CategoriesPage.module.css';
 
 export function CategoriesPage() {
@@ -129,7 +130,7 @@ export function CategoriesPage() {
         </div>
 
         {loading ? (
-          <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
+          <Spinner />
         ) : categories.length === 0 ? (
           <EmptyState
             icon={Layers}

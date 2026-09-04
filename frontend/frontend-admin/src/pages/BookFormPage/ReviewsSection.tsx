@@ -5,6 +5,7 @@ import type { Review } from '@/types/catalog';
 import { useToast } from '@readora/shared-ui';
 import { Card, CardHeader } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
+import { Spinner } from '@readora/shared-ui';
 import styles from './BookFormPage.module.css';
 
 export function ReviewsSection({ bookId }: { bookId: string }) {
@@ -40,7 +41,7 @@ export function ReviewsSection({ bookId }: { bookId: string }) {
       <CardHeader title="Reviews" subtitle="Moderation — remove any review that violates content policy." />
 
       {loading ? (
-        <p style={{ color: 'var(--color-text-muted)' }}>Loading…</p>
+        <Spinner />
       ) : reviews.length === 0 ? (
         <p style={{ color: 'var(--color-text-muted)' }}>No reviews yet.</p>
       ) : (

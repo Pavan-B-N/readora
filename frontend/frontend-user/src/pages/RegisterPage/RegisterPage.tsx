@@ -7,9 +7,10 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { register as registerUser } from '@/redux/slices/authSlice';
 import { Input } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
-import { AuthLayout } from '@/components/AuthLayout';
+import { AuthLayout } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
-import styles from '@/components/AuthLayout/AuthLayout.module.css';
+import { AUTH_BRAND_ICON, AUTH_BRAND_NAME, AUTH_FLOAT_ICONS, AUTH_MESSAGES, AUTH_STATS } from '@/constants/authLayoutContent';
+import styles from '@/styles/authForm.module.css';
 
 const registerSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
@@ -38,7 +39,13 @@ export function RegisterPage() {
   };
 
   return (
-    <AuthLayout>
+    <AuthLayout
+      brandIcon={AUTH_BRAND_ICON}
+      brandName={AUTH_BRAND_NAME}
+      floatIcons={AUTH_FLOAT_ICONS}
+      messages={AUTH_MESSAGES}
+      stats={AUTH_STATS}
+    >
       <div>
         <h1 className={styles.title}>Create your account</h1>
         <p className={styles.subtitle}>Get ₹500 in your wallet when you sign up</p>

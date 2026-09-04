@@ -15,7 +15,7 @@ import { listConversations, type ConversationSummary } from '@/api/aiApi';
 import { RichText } from '@/components/ChatWidget/RichText';
 import { ChatBookCarousel } from '@/components/ChatWidget/ChatBookCarousel';
 import { useChatSession } from '@/components/ChatWidget/useChatSession';
-import { Spinner } from '@/components/Spinner';
+import { Spinner } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './AssistantPage.module.css';
 

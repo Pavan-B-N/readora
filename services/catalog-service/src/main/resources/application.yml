@@ -6,7 +6,7 @@ server:
 # context, bypassing UserContextFilter/JwtAuthenticationFilter/GatewaySecretFilter entirely.
 management:
   server:
-    port: 9000
+    port: 9083
   endpoint:
     health:
       probes:
