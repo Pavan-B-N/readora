@@ -55,10 +55,30 @@ spring:
           uri: http://localhost:8088
           predicates:
             - Path=/api/v1/ai/**,/api/v1/admin/embeddings/**
-        - id: notification-service
+        # SockJS negotiates over plain HTTP first (/ws/info, then falls back to xhr/xhr_streaming
+        # session sub-paths if a raw WebSocket isn't available) before ever attempting an actual
+        # WebSocket upgrade — a single ws://-scheme route can't proxy that plain-HTTP traffic at
+        # all (Spring Cloud Gateway's WebSocket routing filter only handles real upgrade
+        # requests), so this needs two routes: the raw-upgrade sub-path routed as ws://, matched
+        # first since it's the more specific pattern, and everything else under /ws/** — the
+        # negotiation and HTTP-fallback transports — routed as plain http://.
+        # notification-service's own WebSocketConfig sets allowedOriginPatterns too (its SockJS
+        # transports need real Origin validation, not just this gateway's), so both layers add
+        # an Access-Control-Allow-Origin header to the same response — browsers reject a header
+        # repeated with the same value just as readily as one with conflicting values, so this
+        # needs deduping back down to one, not just correct on each layer individually.
+        - id: notification-service-ws-upgrade
           uri: ws://localhost:8086
           predicates:
+            - Path=/ws/*/*/websocket
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - id: notification-service-ws-sockjs
+          uri: http://localhost:8086
+          predicates:
             - Path=/ws/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
         - id: notification-service-rest
           uri: http://localhost:8086
           predicates:
@@ -109,6 +129,12 @@ app:
       - /api/v1/authors/**
       - /api/v1/stores/**
       - /api/v1/ai/search
+      # SockJS negotiates its transport (the /ws/info polling requests, xhr-streaming, etc.)
+      # over plain HTTP before a STOMP session exists, so it can't carry a Bearer token the way
+      # a normal API call does — same reasoning as notification-service's own public-routes for
+      # /ws/**. Real auth still happens: StompAuthChannelInterceptor rejects any CONNECT frame
+      # without a valid JWT, just at the STOMP level, not here.
+      - /ws/**
   rate-limit:
     default-rule:
       limit: 200

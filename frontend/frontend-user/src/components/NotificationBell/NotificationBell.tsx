@@ -9,10 +9,14 @@ import { fetchNotifications, markAllRead, markRead, notificationReceived, notifi
 import type { NotificationItem } from '@/types/notification';
 import { playNotificationSound } from '@/utils/notificationSound';
 import { useToast } from '@readora/shared-ui';
+import { BASE_URL } from '@/api/client';
 import { ROUTES } from '@/constants/routes';
 import styles from './NotificationBell.module.css';
 
-const WS_URL = import.meta.env.VITE_NOTIFICATION_WS_URL ?? 'http://localhost:8086/ws';
+// Must go through api-gateway (not straight to notification-service) — every backend service's
+// GatewaySecretFilter rejects any request lacking the gateway's shared secret header, which only
+// api-gateway ever adds. The gateway has a dedicated ws:// route for /ws/** to notification-service.
+const WS_URL = `${BASE_URL}/ws`;
 
 /** How long a live popup stays on screen before auto-dismissing. */
 const POPUP_LIFETIME_MS = 6000;
