@@ -33,8 +33,6 @@ test('a virtual order can be returned and auto-approves straight through to a re
   });
   expect(returnResponse.status()).toBe(200);
 
-  // Virtual-only orders skip admin review entirely and go straight to a refund — the only wait
-  // here is payment-service completing the refund and commerce-service confirming it over Kafka.
   const finalOrder = await pollUntil(async () => {
     const detailResponse = await request.get(`/api/v1/orders/${order.orderId}`, { headers });
     const detail = await detailResponse.json();
@@ -51,10 +49,6 @@ test.describe('physical return admin-review path', () => {
   );
 
   test('a physical return requires admin approval before refunding', async () => {
-    // Deliberately not implemented: exercising this path also needs a delivered PHYSICAL order,
-    // which itself needs a delivery agent (see delivery-claim.spec.ts) assigned to the same
-    // store the order resolves to. Wire this up once seeded ADMIN_EMAIL/AGENT_EMAIL credentials
-    // for a matching store are available — see qa/README or ask for the seeded test accounts.
     test.fixme();
   });
 });

@@ -32,12 +32,20 @@ public class GatewaySecretFilter extends OncePerRequestFilter implements Ordered
         this.objectMapper = objectMapper;
     }
 
+    /** kubelet's readiness/liveness probes hit this directly — never through the gateway, and never carrying this header. */
+    private static final String ACTUATOR_HEALTH_PREFIX = "/actuator/health";
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        if (request.getRequestURI().startsWith(ACTUATOR_HEALTH_PREFIX)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String presented = request.getHeader(GATEWAY_SECRET_HEADER);
 
         if (presented == null

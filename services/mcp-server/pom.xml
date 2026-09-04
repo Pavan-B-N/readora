@@ -39,6 +39,10 @@
             <artifactId>shared-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <!-- Exposes @Tool-annotated beans as MCP tools over streamable HTTP -->
         <dependency>
             <groupId>org.springframework.ai</groupId>

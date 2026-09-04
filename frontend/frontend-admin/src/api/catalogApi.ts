@@ -27,7 +27,6 @@ export interface BookSearchParams {
   categoryId?: string;
   authorId?: string;
   virtualOnly?: boolean;
-  /** Required unless virtualOnly is true — the public catalogue search rejects a physical-inclusive query with no store. */
   storeId?: string;
 }
 

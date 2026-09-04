@@ -63,8 +63,12 @@ public class JwtAuthenticationGlobalFilter implements GlobalFilter, Ordered {
      * @param path the incoming request path
      * @return true if the path does not require JWT authentication
      */
+    /** Always public, regardless of the configured public-routes list — kubelet's probe relies on it. */
+    private static final String ACTUATOR_HEALTH_PREFIX = "/actuator/health";
+
     private boolean isPublicRoute(String path) {
-        return securityProperties.publicRoutes().stream()
+        return path.startsWith(ACTUATOR_HEALTH_PREFIX)
+                || securityProperties.publicRoutes().stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 

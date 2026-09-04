@@ -1,0 +1,11 @@
+# Independent kustomization for just user-service — requires `kubectl apply -k k8s/shared` first.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+
+images:
+  - name: myreadoraregistry.azurecr.io/readora-user-service
+    newTag: latest

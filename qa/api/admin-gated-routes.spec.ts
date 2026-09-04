@@ -1,13 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { authHeaders, registerAndLogin } from '../support/apiClient';
 
-/**
- * Covers the ADMIN-role gate itself (any authenticated non-admin caller must get 403, and an
- * anonymous caller must get 401) without needing seeded admin credentials. The actual admin
- * business flows (approve a return, create a book, queue an embeddings backfill) need a real
- * ADMIN_EMAIL/ADMIN_PASSWORD account and are skipped without one, same pattern as
- * delivery-claim.spec.ts and return-workflow.spec.ts.
- */
+
 test.describe('admin route gate', () => {
   test('an anonymous caller hitting an admin route gets 401', async ({ request }) => {
     const response = await request.get('/api/v1/admin/books/00000000-0000-0000-0000-000000000000');

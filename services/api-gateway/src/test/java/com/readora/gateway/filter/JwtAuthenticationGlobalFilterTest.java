@@ -98,4 +98,16 @@ class JwtAuthenticationGlobalFilterTest {
     void getOrder_runsAfterGatewaySecretButBeforeRateLimit() {
         assertThat(filter.getOrder()).isEqualTo(-1);
     }
+
+    @Test
+    void actuatorHealthPath_noAuthHeader_isPublicRegardlessOfConfiguredRoutes() {
+        // Not in this filter's own publicRoutes list (see setUp) — proves the exemption is unconditional.
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/actuator/health/readiness").build());
+        GatewayFilterChain chain = mock(GatewayFilterChain.class);
+        when(chain.filter(any())).thenReturn(Mono.empty());
+
+        filter.filter(exchange, chain).block();
+
+        verify(chain).filter(exchange);
+    }
 }

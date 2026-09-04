@@ -1,0 +1,154 @@
+name: Auth Service CI/CD
+
+on:
+  # Trigger manually; push trigger can be enabled later for main branch changes.
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "services/auth-service/**"
+  #     - "services/shared-core/**"
+  #     - "services/pom.xml"
+  workflow_dispatch:
+
+permissions:
+  # Allow the workflow to commit and push Kubernetes manifest changes.
+  contents: write
+
+jobs:
+
+  test:
+    # Test phase: Compile the service, run unit/integration tests, generate coverage, and enforce the 90% coverage gate.
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout phase: Download the repository source code onto the runner.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Java setup phase: Install Java 21 and configure Maven dependency caching.
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # Maven test phase: Build auth-service and its dependencies through the complete verify lifecycle.
+      - name: Run tests + coverage gate
+        working-directory: services
+        run: mvn -B -pl auth-service -am verify # -pl = project list, -B = batch, -am = --also-make
+
+
+  build-and-push:
+    # Build phase: Build the Docker image, push it to ACR, and scan it for vulnerabilities.
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout phase: Download the repository source code required for the Docker build.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Docker setup phase: Set up Docker Buildx for building the container image.
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Registry login phase: Authenticate Docker with Azure Container Registry.
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # Docker build phase: Build the auth-service image and push it to ACR using the commit SHA as the tag.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services
+          file: services/auth-service/Dockerfile
+          push: true
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/readora-auth-service:${{ github.sha }}
+          cache-from: type=gha,scope=auth-service
+          cache-to: type=gha,mode=max,scope=auth-service
+
+      # Security scan phase: Scan the pushed Docker image for HIGH and CRITICAL vulnerabilities.
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/readora-auth-service:${{ github.sha }}
+          format: sarif
+          output: trivy-auth-service.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      # Security reporting phase: Upload Trivy findings to GitHub Code Scanning.
+      - name: Upload vulnerability results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-auth-service.sarif
+          category: trivy-auth-service
+
+
+  update-k8s-manifest:
+    # Deployment phase: Update the Kubernetes image reference and push the change to Git.
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    # Concurrency phase: Serialize manifest updates so multiple service workflows do not push simultaneously.
+    concurrency:
+      group: k8s-manifest-update
+      cancel-in-progress: false
+
+    steps:
+      # Checkout phase: Download the repository containing the Kubernetes manifests.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Kustomize setup phase: Install Kustomize so the Kubernetes image reference can be modified.
+      - name: Install Kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      # Manifest update phase: Change the auth-service Kubernetes image tag to the newly built Git SHA.
+      - name: Update auth-service image tag
+        working-directory: k8s/auth-service
+        run: |
+          kustomize edit set image \
+            "${{ secrets.ACR_LOGIN_SERVER }}/readora-auth-service=${{ secrets.ACR_LOGIN_SERVER }}/readora-auth-service:${{ github.sha }}"
+
+      # Git configuration phase: Configure the Git identity used by the GitHub Actions bot.
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Staging phase: Stage the modified Kubernetes manifest for committing.
+      - name: Stage manifest changes
+        run: |
+          git add k8s/auth-service/kustomization.yaml
+
+      # Commit phase: Create a Git commit containing the updated Docker image tag.
+      - name: Commit manifest changes
+        run: |
+          if git diff --cached --quiet; then
+            echo "No image tag change to commit."
+            exit 0
+          fi
+          git commit -m "chore(auth-service): update image tag to ${{ github.sha }} [skip ci]"
+
+      # Push phase: Rebase and push the manifest commit, retrying when concurrent changes cause a push failure.
+      - name: Push manifest changes
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push; then
+              exit 0
+            fi
+            echo "Push attempt ${attempt} failed, retrying..."
+            sleep $(( (RANDOM % 5) + 1 ))
+          done
+
+          echo "Failed to push k8s manifest update after 5 attempts." >&2
+          exit 1

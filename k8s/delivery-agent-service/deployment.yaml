@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: delivery-agent-service
+  namespace: readora
+  labels:
+    app: delivery-agent-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: delivery-agent-service
+  template:
+    metadata:
+      labels:
+        app: delivery-agent-service
+    spec:
+      containers:
+        - name: delivery-agent-service
+          image: myreadoraregistry.azurecr.io/readora-delivery-agent-service:latest
+          ports:
+            - containerPort: 8089
+            - containerPort: 9000
+              name: management
+          envFrom:
+            - configMapRef:
+                name: readora-config
+            - secretRef:
+                name: readora-secrets
+          # httpGet against the separate management port — see application.yml for why it's isolated.
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 9000
+            initialDelaySeconds: 45
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 750m
+              memory: 768Mi
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false

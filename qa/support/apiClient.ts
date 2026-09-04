@@ -40,12 +40,6 @@ export function authHeaders(accessToken: string): Record<string, string> {
   return { Authorization: `Bearer ${accessToken}` };
 }
 
-/**
- * Polls `check` until it returns a truthy value or the attempt budget runs out — needed anywhere
- * a result depends on an async Kafka consumer (payment capture, cashback credit) rather than the
- * synchronous HTTP response. Mirrors the same polling pattern the frontend already uses for UPI
- * settlement (OrderDetailPage), just from the API-test side.
- */
 export async function pollUntil<T>(
   check: () => Promise<T | undefined>,
   options: { attempts?: number; delayMs?: number } = {},

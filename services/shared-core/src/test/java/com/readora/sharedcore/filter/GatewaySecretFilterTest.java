@@ -60,4 +60,16 @@ class GatewaySecretFilterTest {
     void getOrder_isMinusThirty() {
         assertThat(filter.getOrder()).isEqualTo(-30);
     }
+
+    @Test
+    void actuatorHealthPath_noHeaderAtAll_stillLetsRequestThrough() throws Exception {
+        // kubelet's probe hits this directly, never through the gateway — no header to check.
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/actuator/health/readiness");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilterInternal(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+    }
 }

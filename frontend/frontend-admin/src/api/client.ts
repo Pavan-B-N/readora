@@ -9,7 +9,6 @@ export const apiClient = axios.create({
   baseURL: BASE_URL,
 });
 
-/** Every Readora service returns `{ message: "human-readable text", ... }` on error — prefer that over axios's generic "Request failed with status code 401". */
 export function extractErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError<{ message?: string }>(error) && typeof error.response?.data?.message === 'string') {
     return error.response.data.message;
@@ -50,14 +49,6 @@ async function refreshAccessToken(): Promise<string | null> {
   }
 }
 
-/**
- * Refresh tokens are single-use on the backend — presenting the same one twice revokes every
- * active token for the user (theft/reuse protection). Two callers racing on the same stale
- * refreshToken (e.g. bootstrapSession's effect double-firing under StrictMode, or bootstrap
- * overlapping a 401-triggered refresh) would otherwise both hit /auth/refresh and the loser
- * would nuke the session the winner just established. Every refresh call — from bootstrap or
- * from the 401 interceptor — must go through this single in-flight promise.
- */
 let refreshPromise: Promise<string | null> | null = null;
 
 function dedupedRefresh(): Promise<string | null> {
@@ -67,12 +58,6 @@ function dedupedRefresh(): Promise<string | null> {
   return refreshPromise;
 }
 
-/**
- * Runs once on app load. The access token is deliberately never persisted (in-memory only), so
- * a hard refresh always starts with accessToken=null — without this, ProtectedRoute would see
- * "no access token" and immediately bounce to login even though a perfectly valid refreshToken
- * sits in localStorage. This exchanges it for a fresh access token before routes render.
- */
 export async function bootstrapSession(): Promise<void> {
   if (store.getState().auth.refreshToken) {
     await dedupedRefresh();

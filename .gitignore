@@ -19,6 +19,9 @@ Thumbs.db
 .env.*.local
 !.env.example
 
+# k8s secretGenerator input (see k8s/.env.k8s.example) — same convention as root .env above
+k8s/.env.k8s
+
 # Java / Maven (services/*/target)
 target/
 hs_err_pid*.log
@@ -41,6 +44,3 @@ playwright-report/
 # run-all.sh / stop-all.sh runtime output
 /logs/
 /pids/
-
-# OTel Java agent — 24MB binary, fetched via infra/otel/download-agent.sh
-infra/otel/opentelemetry-javaagent.jar

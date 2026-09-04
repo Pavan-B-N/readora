@@ -39,11 +39,6 @@ interface MultiProps extends BaseProps {
 
 type ComboboxProps = SingleProps | MultiProps;
 
-/**
- * Type-to-search select showing the top 20 matches (or the first 20 options, before the admin
- * has typed anything). Replaces long native <select> lists — with hundreds of authors, scrolling
- * a dropdown isn't usable.
- */
 export function Combobox(props: ComboboxProps) {
   const { options, label, hint, error, required, placeholder, disabled, onCreate, creating } = props;
   const isMulti = props.multiple === true;

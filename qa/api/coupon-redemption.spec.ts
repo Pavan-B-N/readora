@@ -1,9 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { authHeaders, registerAndLogin } from '../support/apiClient';
 
-// WELCOME50 is one of the demo coupon codes seeded by dataset/seed.sql (users.coupons) — real
-// coupon data, not something this suite provisions itself, since there's no admin endpoint to
-// create one (see admin-gated-routes.spec.ts for what admin catalog/order endpoints do exist).
 const SEEDED_COUPON_CODE = 'WELCOME50';
 const SEEDED_COUPON_AMOUNT = 50.0;
 

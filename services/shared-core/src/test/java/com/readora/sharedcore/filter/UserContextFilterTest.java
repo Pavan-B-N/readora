@@ -170,4 +170,16 @@ class UserContextFilterTest {
     void getOrder_runsAfterJwtAuthenticationFilter() {
         assertThat(filter.getOrder()).isEqualTo(-10);
     }
+
+    @Test
+    void actuatorHealthPath_unauthenticated_isPublicRegardlessOfServiceConfig() throws Exception {
+        // Not in this filter's own publicRoutes list — proves the exemption is unconditional, not config-driven.
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/actuator/health/liveness");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilterInternal(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+    }
 }

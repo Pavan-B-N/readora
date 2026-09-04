@@ -1,12 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { authHeaders, registerAndLogin } from '../support/apiClient';
 
-/**
- * Extends delivery-claim.spec.ts's single-claim scenario to the full agent lifecycle: profile,
- * stats, duty toggle, and both claim queues (delivery + the reverse return-pickup leg) all the
- * way through their terminal status. Needs a seeded DELIVERY_AGENT account — same
- * AGENT_EMAIL/AGENT_PASSWORD requirement, since the role has no public self-registration path.
- */
+
 test.describe('delivery agent lifecycle', () => {
   test.skip(
     !process.env.AGENT_EMAIL || !process.env.AGENT_PASSWORD,

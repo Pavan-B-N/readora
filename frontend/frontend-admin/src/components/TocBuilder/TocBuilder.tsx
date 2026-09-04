@@ -7,11 +7,7 @@ interface TocBuilderProps {
   onChange: (topics: string[]) => void;
 }
 
-/**
- * Visual editor for a book's table of contents. The backend stores this as a JSON string, but an
- * admin shouldn't have to write (or be able to break) JSON — they just type topics and press
- * Enter, and serialization happens on save.
- */
+
 export function TocBuilder({ value, onChange }: TocBuilderProps) {
   const [draft, setDraft] = useState('');
 
@@ -69,11 +65,6 @@ export function topicsToJson(topics: string[]): string | null {
   return JSON.stringify({ Topics: topics });
 }
 
-/**
- * Parses the stored JSON string back into a flat topic list. Tolerates legacy data written by the
- * older sectioned editor (an object mapping section names to topic arrays) by flattening every
- * section's topics into one list, since the editor no longer has a concept of sections.
- */
 export function jsonToTopics(json: string | null): string[] {
   if (!json?.trim()) return [];
 

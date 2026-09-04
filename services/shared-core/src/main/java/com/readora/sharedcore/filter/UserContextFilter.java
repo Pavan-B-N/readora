@@ -64,8 +64,12 @@ public class UserContextFilter extends OncePerRequestFilter implements Ordered {
         filterChain.doFilter(request, response);
     }
 
+    /** Always public, in every service, regardless of each one's own public-routes config — kubelet's probes rely on it. */
+    private static final String ACTUATOR_HEALTH_PREFIX = "/actuator/health";
+
     private boolean isPublicRoute(String path) {
-        return securityProperties.publicRoutes().stream()
+        return path.startsWith(ACTUATOR_HEALTH_PREFIX)
+                || securityProperties.publicRoutes().stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 

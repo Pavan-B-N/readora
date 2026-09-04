@@ -1,12 +1,6 @@
-# syntax=docker/dockerfile:1
-# Build context must be services/ (the Maven reactor root), e.g.:
-#   docker build -f services/ai-service/Dockerfile -t readora/ai-service services
-
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /workspace
 
-# Copy every module pom.xml first so dependency resolution caches independently
-# of source changes in any single module.
 COPY pom.xml .
 COPY shared-core/pom.xml shared-core/pom.xml
 COPY api-gateway/pom.xml api-gateway/pom.xml
@@ -27,7 +21,15 @@ RUN mvn -q -pl ai-service -am package -DskipTests
 FROM eclipse-temurin:21-jre-alpine AS runtime
 RUN addgroup -S spring && adduser -S spring -G spring
 WORKDIR /app
+
 COPY --from=build /workspace/ai-service/target/*.jar app.jar
+ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.31.1/opentelemetry-javaagent.jar /app/otel-agent.jar
+RUN chmod 644 /app/otel-agent.jar
+
+ENV OTEL_SERVICE_NAME=ai-service
 USER spring
+
 EXPOSE 8088
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+EXPOSE 9000
+
+ENTRYPOINT ["java", "-javaagent:/app/otel-agent.jar", "-jar", "/app/app.jar"]

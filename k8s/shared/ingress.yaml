@@ -1,0 +1,51 @@
+# Requires an ingress controller (e.g. ingress-nginx) — replace *.readora.example with your real domain.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: readora
+  namespace: readora
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.readora.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8080
+    - host: app.readora.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-user
+                port:
+                  number: 80
+    - host: admin.readora.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-admin
+                port:
+                  number: 80
+    - host: delivery.readora.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-delivery-agent
+                port:
+                  number: 80

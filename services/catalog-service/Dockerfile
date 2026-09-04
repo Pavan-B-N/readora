@@ -28,6 +28,10 @@ FROM eclipse-temurin:21-jre-alpine AS runtime
 RUN addgroup -S spring && adduser -S spring -G spring
 WORKDIR /app
 COPY --from=build /workspace/catalog-service/target/*.jar app.jar
+ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.31.1/opentelemetry-javaagent.jar /app/otel-agent.jar
+RUN chmod 644 /app/otel-agent.jar
+ENV OTEL_SERVICE_NAME=catalog-service
 USER spring
 EXPOSE 8083
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+EXPOSE 9000
+ENTRYPOINT ["java", "-javaagent:/app/otel-agent.jar", "-jar", "/app/app.jar"]

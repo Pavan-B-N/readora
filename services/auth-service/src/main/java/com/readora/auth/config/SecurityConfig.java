@@ -64,6 +64,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // kubelet's probes hit this directly, never carrying a JWT — same exemption
+                        // shared-core's own filters apply for every other service (see UserContextFilter).
+                        .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers(publicRoutes).permitAll()
                         .anyRequest().authenticated()
                 )
