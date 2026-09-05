@@ -9,4 +9,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-notification-service
   newName: readoracontainerregistry.azurecr.io/readora-notification-service
-  newTag: 374387b2e4b00da02528cd88b6d7e6ae7cc7986a
+  newTag: f7c092a7f64a7cb569981018638a11fd87900961
