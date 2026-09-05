@@ -89,7 +89,7 @@ jobs:
 
       # Security scan phase: Scan the pushed Docker image for HIGH and CRITICAL vulnerabilities.
       - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.24.0
         with:
           image-ref: ${{ secrets.ACR_LOGIN_SERVER }}/readora-frontend-admin:${{ github.sha }}
           format: sarif
