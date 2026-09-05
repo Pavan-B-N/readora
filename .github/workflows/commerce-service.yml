@@ -49,9 +49,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Otel agent phase: fetch the OpenTelemetry Java agent once and cache it — the
+      # Dockerfile COPYs this local file instead of downloading it itself (see README).
+      - name: Cache OpenTelemetry Java agent
+        id: otel-agent-cache
+        uses: actions/cache@v4
+        with:
+          path: services/otel-agent.jar
+          key: otel-agent-v2.31.1
+
+      - name: Download OpenTelemetry Java agent
+        if: steps.otel-agent-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -fL -o services/otel-agent.jar \
+            https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.31.1/opentelemetry-javaagent.jar
+
       # Docker setup phase: Set up Docker Buildx for building the container image.
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          # Explicit, because setup-buildx-action doesn't always land on a builder that
+          # supports GHA cache export (the plain "docker" driver silently doesn't).
+          driver: docker-container
 
       # Registry login phase: Authenticate Docker with Azure Container Registry.
       - name: Login to Azure Container Registry

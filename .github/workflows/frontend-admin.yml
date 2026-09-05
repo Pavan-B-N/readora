@@ -63,6 +63,10 @@ jobs:
       # Docker setup phase: Set up Docker Buildx for building the container image.
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          # Explicit, because setup-buildx-action doesn't always land on a builder that
+          # supports GHA cache export (the plain "docker" driver silently doesn't).
+          driver: docker-container
 
       # Registry login phase: Authenticate Docker with Azure Container Registry.
       - name: Login to Azure Container Registry
