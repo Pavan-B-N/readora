@@ -9,4 +9,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-api-gateway
   newName: readoracontainerregistry.azurecr.io/readora-api-gateway
-  newTag: 09cb6f41620320cd028eb8ff6e941b603264ae7a
+  newTag: c305505c1e51e830a97bb967963e81ae933086d1
