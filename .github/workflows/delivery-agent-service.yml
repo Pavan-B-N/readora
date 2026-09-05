@@ -1,13 +1,13 @@
 name: Delivery Agent Service CI/CD
 
 on:
-  # Trigger manually; push trigger can be enabled later for main branch changes.
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - "services/delivery-agent-service/**"
-  #     - "services/shared-core/**"
-  #     - "services/pom.xml"
+  # Runs on every push to main touching this service's own files, plus manual dispatch.
+  push:
+    branches: [main]
+    paths:
+      - "services/delivery-agent-service/**"
+      - "services/shared-core/**"
+      - "services/pom.xml"
   workflow_dispatch:
 
 permissions:

@@ -1,14 +1,14 @@
 name: Frontend Admin CI/CD
 
 on:
-  # Trigger manually; push trigger can be enabled later for main branch changes.
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - "frontend/frontend-admin/**"
-  #     - "frontend/shared-ui/**"
-  #     - "frontend/package.json"
-  #     - "frontend/package-lock.json"
+  # Runs on every push to main touching this service's own files, plus manual dispatch.
+  push:
+    branches: [main]
+    paths:
+      - "frontend/frontend-admin/**"
+      - "frontend/shared-ui/**"
+      - "frontend/package.json"
+      - "frontend/package-lock.json"
   workflow_dispatch:
 
 permissions:

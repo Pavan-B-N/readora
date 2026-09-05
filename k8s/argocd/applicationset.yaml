@@ -1,0 +1,38 @@
+# Auto-discovers one ArgoCD Application per top-level k8s/* directory (k8s/shared plus each
+# of the 13 services) and keeps every one continuously synced to this repo's main branch —
+# the pull-based counterpart to each service's CI workflow pushing an updated image tag.
+#
+# Apply once, directly (not through a service's own kustomization): kubectl apply -f k8s/argocd/applicationset.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: readora
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/Pavan-B-N/readora.git
+        revision: main
+        # Single-level glob — matches k8s/shared and k8s/<service> (each has its own
+        # kustomization.yaml) without descending into non-independent subdirs like
+        # k8s/shared/postgres, which have no kustomization.yaml of their own.
+        directories:
+          - path: k8s/*
+  template:
+    metadata:
+      name: 'readora-{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/Pavan-B-N/readora.git
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: readora
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

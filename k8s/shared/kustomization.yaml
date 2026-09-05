@@ -1,4 +1,11 @@
 # Cluster-wide + infra resources not owned by any per-service CI workflow — apply first: `kubectl apply -k k8s/shared`.
+#
+# The readora-secrets Secret is deliberately NOT generated here. A GitOps puller (ArgoCD/Flux)
+# only ever sees what's committed to git, and the real values can't be — so a secretGenerator
+# reading a gitignored .env.k8s would just fail to resolve during a git-based sync. Create that
+# Secret directly in-cluster once instead (see .env.k8s.example for the keys it needs):
+#   kubectl create secret generic readora-secrets -n readora --from-env-file=.env.k8s
+# The 13 service kustomizations reference it by that literal name via secretRef.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -18,13 +25,3 @@ resources:
   - otel-collector/configmap.yaml
   - otel-collector/deployment.yaml
   - otel-collector/service.yaml
-
-# Generates the readora-secrets Secret from the gitignored .env.k8s (see .env.k8s.example).
-secretGenerator:
-  - name: readora-secrets
-    envs:
-      - .env.k8s
-
-# Unhashed name required — the 13 service kustomizations reference "readora-secrets" by that literal name.
-generatorOptions:
-  disableNameSuffixHash: true
