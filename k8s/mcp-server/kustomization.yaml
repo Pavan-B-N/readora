@@ -9,4 +9,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-mcp-server
   newName: readoracontainerregistry.azurecr.io/readora-mcp-server
-  newTag: 11c9c2c9cad7775a7d86bbe4d11f95482d822b1f
+  newTag: 09cb6f41620320cd028eb8ff6e941b603264ae7a
