@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import {
   createAuthor,
   createBook,
@@ -132,6 +132,7 @@ export function VirtualBookFormPage() {
       const book = await createBook({
         isbn13: form.isbn13.trim(),
         title: form.title.trim(),
+        subtitle: null,
         description: form.description.trim() || null,
         tableOfContents: null,
         categoryId: form.categoryId || null,

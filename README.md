@@ -23,6 +23,13 @@ Multiple services default to the same Kafka topics/env var names — you don't n
 
 ## Path A — everything in Docker
 
+Every backend service's image bundles the OpenTelemetry Java agent from a local file (`services/otel-agent.jar`) rather than downloading it during the build — 10 services each pulling the same ~24MB file from GitHub in parallel is enough to blow past Docker's build timeout on an unlucky connection. Fetch it once per machine (re-run this if you ever bump the `v2.31.1` version pinned in each `services/*/Dockerfile`):
+
+```bash
+curl -fL -o services/otel-agent.jar \
+  https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.31.1/opentelemetry-javaagent.jar
+```
+
 ```bash
 cp .env.example .env
 # fill in .env — see "Environment variables" below for what's required vs optional
@@ -33,7 +40,21 @@ That's it — Postgres, Redis, Kafka, the OpenTelemetry collector, all 10 backen
 
 Frontends: `http://localhost:5173` (user), `:5174` (admin), `:5175` (delivery agent). API gateway: `http://localhost:8080`.
 
-To load demo data on top of the empty schema, run the [seed step](#4-seed-demo-data) below against the containerized Postgres (`-h localhost -p 5432`, same as native — the container publishes 5432).
+### Database commands — Docker Postgres
+
+The container publishes on host port **5433**, not 5432 — deliberately, so it doesn't collide with a native Postgres install (Homebrew, etc.) also bound to 5432 on the same machine. Inside the `readora` Docker network, every backend service still talks to it as `postgres:5432` regardless; 5433 only matters for `psql` commands you run yourself from the host.
+
+**Do not run `dataset/setup.sql` against this container — it doesn't need it and it will fail.** `setup.sql` creates the `readora` role and database from scratch, but the container's entrypoint already did both on first boot from the `POSTGRES_USER`/`POSTGRES_DB`/`POSTGRES_PASSWORD` values in your `.env` — and critically, the container **only** creates that one role. There's no `postgres` superuser role and no role matching your OS username inside it, so connecting as either (as you would for native Postgres in Path B) always fails with `password authentication failed`, no matter the password. Connect as `readora` for everything:
+
+```bash
+# Seed demo data (after the stack has been up at least once, so Flyway has created the tables)
+cd dataset
+psql -h localhost -p 5433 -U readora -d readora -f seed.sql -W
+
+# Reset — wipe all data and start over (Flyway recreates schema/tables on next `up`)
+docker compose down -v   # -v also drops the postgres/kafka/redis volumes; omit -v to keep them
+docker compose up --build -d
+```
 
 ---
 
@@ -49,11 +70,13 @@ docker compose up postgres redis kafka -d
 
 ...or install Postgres natively (`brew install postgresql@18 pgvector` on macOS) and run Redis/Kafka via Docker (`docker compose up redis kafka -d`). Native Postgres is what the rest of this section assumes, since that's the common setup for iterating on migrations.
 
+**Pick one Postgres, not both at once.** Every `psql`/connection command below targets **port 5432** on the assumption you're using native Postgres. If you use the containerized one instead (first option above), it publishes on **port 5433** — swap `-p 5432` for `-p 5433` in every command in this section, and set `POSTGRES_DB_URL` to `jdbc:postgresql://localhost:5433/readora` in step 6. If a native Postgres service is already running in the background (`brew services list`), `psql -p 5432` will silently talk to *that* one even if you meant to hit the container — check `lsof -nP -iTCP:5432 -sTCP:LISTEN` if a query returns data you didn't expect to be there.
+
 ### 2. Set up PostgreSQL
 
-**This is the one step nothing in Docker automates for you — do it once per machine.**
+**This step is for a native Postgres install only — do it once per machine. Never run it against the Docker container** (see [Path A's database commands](#database-commands--docker-postgres)); the container already creates the `readora` role/database itself on first boot, and it has no `postgres` or OS-username role for `setup.sql` to connect as, so it'll just fail with `password authentication failed`.
 
-`dataset/setup.sql` creates both the `readora` role and the `readora` database it owns, as a superuser role. (In Docker, this is invisible because the official Postgres image auto-creates a role matching `POSTGRES_USER` as a superuser on first container boot — `setup.sql` is the native-Postgres equivalent of that.)
+`dataset/setup.sql` creates both the `readora` role and the `readora` database it owns, as a superuser role — the native-Postgres equivalent of what the official Postgres image's entrypoint does automatically from `POSTGRES_USER`/`POSTGRES_DB`.
 
 ```bash
 psql -h localhost -p 5432 -U "$(whoami)" -d postgres -f dataset/setup.sql -W
@@ -128,5 +151,7 @@ Each expects api-gateway at `http://localhost:8080` by default (`VITE_API_BASE_U
 ## Troubleshooting
 
 - **`permission denied to create extension "vector"`** — the `readora` role isn't a superuser (e.g. it was created some other way than `setup.sql`). Fix with `psql -d postgres -c "ALTER ROLE readora SUPERUSER;"`.
+- **`psql` on port 5432 returns data you didn't seed, or seeds into a database Docker doesn't see** — you have a native Postgres running on the host (check `brew services list` / `lsof -nP -iTCP:5432 -sTCP:LISTEN`) and it's shadowing the containerized one. They can't both use 5432 on the host at once, so the Docker container publishes on **5433** instead (see [Path A](#path-a--everything-in-docker) / [Path B step 1](#1-start-infra)) — make sure `-p` in your `psql` command matches whichever Postgres you actually meant to hit.
+- **`password authentication failed for user "postgres"` / `"<your-username>"` on port 5433** — you ran a Path B command (`setup.sql`, or anything connecting as `postgres` or `$(whoami)`) against the *Docker* Postgres container. That container only has the single `readora` role (see [Database commands — Docker Postgres](#database-commands--docker-postgres)) — connect as `-U readora` instead, and skip `setup.sql` entirely for Docker.
 - **`Web server failed to start. Port 90XX was already in use`** — another instance of that same service is still running (check `lsof -nP -iTCP:90XX -sTCP:LISTEN`); each service's actuator port is unique, so this only happens from a genuine duplicate process, not from running multiple different services together.
 - **Running `mvn test` locally fails with Mockito/ByteBuddy errors mentioning "Java 26 is not supported"** — that's your default JDK, not the project's. Point Maven at JDK 21 (`JAVA_HOME=$(/usr/libexec/java_home -v 21) mvn test`) or run tests from IntelliJ with the module's configured 21 SDK.

@@ -45,4 +45,8 @@ playwright-report/
 /logs/
 /pids/
 
+# Fetched once locally for Docker builds (see README) — not committed, it's a
+# third-party binary, not source.
+/services/otel-agent.jar
+
 /video-edit-clips

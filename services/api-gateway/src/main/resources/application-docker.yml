@@ -39,10 +39,22 @@ spring:
           uri: http://ai-service:8088
           predicates:
             - Path=/api/v1/ai/**,/api/v1/admin/embeddings/**
-        - id: notification-service
+        # See application.yml's notification-service-ws-upgrade/-sockjs routes for why this is
+        # split in two (ws:// can't proxy SockJS's plain-HTTP negotiation calls) and why both
+        # need DedupeResponseHeader (this gateway's CORS and notification-service's own both add
+        # Access-Control-Allow-Origin, and browsers reject a header repeated on the same response).
+        - id: notification-service-ws-upgrade
           uri: ws://notification-service:8086
           predicates:
+            - Path=/ws/*/*/websocket
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - id: notification-service-ws-sockjs
+          uri: http://notification-service:8086
+          predicates:
             - Path=/ws/**
+          filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
         - id: notification-service-rest
           uri: http://notification-service:8086
           predicates:

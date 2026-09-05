@@ -4,7 +4,12 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY shared-ui/package.json shared-ui/package.json
 COPY frontend-admin/package.json frontend-admin/package.json
-RUN npm ci
+# npm ci strictly follows package-lock.json, which was generated on macOS and only has a
+# materialized entry for @rollup/rollup-darwin-arm64 — it fails to pull the linux-arm64-musl
+# binary this Alpine container actually needs (a well-known npm optional-deps bug, npm/cli#4828).
+# npm install re-resolves platform-specific optional deps properly while still respecting every
+# version already pinned in the lockfile.
+RUN npm install
 
 COPY shared-ui shared-ui
 COPY frontend-admin frontend-admin

@@ -7,7 +7,6 @@ import { loggedOut } from '@/redux/slices/authSlice';
 import { cartCleared } from '@/redux/slices/cartSlice';
 import { initStore } from '@/redux/slices/storeSlice';
 import { fetchWishlist, wishlistCleared } from '@/redux/slices/wishlistSlice';
-import { Tooltip } from '@readora/shared-ui';
 import { useToast } from '@readora/shared-ui';
 import { ChatWidget } from '@/components/ChatWidget';
 import { NotificationBell } from '@/components/NotificationBell';

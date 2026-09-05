@@ -23,7 +23,7 @@ RUN addgroup -S spring && adduser -S spring -G spring
 WORKDIR /app
 
 COPY --from=build /workspace/ai-service/target/*.jar app.jar
-ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.31.1/opentelemetry-javaagent.jar /app/otel-agent.jar
+COPY otel-agent.jar /app/otel-agent.jar
 RUN chmod 644 /app/otel-agent.jar
 
 ENV OTEL_SERVICE_NAME=ai-service

@@ -17,7 +17,7 @@ import { fetchCart, cartCleared } from '@/redux/slices/cartSlice';
 import { checkout, getOrderDetail } from '@/api/orderApi';
 import { addAddress, getMe, listAddresses } from '@/api/userApi';
 import type { Address, AddressRecipientType, MeResponse } from '@/types/user';
-import type { CheckoutRequest, PaymentMethod } from '@/types/order';
+import type { CheckoutRequest, PaymentMethod, ShippingAddressInput } from '@/types/order';
 import { useToast } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Card, CardHeader } from '@readora/shared-ui';
@@ -96,8 +96,8 @@ export function CheckoutPage() {
     return { subtotal: sub, shippingFee, packagingFee: PACKAGING_FEE, taxAmount, grandTotal: preTax + taxAmount };
   }, [subtotal, requiresShippingAddress]);
 
-  const walletSufficient = Boolean(me && me.wallet.balance >= pricing.grandTotal);
-  const walletShort = walletSufficient ? 0 : pricing.grandTotal - (me?.wallet.balance ?? 0);
+  const walletSufficient = Boolean(me && Number(me.wallet.balance) >= pricing.grandTotal);
+  const walletShort = walletSufficient ? 0 : pricing.grandTotal - Number(me?.wallet.balance ?? 0);
 
   const openNewAddressForm = () => {
     setNewAddress({
@@ -138,7 +138,7 @@ export function CheckoutPage() {
       }
       setAddingAddress(true);
       try {
-        const saved = await addAddress({
+        const request = {
           label: newAddress.label,
           recipientType: newAddress.recipientType,
           recipientName: newAddress.recipientName.trim(),
@@ -151,7 +151,12 @@ export function CheckoutPage() {
           countryCode: store.countryCode,
           storeId: store.id,
           isDefault: addresses.length === 0,
-        });
+        };
+        // The endpoint only confirms { id, isDefault } — everything else is already known
+        // client-side from what was just submitted, so the full Address is built here rather
+        // than assumed to come back from the server.
+        const { id, isDefault } = await addAddress(request);
+        const saved: Address = { ...request, id, isDefault, line2: request.line2 ?? null };
         setAddresses((prev) => [...prev, saved]);
         setNewAddress(null);
         setSelectedAddressId(saved.id);
@@ -189,20 +194,17 @@ export function CheckoutPage() {
       deliveryType: i.deliveryType,
     }));
 
-  const buildShippingAddressInput = (address: Address | null) => {
-    if (!requiresShippingAddress || !address) return undefined;
+  const buildShippingAddressInput = (address: Address | null): ShippingAddressInput | null => {
+    if (!requiresShippingAddress || !address) return null;
     return {
-      label: address.label,
-      recipientType: address.recipientType,
       recipientName: address.recipientName,
-      recipientPhone: address.recipientPhone,
       line1: address.line1,
-      line2: address.line2,
+      line2: address.line2 ?? undefined,
       city: address.city,
       state: address.state,
       postalCode: address.postalCode,
       countryCode: address.countryCode,
-      storeId: address.storeId,
+      phone: address.recipientPhone ?? undefined,
     };
   };
 

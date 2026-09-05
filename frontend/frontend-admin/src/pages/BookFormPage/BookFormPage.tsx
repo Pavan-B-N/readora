@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, Info, X } from 'lucide-react';
-import { createAuthor, createBook, getCategoryTree, listAuthors, listPublishers, listStores } from '@/api/catalogApi';
+import { ArrowLeft, ArrowRight, Check, Info } from 'lucide-react';
+import { checkIsbnExists, createAuthor, createBook, getCategoryTree, listAuthors, listPublishers, listStores } from '@/api/catalogApi';
 import type { Author, Publisher, Store } from '@/types/catalog';
 import { flattenCategoryTree, type FlatCategory } from '@/utils/flattenCategoryTree';
 import { slugify } from '@/utils/slugify';
 import { getMe } from '@/api/userApi';
 import { useToast } from '@readora/shared-ui';
-import { Card } from '@readora/shared-ui';
 import { Input, Textarea } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { Combobox } from '@/components/Combobox';
@@ -25,6 +24,7 @@ const STEPS: Step[] = [
 interface FormState {
   isbn13: string;
   title: string;
+  subtitle: string;
   description: string;
   categoryId: string | null;
   publisherId: string | null;
@@ -41,6 +41,7 @@ interface FormState {
 const EMPTY_FORM: FormState = {
   isbn13: '',
   title: '',
+  subtitle: '',
   description: '',
   categoryId: null,
   publisherId: null,
@@ -199,6 +200,8 @@ export function BookFormPage() {
   };
 
   const submit = async () => {
+    if (isbnChecking) return;
+
     for (let i = 0; i < STEPS.length; i++) {
       if (!validateStep(i)) {
         setStep(i);
@@ -211,6 +214,7 @@ export function BookFormPage() {
       const result = await createBook({
         isbn13: form.isbn13.trim(),
         title: form.title.trim(),
+        subtitle: form.subtitle.trim() || null,
         description: form.description.trim() || null,
         tableOfContents: topicsToJson(toc),
         categoryId: form.categoryId,
@@ -489,7 +493,7 @@ export function BookFormPage() {
                 <ArrowRight size={15} />
               </Button>
             ) : (
-              <Button onClick={submit} disabled={submitting}>
+              <Button onClick={submit} disabled={submitting || isbnChecking}>
                 <Check size={15} />
                 {submitting ? 'Saving…' : 'Create book'}
               </Button>

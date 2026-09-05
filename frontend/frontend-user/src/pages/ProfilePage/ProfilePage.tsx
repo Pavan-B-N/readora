@@ -7,7 +7,6 @@ import type { Address, AddressLabel, AddressRecipientType, MeResponse } from '@/
 import type { Store } from '@/types/catalog';
 import { pickDefaultStore } from '@/utils/store';
 import { useToast } from '@readora/shared-ui';
-import { Card, CardHeader } from '@readora/shared-ui';
 import { Input, Select } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';

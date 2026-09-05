@@ -11,9 +11,15 @@ services:
       POSTGRES_USER: readora
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      # Host-side port only — every backend service talks to this container over the
+      # readora Docker network at postgres:5432, so this doesn't touch their config.
+      # Mapped to 5433 (not 5432) so this container doesn't fight a local Postgres
+      # install (e.g. Homebrew) that may already be bound to 5432 on the host.
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Mounted at the parent dir (not .../data) per the pg18+ image's own recommendation,
+      # so a future major-version image bump can pg_upgrade in place instead of refusing to boot.
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U readora -d readora"]
       interval: 5s
@@ -60,7 +66,7 @@ services:
     container_name: readora-otel-collector
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
-      - ./infra/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     environment:
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
     ports:

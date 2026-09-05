@@ -8,7 +8,6 @@ import { useToast } from '@readora/shared-ui';
 import { Card, CardHeader } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
-import { Spinner } from '@readora/shared-ui';
 import { ReturnChatPanel } from '@readora/shared-ui';
 import { Modal } from '@readora/shared-ui';
 import { Textarea } from '@readora/shared-ui';

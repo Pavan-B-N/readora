@@ -9,7 +9,6 @@ import { Card } from '@readora/shared-ui';
 import { Badge } from '@readora/shared-ui';
 import { Button } from '@readora/shared-ui';
 import { EmptyState } from '@readora/shared-ui';
-import { Spinner } from '@readora/shared-ui';
 import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import { statusVariant, displayStatus } from '@/utils/orderStatus';

@@ -6,7 +6,6 @@ import { extractErrorMessage } from '@/api/client';
 import type { BookSummary } from '@/types/catalog';
 import { Button } from '@readora/shared-ui';
 import { EmptyState } from '@readora/shared-ui';
-import { Spinner } from '@readora/shared-ui';
 import { useToast } from '@readora/shared-ui';
 import { ROUTES } from '@/constants/routes';
 import styles from './LibraryPage.module.css';
