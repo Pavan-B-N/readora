@@ -74,9 +74,12 @@ jobs:
 
       # Registry login phase: Authenticate Docker with Azure Container Registry.
       - name: Login to Azure Container Registry
-        uses: azure/docker-login@v1
+        # docker/login-action, not azure/docker-login — the latter overrides DOCKER_CONFIG,
+        # which silently resets buildx back to the default (non-container) builder and
+        # breaks GHA cache export ("Cache export is not supported for the docker driver").
+        uses: docker/login-action@v3
         with:
-          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
