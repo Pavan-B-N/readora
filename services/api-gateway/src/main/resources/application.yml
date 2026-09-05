@@ -95,6 +95,11 @@ spring:
               - "http://localhost:5173"
               - "http://localhost:5174"
               - "http://localhost:5175"
+              # AKS deployment — no real domain yet, so sslip.io resolves straight to the
+              # ingress's public IP (see k8s/shared/ingress.yaml). Update if that IP changes.
+              - "http://app.48-206-18-246.sslip.io"
+              - "http://admin.48-206-18-246.sslip.io"
+              - "http://delivery.48-206-18-246.sslip.io"
             allowedMethods:
               - GET
               - POST
