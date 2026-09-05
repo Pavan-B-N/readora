@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: delivery-agent-service
-          image: myreadoraregistry.azurecr.io/readora-delivery-agent-service:latest
+          image: readoracontainerregistry.azurecr.io/readora-delivery-agent-service:latest
           ports:
             - containerPort: 8089
             - containerPort: 9089

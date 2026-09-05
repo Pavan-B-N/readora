@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: myreadoraregistry.azurecr.io/readora-api-gateway:latest
+          image: readoracontainerregistry.azurecr.io/readora-api-gateway:latest
           ports:
             - containerPort: 8080
             - containerPort: 9080

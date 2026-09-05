@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: myreadoraregistry.azurecr.io/readora-auth-service:latest
+          image: readoracontainerregistry.azurecr.io/readora-auth-service:latest
           ports:
             - containerPort: 8081
             - containerPort: 9081

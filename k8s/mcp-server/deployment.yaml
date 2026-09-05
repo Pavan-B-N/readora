@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: mcp-server
-          image: myreadoraregistry.azurecr.io/readora-mcp-server:latest
+          image: readoracontainerregistry.azurecr.io/readora-mcp-server:latest
           ports:
             - containerPort: 8087
             - containerPort: 9087

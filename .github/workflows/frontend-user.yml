@@ -88,6 +88,10 @@ jobs:
           context: ./frontend
           file: frontend/frontend-user/Dockerfile
           push: true
+          # Also load into the local Docker daemon — the docker-container buildx driver
+          # (needed for GHA cache export) only pushes to the registry by default, and the
+          # trivy scan step right after this needs a local copy to inspect.
+          load: true
           build-args: |
             VITE_API_BASE_URL=${{ secrets.VITE_API_URL }}
           tags: ${{ secrets.ACR_LOGIN_SERVER }}/readora-frontend-user:${{ github.sha }}

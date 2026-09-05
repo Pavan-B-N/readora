@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: frontend-admin
-          image: myreadoraregistry.azurecr.io/readora-frontend-admin:latest
+          image: readoracontainerregistry.azurecr.io/readora-frontend-admin:latest
           ports:
             - containerPort: 80
           # nginx serves a SPA — / always returns index.html once the container is up.

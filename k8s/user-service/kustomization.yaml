@@ -7,5 +7,5 @@ resources:
   - service.yaml
 
 images:
-  - name: myreadoraregistry.azurecr.io/readora-user-service
+  - name: readoracontainerregistry.azurecr.io/readora-user-service
     newTag: latest

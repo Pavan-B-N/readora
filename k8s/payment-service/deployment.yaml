@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: myreadoraregistry.azurecr.io/readora-payment-service:latest
+          image: readoracontainerregistry.azurecr.io/readora-payment-service:latest
           ports:
             - containerPort: 8085
             - containerPort: 9085

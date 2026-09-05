@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: myreadoraregistry.azurecr.io/readora-notification-service:latest
+          image: readoracontainerregistry.azurecr.io/readora-notification-service:latest
           ports:
             - containerPort: 8086
             - containerPort: 9086

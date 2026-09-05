@@ -90,6 +90,10 @@ jobs:
           context: ./services
           file: services/user-service/Dockerfile
           push: true
+          # Also load into the local Docker daemon — the docker-container buildx driver
+          # (needed for GHA cache export) only pushes to the registry by default, and the
+          # trivy scan step right after this needs a local copy to inspect.
+          load: true
           tags: ${{ secrets.ACR_LOGIN_SERVER }}/readora-user-service:${{ github.sha }}
           cache-from: type=gha,scope=user-service
           cache-to: type=gha,mode=max,scope=user-service

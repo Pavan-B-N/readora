@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: commerce-service
-          image: myreadoraregistry.azurecr.io/readora-commerce-service:latest
+          image: readoracontainerregistry.azurecr.io/readora-commerce-service:latest
           ports:
             - containerPort: 8084
             - containerPort: 9084

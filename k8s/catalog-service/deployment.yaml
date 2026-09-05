@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: catalog-service
-          image: myreadoraregistry.azurecr.io/readora-catalog-service:latest
+          image: readoracontainerregistry.azurecr.io/readora-catalog-service:latest
           ports:
             - containerPort: 8083
             - containerPort: 9083
