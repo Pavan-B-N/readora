@@ -1,4 +1,4 @@
-# Requires an ingress controller (e.g. ingress-nginx) — replace *.readora.example with your real domain.
+# Requires an ingress controller (e.g. ingress-nginx) — replace *.48-206-18-246.sslip.io with your real domain.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -9,7 +9,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: api.readora.example
+    - host: api.48-206-18-246.sslip.io
       http:
         paths:
           - path: /
@@ -19,7 +19,7 @@ spec:
                 name: api-gateway
                 port:
                   number: 8080
-    - host: app.readora.example
+    - host: app.48-206-18-246.sslip.io
       http:
         paths:
           - path: /
@@ -29,7 +29,7 @@ spec:
                 name: frontend-user
                 port:
                   number: 80
-    - host: admin.readora.example
+    - host: admin.48-206-18-246.sslip.io
       http:
         paths:
           - path: /
@@ -39,7 +39,7 @@ spec:
                 name: frontend-admin
                 port:
                   number: 80
-    - host: delivery.readora.example
+    - host: delivery.48-206-18-246.sslip.io
       http:
         paths:
           - path: /
