@@ -9,4 +9,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-frontend-delivery-agent
   newName: readoracontainerregistry.azurecr.io/readora-frontend-delivery-agent
-  newTag: a83de96edf04c351112407cdf360f088a91eefad
+  newTag: 690343065ae458d295a89d4982cdf7984f602603
