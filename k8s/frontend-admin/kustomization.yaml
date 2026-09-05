@@ -9,4 +9,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-frontend-admin
   newName: readoracontainerregistry.azurecr.io/readora-frontend-admin
-  newTag: 690343065ae458d295a89d4982cdf7984f602603
+  newTag: 084e8c7afdae6e64f0e6766b2cd357d4f182453c
