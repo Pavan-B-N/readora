@@ -1,6 +1,8 @@
 package com.readora.catalog.repository;
 
 import com.readora.catalog.entity.Book;
+import com.readora.catalog.entity.Publisher;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -28,8 +30,20 @@ class BookRepositoryIT {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private PublisherRepository publisherRepository;
+
+    private Publisher publisher;
+
+    @BeforeEach
+    void setUp() {
+        // Every book requires a publisher (catalog.books.publisher_id is NOT NULL) — these tests
+        // only care about isbn13 behavior, so one shared minimal publisher is enough.
+        publisher = publisherRepository.saveAndFlush(new Publisher("Test Publisher", "test-publisher"));
+    }
+
     private Book newBook(String isbn13, String title) {
-        return new Book(isbn13, title, null, null, null, null, "en", null, null, new BigDecimal("299.00"), "INR", null, null);
+        return new Book(isbn13, title, null, null, publisher, null, "en", null, null, new BigDecimal("299.00"), "INR", null, null);
     }
 
     @Test
