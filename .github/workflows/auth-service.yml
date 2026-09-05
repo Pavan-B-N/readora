@@ -13,6 +13,11 @@ on:
 permissions:
   # Allow the workflow to commit and push Kubernetes manifest changes.
   contents: write
+  # Declaring `permissions:` at all replaces every default with none, not just adds to
+  # them — codeql-action/upload-sarif needs both of these (security-events to post SARIF
+  # results, actions:read for the workflow-run lookup it makes internally).
+  security-events: write
+  actions: read
 
 jobs:
 
