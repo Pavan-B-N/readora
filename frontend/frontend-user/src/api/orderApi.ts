@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, correlationId } from './client';
 import type {
   CancelOrderResponse,
   CheckoutRequest,
@@ -11,7 +11,7 @@ import type {
 
 export async function checkout(request: CheckoutRequest): Promise<CheckoutResponse> {
   const response = await apiClient.post<CheckoutResponse>('/api/v1/orders/checkout', request, {
-    headers: { 'Idempotency-Key': crypto.randomUUID() },
+    headers: { 'Idempotency-Key': correlationId() },
   });
   return response.data;
 }

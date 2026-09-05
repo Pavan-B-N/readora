@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, correlationId } from './client';
 import { store } from '@/redux/store';
 
 export interface AiSearchItem {
@@ -86,7 +86,7 @@ export async function streamChat(
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      'X-Correlation-Id': crypto.randomUUID(),
+      'X-Correlation-Id': correlationId(),
     },
     body: JSON.stringify({ message, conversationId, storeId }),
     signal,
