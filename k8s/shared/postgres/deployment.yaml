@@ -34,8 +34,10 @@ spec:
                   name: readora-secrets
                   key: POSTGRES_PASSWORD
           volumeMounts:
+            # Mounted at the parent dir (not .../data) per the pg18+ image's own recommendation
+            # — same fix as docker-compose.yml's postgres service, same underlying reason.
             - name: postgres-data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
           readinessProbe:
             exec:
               command: ["pg_isready", "-U", "readora", "-d", "readora"]

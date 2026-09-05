@@ -19,8 +19,8 @@ Thumbs.db
 .env.*.local
 !.env.example
 
-# k8s secretGenerator input (see k8s/.env.k8s.example) — same convention as root .env above
-k8s/.env.k8s
+# k8s secret input (see k8s/shared/.env.k8s.example) — same convention as root .env above
+k8s/shared/.env.k8s
 
 # Java / Maven (services/*/target)
 target/
@@ -50,3 +50,5 @@ playwright-report/
 /services/otel-agent.jar
 
 /video-edit-clips
+
+/Notes

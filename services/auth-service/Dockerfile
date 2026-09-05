@@ -25,7 +25,7 @@ COPY . .
 RUN mvn -q -pl auth-service -am package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine AS runtime
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup -g 1000 -S spring && adduser -u 1000 -S spring -G spring
 WORKDIR /app
 COPY --from=build /workspace/auth-service/target/*.jar app.jar
 COPY otel-agent.jar /app/otel-agent.jar

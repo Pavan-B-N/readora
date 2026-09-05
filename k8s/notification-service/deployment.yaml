@@ -49,4 +49,8 @@ spec:
               memory: 768Mi
           securityContext:
             runAsNonRoot: true
+            # Explicit numeric UID — the image's USER is a name (spring), and kubelet
+            # can't verify a non-numeric user is non-root without this (see the
+            # Dockerfile's addgroup/adduser -u/-g 1000 pinning the same UID/GID).
+            runAsUser: 1000
             allowPrivilegeEscalation: false
