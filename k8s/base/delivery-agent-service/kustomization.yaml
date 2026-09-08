@@ -8,4 +8,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-delivery-agent-service
   newName: readoracontainerregistry.azurecr.io/readora-delivery-agent-service
-  newTag: latest
+  newTag: a87f1bc52de6e7797b1af192751c9c0c8fc84f5b
