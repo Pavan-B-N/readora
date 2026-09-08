@@ -8,4 +8,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-ai-service
   newName: readoracontainerregistry.azurecr.io/readora-ai-service
-  newTag: latest
+  newTag: 7750359d22dad1ba2d1ab65d2685c8906297940f
