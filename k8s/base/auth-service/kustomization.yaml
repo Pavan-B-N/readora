@@ -8,4 +8,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-auth-service
   newName: readoracontainerregistry.azurecr.io/readora-auth-service
-  newTag: latest
+  newTag: 5db96adc314b17a3c966ccdecab641a81ca0df90
