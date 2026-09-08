@@ -8,4 +8,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-commerce-service
   newName: readoracontainerregistry.azurecr.io/readora-commerce-service
-  newTag: latest
+  newTag: 0e501abeb83b626095b00865ebc6732bd24dbec3
