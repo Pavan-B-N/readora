@@ -8,4 +8,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-catalog-service
   newName: readoracontainerregistry.azurecr.io/readora-catalog-service
-  newTag: latest
+  newTag: 48b3df514bbfaa7a5f8e3ebaf4a62db767379f7c
