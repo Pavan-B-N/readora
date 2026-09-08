@@ -8,4 +8,4 @@ resources:
 images:
 - name: readoracontainerregistry.azurecr.io/readora-payment-service
   newName: readoracontainerregistry.azurecr.io/readora-payment-service
-  newTag: latest
+  newTag: 84d6eeaf68f41484d196a814bf13d1db2094f616
