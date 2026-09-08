@@ -1,0 +1,31 @@
+# Auto-discovers one ArgoCD Application per k8s/overlays/* directory (today, just prod) and keeps it continuously synced to main — the pull-based counterpart to each service's CI workflow pushing an image tag into k8s/base. Apply once: kubectl apply -f k8s/argocd/applicationset.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: readora
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/Pavan-B-N/readora.git
+        revision: main
+        directories:
+          - path: k8s/overlays/*
+  template:
+    metadata:
+      name: 'readora-{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/Pavan-B-N/readora.git
+        targetRevision: main
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: readora
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
